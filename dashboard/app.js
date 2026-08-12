@@ -4,6 +4,10 @@
 // ============================================================
 
 
+// ============================================================
+// DATA
+// ============================================================
+
 let signals = {
 
     buy: [],
@@ -52,6 +56,8 @@ let portfolio = {
 
 
 let currentTab = "dashboard";
+
+let currentChartRows = null;
 
 
 // ============================================================
@@ -149,24 +155,10 @@ function escapeHtml(value) {
 
 
 // ============================================================
-// LOAD ALL DATA
+// LOAD DATA
 // ============================================================
 
 async function loadData() {
-
-    const refreshButton =
-        $("#refreshButton");
-
-
-    if (refreshButton) {
-
-        refreshButton.disabled = true;
-
-        refreshButton.textContent =
-            "↻ Loading...";
-
-    }
-
 
     try {
 
@@ -266,26 +258,17 @@ async function loadData() {
         }
 
 
-        console.log(
-            "Scanner data loaded",
-            signals
-        );
-
-
-        console.log(
-            "Portfolio loaded",
-            portfolio
-        );
-
-
         updateLastScan();
-
 
         render();
 
+        console.log(
+            "44 SMA data loaded successfully"
+        );
 
-        showRefreshStatus(
-            "✓ Data refreshed"
+        console.log(
+            "Portfolio:",
+            portfolio
         );
 
 
@@ -296,20 +279,9 @@ async function loadData() {
             error
         );
 
-
-        showRefreshStatus(
-            "⚠ Refresh failed"
+        renderError(
+            "Unable to load dashboard data."
         );
-
-    }
-
-
-    if (refreshButton) {
-
-        refreshButton.disabled = false;
-
-        refreshButton.textContent =
-            "↻ Refresh Data";
 
     }
 
@@ -317,44 +289,38 @@ async function loadData() {
 
 
 // ============================================================
-// REFRESH STATUS
+// ERROR
 // ============================================================
 
-function showRefreshStatus(text) {
+function renderError(message) {
 
-    const button =
-        $("#refreshButton");
+    const content =
+        $("#content");
 
-    if (!button) {
+    if (!content) {
         return;
     }
 
 
-    const original =
-        button.textContent;
+    content.innerHTML = `
 
+        <div class="panel">
 
-    button.textContent =
-        text;
+            <div class="empty">
 
+                ⚠️ ${escapeHtml(message)}
 
-    setTimeout(
-        () => {
+                <br><br>
 
-            if (
-                document.body.contains(
-                    button
-                )
-            ) {
+                Please reload the dashboard
+                after the latest GitHub Pages
+                deployment is complete.
 
-                button.textContent =
-                    original;
+            </div>
 
-            }
+        </div>
 
-        },
-        1500
-    );
+    `;
 
 }
 
@@ -390,6 +356,20 @@ function updateLastScan() {
         );
 
 
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        element.textContent =
+            "Last scan: —";
+
+        return;
+
+    }
+
+
     element.textContent =
         "Last scan: " +
         date.toLocaleString(
@@ -412,9 +392,14 @@ function signalBadge(signal) {
     if (signal === "BUY") {
 
         return `
-            <span class="signal-badge signal-buy">
+
+            <span class="
+                signal-badge
+                signal-buy
+            ">
                 BUY
             </span>
+
         `;
 
     }
@@ -423,9 +408,14 @@ function signalBadge(signal) {
     if (signal === "SELL") {
 
         return `
-            <span class="signal-badge signal-sell">
+
+            <span class="
+                signal-badge
+                signal-sell
+            ">
                 SELL
             </span>
+
         `;
 
     }
@@ -514,9 +504,11 @@ function stockRow(item) {
 
 
             <td class="muted">
+
                 ${escapeHtml(
                     item.date || "—"
                 )}
+
             </td>
 
         </tr>
@@ -604,10 +596,6 @@ function dashboardView() {
 
 
     return `
-
-        <!-- =================================================
-             SCANNER KPIs
-        ================================================== -->
 
         <div class="kpi-grid">
 
@@ -702,11 +690,10 @@ function dashboardView() {
 
 
 
-        <!-- =================================================
-             PORTFOLIO SUMMARY
-        ================================================== -->
-
-        <div class="panel portfolio-summary-panel">
+        <div class="
+            panel
+            portfolio-summary-panel
+        ">
 
             <div class="panel-header">
 
@@ -813,16 +800,14 @@ function dashboardView() {
                 class="portfolio-open-button"
                 data-tab="portfolio"
             >
+
                 View Portfolio →
+
             </button>
 
         </div>
 
 
-
-        <!-- =================================================
-             BUY / SELL
-        ================================================== -->
 
         <div class="two-column">
 
@@ -881,10 +866,6 @@ function dashboardView() {
         </div>
 
 
-
-        <!-- =================================================
-             STRATEGY
-        ================================================== -->
 
         <div class="panel">
 
@@ -952,7 +933,7 @@ function dashboardView() {
 
 
 // ============================================================
-// SIGNAL PAGE
+// BUY / SELL PAGE
 // ============================================================
 
 function signalPage(type) {
@@ -1032,10 +1013,16 @@ function portfolioPage() {
         portfolio.closedTrades || [];
 
 
+    const totalPnL =
+        Number(
+            portfolio.totalPnL || 0
+        );
+
+
     return `
 
         <!-- =================================================
-             PORTFOLIO HEADER
+             PORTFOLIO OVERVIEW
         ================================================== -->
 
         <div class="panel">
@@ -1049,11 +1036,13 @@ function portfolioPage() {
                         💼 My Portfolio
                     </h2>
 
-                    <div
-                        class="portfolio-subtitle"
-                    >
-                        ₹5,000 allocated to
-                        every BUY signal
+                    <div class="portfolio-subtitle">
+
+                        ₹${money(
+                            portfolio.allocationPerStock || 5000
+                        )}
+                        allocated to every BUY signal
+
                     </div>
 
                 </div>
@@ -1068,11 +1057,6 @@ function portfolioPage() {
 
             </div>
 
-
-
-            <!-- =================================================
-                 PORTFOLIO KPIs
-            ================================================== -->
 
             <div class="portfolio-summary-grid">
 
@@ -1119,13 +1103,15 @@ function portfolioPage() {
 
                     <div class="
                         portfolio-stat-value
-                        ${pnlClass(
-                            portfolio.totalPnL
-                        )}
+                        ${pnlClass(totalPnL)}
                     ">
 
-                        ₹${money(
-                            portfolio.totalPnL
+                        ${
+                            totalPnL >= 0
+                                ? "+"
+                                : ""
+                        }₹${money(
+                            Math.abs(totalPnL)
                         )}
 
                     </div>
@@ -1136,14 +1122,12 @@ function portfolioPage() {
                 <div class="portfolio-stat">
 
                     <div class="portfolio-stat-label">
-                        RETURN
+                        TOTAL RETURN
                     </div>
 
                     <div class="
                         portfolio-stat-value
-                        ${pnlClass(
-                            portfolio.totalPnL
-                        )}
+                        ${pnlClass(totalPnL)}
                     ">
 
                         ${percentage(
@@ -1157,13 +1141,12 @@ function portfolioPage() {
 
             </div>
 
-
         </div>
 
 
 
         <!-- =================================================
-             OPEN POSITIONS
+             P&L BREAKDOWN
         ================================================== -->
 
         <div class="panel">
@@ -1172,157 +1155,7 @@ function portfolioPage() {
             <div class="panel-header">
 
                 <h2 class="panel-title">
-                    Open Positions
-                </h2>
-
-                <span class="panel-count">
-
-                    ${positions.length}
-                    stocks
-
-                </span>
-
-            </div>
-
-
-            ${
-                positions.length === 0
-                    ? `
-                        <div class="empty">
-                            No open positions.
-                        </div>
-                    `
-                    : `
-                        <div class="table-wrap">
-
-                            <table class="table portfolio-table">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Stock</th>
-                                        <th>Qty</th>
-                                        <th>Buy Price</th>
-                                        <th>Current</th>
-                                        <th>Invested</th>
-                                        <th>Value</th>
-                                        <th>P&L</th>
-                                        <th>Return</th>
-                                        <th>Buy Date</th>
-
-                                    </tr>
-
-                                </thead>
-
-
-                                <tbody>
-
-                                    ${positions
-                                        .map(
-                                            portfolioRow
-                                        )
-                                        .join("")}
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-                    `
-            }
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             REALIZED TRADES
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    Closed Trades
-                </h2>
-
-                <span class="panel-count">
-
-                    ${trades.length}
-                    trades
-
-                </span>
-
-            </div>
-
-
-            ${
-                trades.length === 0
-                    ? `
-                        <div class="empty">
-                            No closed trades yet.
-                        </div>
-                    `
-                    : `
-                        <div class="table-wrap">
-
-                            <table class="table portfolio-table">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Stock</th>
-                                        <th>Qty</th>
-                                        <th>Buy</th>
-                                        <th>Sell</th>
-                                        <th>Invested</th>
-                                        <th>Sell Value</th>
-                                        <th>P&L</th>
-                                        <th>Return</th>
-                                        <th>Result</th>
-
-                                    </tr>
-
-                                </thead>
-
-
-                                <tbody>
-
-                                    ${trades
-                                        .map(
-                                            closedTradeRow
-                                        )
-                                        .join("")}
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-                    `
-            }
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             PORTFOLIO STATISTICS
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    Portfolio Statistics
+                    P&L Breakdown
                 </h2>
 
             </div>
@@ -1344,8 +1177,18 @@ function portfolioPage() {
                         )}
                     ">
 
-                        ₹${money(
-                            portfolio.realizedPnL
+                        ${
+                            Number(
+                                portfolio.realizedPnL || 0
+                            ) >= 0
+                                ? "+"
+                                : ""
+                        }₹${money(
+                            Math.abs(
+                                Number(
+                                    portfolio.realizedPnL || 0
+                                )
+                            )
                         )}
 
                     </div>
@@ -1366,8 +1209,18 @@ function portfolioPage() {
                         )}
                     ">
 
-                        ₹${money(
-                            portfolio.unrealizedPnL
+                        ${
+                            Number(
+                                portfolio.unrealizedPnL || 0
+                            ) >= 0
+                                ? "+"
+                                : ""
+                        }₹${money(
+                            Math.abs(
+                                Number(
+                                    portfolio.unrealizedPnL || 0
+                                )
+                            )
                         )}
 
                     </div>
@@ -1413,6 +1266,266 @@ function portfolioPage() {
 
             </div>
 
+        </div>
+
+
+
+        <!-- =================================================
+             OPEN POSITIONS
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    📈 Open Positions
+                </h2>
+
+                <span class="panel-count">
+
+                    ${positions.length}
+                    stocks
+
+                </span>
+
+            </div>
+
+
+            ${
+                positions.length === 0
+
+                    ? `
+
+                        <div class="empty">
+
+                            No open positions.
+
+                        </div>
+
+                    `
+
+                    : `
+
+                        <div class="table-wrap">
+
+                            <table class="
+                                table
+                                portfolio-table
+                            ">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Stock</th>
+                                        <th>Qty</th>
+                                        <th>Buy Price</th>
+                                        <th>Current</th>
+                                        <th>Invested</th>
+                                        <th>Value</th>
+                                        <th>P&L</th>
+                                        <th>Return</th>
+                                        <th>Buy Date</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    ${positions
+                                        .map(
+                                            portfolioRow
+                                        )
+                                        .join("")}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    `
+            }
+
+        </div>
+
+
+
+        <!-- =================================================
+             CLOSED TRADES
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    📕 Closed Trades
+                </h2>
+
+                <span class="panel-count">
+
+                    ${trades.length}
+                    trades
+
+                </span>
+
+            </div>
+
+
+            ${
+                trades.length === 0
+
+                    ? `
+
+                        <div class="empty">
+
+                            No closed trades yet.
+
+                        </div>
+
+                    `
+
+                    : `
+
+                        <div class="table-wrap">
+
+                            <table class="
+                                table
+                                portfolio-table
+                            ">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Stock</th>
+                                        <th>Qty</th>
+                                        <th>Buy</th>
+                                        <th>Sell</th>
+                                        <th>Invested</th>
+                                        <th>Sell Value</th>
+                                        <th>P&L</th>
+                                        <th>Return</th>
+                                        <th>Result</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    ${trades
+                                        .map(
+                                            closedTradeRow
+                                        )
+                                        .join("")}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    `
+            }
+
+        </div>
+
+
+
+        <!-- =================================================
+             TRADE STATISTICS
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    📊 Portfolio Statistics
+                </h2>
+
+            </div>
+
+
+            <div class="portfolio-summary-grid">
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        OPEN POSITIONS
+                    </div>
+
+                    <div class="portfolio-stat-value">
+
+                        ${portfolio.openPositionsCount || 0}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        TOTAL CLOSED TRADES
+                    </div>
+
+                    <div class="portfolio-stat-value">
+
+                        ${portfolio.totalTrades || 0}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        WINNING
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        green
+                    ">
+
+                        ${portfolio.winningTrades || 0}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        LOSING
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        red
+                    ">
+
+                        ${portfolio.losingTrades || 0}
+
+                    </div>
+
+                </div>
+
+
+            </div>
 
         </div>
 
@@ -1422,7 +1535,7 @@ function portfolioPage() {
 
 
 // ============================================================
-// PORTFOLIO ROW
+// OPEN POSITION ROW
 // ============================================================
 
 function portfolioRow(position) {
@@ -1502,15 +1615,24 @@ function portfolioRow(position) {
             </td>
 
 
-            <td class="${pnlClass(pnl)}">
+            <td class="
+                ${pnlClass(pnl)}
+            ">
 
-                ${pnl >= 0 ? "+" : ""}
-                ₹${money(Math.abs(pnl))}
+                ${
+                    pnl >= 0
+                        ? "+"
+                        : "-"
+                }₹${money(
+                    Math.abs(pnl)
+                )}
 
             </td>
 
 
-            <td class="${pnlClass(pnl)}">
+            <td class="
+                ${pnlClass(pnl)}
+            ">
 
                 ${percentage(
                     position.unrealizedPnLPercent
@@ -1616,15 +1738,24 @@ function closedTradeRow(trade) {
             </td>
 
 
-            <td class="${pnlClass(pnl)}">
+            <td class="
+                ${pnlClass(pnl)}
+            ">
 
-                ${pnl >= 0 ? "+" : ""}
-                ₹${money(Math.abs(pnl))}
+                ${
+                    pnl >= 0
+                        ? "+"
+                        : "-"
+                }₹${money(
+                    Math.abs(pnl)
+                )}
 
             </td>
 
 
-            <td class="${pnlClass(pnl)}">
+            <td class="
+                ${pnlClass(pnl)}
+            ">
 
                 ${percentage(
                     trade.pnlPercent
@@ -1752,7 +1883,7 @@ function render() {
     }
 
 
-    if (
+    else if (
         currentTab ===
         "buy"
     ) {
@@ -1770,7 +1901,7 @@ function render() {
     }
 
 
-    if (
+    else if (
         currentTab ===
         "sell"
     ) {
@@ -1788,7 +1919,7 @@ function render() {
     }
 
 
-    if (
+    else if (
         currentTab ===
         "portfolio"
     ) {
@@ -1806,7 +1937,7 @@ function render() {
     }
 
 
-    if (
+    else if (
         currentTab ===
         "history"
     ) {
@@ -1824,83 +1955,126 @@ function render() {
     }
 
 
+    updateActiveSidebar();
+
     setupSearch();
 
     setupStockButtons();
-
-    setupPortfolioButtons();
 
 }
 
 
 // ============================================================
-// PORTFOLIO BUTTON
+// SIDEBAR ACTIVE STATE
 // ============================================================
 
-function setupPortfolioButtons() {
+function updateActiveSidebar() {
 
     document
         .querySelectorAll(
-            "[data-tab='portfolio']"
+            ".nav-item"
         )
         .forEach(
             button => {
 
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        currentTab =
-                            "portfolio";
-
-
-                        document
-                            .querySelectorAll(
-                                ".nav-item"
-                            )
-                            .forEach(
-                                item => {
-
-                                    item.classList
-                                        .remove(
-                                            "active"
-                                        );
-
-                                }
-                            );
-
-
-                        const nav =
-                            document.querySelector(
-                                ".nav-item[data-tab='portfolio']"
-                            );
-
-
-                        if (nav) {
-
-                            nav.classList.add(
-                                "active"
-                            );
-
-                        }
-
-
-                        render();
-
-                        window.scrollTo(
-                            {
-                                top: 0,
-                                behavior: "smooth"
-                            }
-                        );
-
-                    }
+                button.classList.toggle(
+                    "active",
+                    button.dataset.tab ===
+                    currentTab
                 );
 
             }
         );
 
 }
+
+
+// ============================================================
+// CHANGE TAB
+// ============================================================
+
+function goToTab(tab) {
+
+    if (!tab) {
+        return;
+    }
+
+
+    const validTabs = [
+
+        "dashboard",
+        "buy",
+        "sell",
+        "portfolio",
+        "history"
+
+    ];
+
+
+    if (
+        !validTabs.includes(tab)
+    ) {
+
+        return;
+
+    }
+
+
+    currentTab =
+        tab;
+
+
+    render();
+
+
+    window.scrollTo(
+        {
+            top: 0,
+            behavior: "smooth"
+        }
+    );
+
+}
+
+
+// ============================================================
+// IMPORTANT:
+// ONE NAVIGATION HANDLER
+// ============================================================
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const target =
+            event.target.closest(
+                "[data-tab]"
+            );
+
+
+        if (!target) {
+            return;
+        }
+
+
+        const tab =
+            target.dataset.tab;
+
+
+        if (!tab) {
+            return;
+        }
+
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+
+        goToTab(tab);
+
+    }
+);
 
 
 // ============================================================
@@ -2374,11 +2548,7 @@ function createChartModal() {
             >
 
                 <span>
-                    <b
-                        style="
-                            color:#f0b90b
-                        "
-                    >
+                    <b style="color:#f0b90b">
                         ●
                     </b>
                     44 SMA
@@ -2386,11 +2556,7 @@ function createChartModal() {
 
 
                 <span>
-                    <b
-                        style="
-                            color:#5aa9ff
-                        "
-                    >
+                    <b style="color:#5aa9ff">
                         ●
                     </b>
                     100 SMA
@@ -2398,11 +2564,7 @@ function createChartModal() {
 
 
                 <span>
-                    <b
-                        style="
-                            color:#d88cff
-                        "
-                    >
+                    <b style="color:#d88cff">
                         ●
                     </b>
                     200 SMA
@@ -2451,31 +2613,6 @@ function createChartModal() {
             ) {
 
                 closeChart();
-
-            }
-
-        }
-    );
-
-
-    window.addEventListener(
-        "resize",
-        () => {
-
-            if (
-                modal.style.display ===
-                "flex"
-            ) {
-
-                if (
-                    window.currentChartRows
-                ) {
-
-                    drawStockChart(
-                        window.currentChartRows
-                    );
-
-                }
 
             }
 
@@ -2538,9 +2675,7 @@ async function openStockChart(
 
         <span>
             Close:
-            <strong
-                style="color:#fff"
-            >
+            <strong style="color:#fff">
                 ₹${money(item.Close)}
             </strong>
         </span>
@@ -2548,9 +2683,7 @@ async function openStockChart(
 
         <span>
             44 SMA:
-            <strong
-                style="color:#f0b90b"
-            >
+            <strong style="color:#f0b90b">
                 ₹${money(item.sma44)}
             </strong>
         </span>
@@ -2558,9 +2691,7 @@ async function openStockChart(
 
         <span>
             100 SMA:
-            <strong
-                style="color:#5aa9ff"
-            >
+            <strong style="color:#5aa9ff">
                 ₹${money(item.sma100)}
             </strong>
         </span>
@@ -2568,9 +2699,7 @@ async function openStockChart(
 
         <span>
             200 SMA:
-            <strong
-                style="color:#d88cff"
-            >
+            <strong style="color:#d88cff">
                 ₹${money(item.sma200)}
             </strong>
         </span>
@@ -2578,9 +2707,7 @@ async function openStockChart(
 
         <span>
             Date:
-            <strong
-                style="color:#fff"
-            >
+            <strong style="color:#fff">
                 ${escapeHtml(
                     item.date || "—"
                 )}
@@ -2627,7 +2754,7 @@ async function openStockChart(
         }
 
 
-        const visibleRows =
+        currentChartRows =
             rows.slice(
                 Math.max(
                     0,
@@ -2636,16 +2763,12 @@ async function openStockChart(
             );
 
 
-        window.currentChartRows =
-            visibleRows;
-
-
         loading.style.display =
             "none";
 
 
         drawStockChart(
-            visibleRows
+            currentChartRows
         );
 
 
@@ -2692,7 +2815,7 @@ function closeChart() {
         "";
 
 
-    window.currentChartRows =
+    currentChartRows =
         null;
 
 }
@@ -2714,6 +2837,7 @@ function drawStockChart(
 
     if (
         !canvas ||
+        !rows ||
         !rows.length
     ) {
 
@@ -2858,9 +2982,7 @@ function drawStockChart(
         ) * 0.08;
 
 
-    if (
-        padding === 0
-    ) {
+    if (!padding) {
 
         padding =
             maxPrice * 0.02;
@@ -2921,20 +3043,15 @@ function drawStockChart(
     }
 
 
-    // ========================================================
     // GRID
-    // ========================================================
 
-    ctx.lineWidth =
-        1;
-
+    ctx.lineWidth = 1;
 
     ctx.strokeStyle =
         "#182536";
 
 
-    const gridLines =
-        6;
+    const gridLines = 6;
 
 
     for (
@@ -3002,9 +3119,7 @@ function drawStockChart(
     }
 
 
-    // ========================================================
     // CANDLES
-    // ========================================================
 
     const candleWidth =
         Math.max(
@@ -3023,27 +3138,16 @@ function drawStockChart(
         ) => {
 
             const open =
-                Number(
-                    row.open
-                );
-
+                Number(row.open);
 
             const high =
-                Number(
-                    row.high
-                );
-
+                Number(row.high);
 
             const low =
-                Number(
-                    row.low
-                );
-
+                Number(row.low);
 
             const close =
-                Number(
-                    row.close
-                );
+                Number(row.close);
 
 
             if (
@@ -3063,33 +3167,23 @@ function drawStockChart(
 
 
             const x =
-                xPosition(
-                    index
-                );
+                xPosition(index);
 
 
             const yHigh =
-                priceY(
-                    high
-                );
+                priceY(high);
 
 
             const yLow =
-                priceY(
-                    low
-                );
+                priceY(low);
 
 
             const yOpen =
-                priceY(
-                    open
-                );
+                priceY(open);
 
 
             const yClose =
-                priceY(
-                    close
-                );
+                priceY(close);
 
 
             const bullish =
@@ -3108,12 +3202,6 @@ function drawStockChart(
                     : "#ff5d6c";
 
 
-            ctx.lineWidth =
-                1;
-
-
-            // Wick
-
             ctx.beginPath();
 
 
@@ -3131,8 +3219,6 @@ function drawStockChart(
 
             ctx.stroke();
 
-
-            // Body
 
             const bodyTop =
                 Math.min(
@@ -3173,9 +3259,7 @@ function drawStockChart(
     );
 
 
-    // ========================================================
     // SMA LINES
-    // ========================================================
 
     drawLine(
         ctx,
@@ -3207,9 +3291,7 @@ function drawStockChart(
     );
 
 
-    // ========================================================
     // DATES
-    // ========================================================
 
     ctx.fillStyle =
         "#7d8fa8";
@@ -3256,9 +3338,7 @@ function drawStockChart(
 
 
         const x =
-            xPosition(
-                index
-            );
+            xPosition(index);
 
 
         const date =
@@ -3276,16 +3356,8 @@ function drawStockChart(
     }
 
 
-    // ========================================================
-    // BORDER
-    // ========================================================
-
     ctx.strokeStyle =
         "#26364d";
-
-
-    ctx.lineWidth =
-        1;
 
 
     ctx.strokeRect(
@@ -3350,15 +3422,11 @@ function drawLine(
 
 
             const x =
-                xPosition(
-                    index
-                );
+                xPosition(index);
 
 
             const y =
-                priceY(
-                    value
-                );
+                priceY(value);
 
 
             if (!started) {
@@ -3394,81 +3462,6 @@ function drawLine(
 
 
 // ============================================================
-// NAVIGATION
-// ============================================================
-
-document
-    .querySelectorAll(
-        ".nav-item"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    currentTab =
-                        button.dataset.tab;
-
-
-                    document
-                        .querySelectorAll(
-                            ".nav-item"
-                        )
-                        .forEach(
-                            item => {
-
-                                item.classList
-                                    .remove(
-                                        "active"
-                                    );
-
-                            }
-                        );
-
-
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    render();
-
-
-                    window.scrollTo(
-                        {
-                            top: 0,
-                            behavior: "smooth"
-                        }
-                    );
-
-                }
-            );
-
-        }
-    );
-
-
-// ============================================================
-// REFRESH DATA
-// ============================================================
-
-const refreshButton =
-    $("#refreshButton");
-
-
-if (refreshButton) {
-
-    refreshButton.addEventListener(
-        "click",
-        loadData
-    );
-
-}
-
-
-// ============================================================
 // ESC CLOSE
 // ============================================================
 
@@ -3482,6 +3475,37 @@ document.addEventListener(
         ) {
 
             closeChart();
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// CHART RESIZE
+// ============================================================
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        const modal =
+            document.getElementById(
+                "stockChartModal"
+            );
+
+
+        if (
+            modal &&
+            modal.style.display ===
+            "flex" &&
+            currentChartRows
+        ) {
+
+            drawStockChart(
+                currentChartRows
+            );
 
         }
 
