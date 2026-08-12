@@ -1,3 +1,159 @@
-<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>44 SMA Scanner Pro</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="app"><aside><div class="brand">44 SMA<span>PRO</span></div><nav><button data-tab="dashboard" class="active">Dashboard</button><button data-tab="buy">BUY</button><button data-tab="sell">SELL</button><button data-tab="history">History</button></nav><div class="side-note">Daily NSE scanner<br>44 / 100 / 200 SMA</div></aside><main><header><div><div class="eyebrow">NSE DAILY SCANNER</div><h1 id="title">Dashboard</h1></div><button id="refresh" class="ghost">Refresh</button></header><section id="content"></section></main></div><div id="modal" class="modal hidden"><div class="modal-card"><button id="close" class="close">×</button><div id="modalBody"></div></div></div><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>44 SMA Scanner Pro</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-main">44 SMA</div>
+            <div class="logo-sub">SCANNER PRO</div>
+        </div>
+
+        <nav>
+
+            <button
+                class="nav-item active"
+                data-tab="dashboard"
+            >
+                <span>⌂</span>
+                Dashboard
+            </button>
+
+            <button
+                class="nav-item"
+                data-tab="buy"
+            >
+                <span class="green-dot"></span>
+                BUY
+            </button>
+
+            <button
+                class="nav-item"
+                data-tab="sell"
+            >
+                <span class="red-dot"></span>
+                SELL
+            </button>
+
+            <button
+                class="nav-item"
+                data-tab="history"
+            >
+                <span>◷</span>
+                History
+            </button>
+
+        </nav>
+
+        <div class="strategy-box">
+
+            <div class="strategy-title">
+                STRATEGY
+            </div>
+
+            <div class="strategy-line">
+                44 SMA
+            </div>
+
+            <div class="strategy-line">
+                100 SMA
+            </div>
+
+            <div class="strategy-line">
+                200 SMA
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+
+                <div class="eyebrow">
+                    NSE DAILY SCANNER
+                </div>
+
+                <h1 id="pageTitle">
+                    Dashboard
+                </h1>
+
+            </div>
+
+            <div class="top-actions">
+
+                <div
+                    id="lastScan"
+                    class="last-scan"
+                >
+                    Last scan: —
+                </div>
+
+                <button
+                    id="refreshButton"
+                    class="refresh-button"
+                >
+                    ↻ Refresh
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section id="content"></section>
+
+    </main>
+
+</div>
+
+
+<div
+    id="stockModal"
+    class="modal hidden"
+>
+
+    <div class="modal-overlay"></div>
+
+    <div class="modal-card">
+
+        <button
+            id="closeModal"
+            class="modal-close"
+        >
+            ×
+        </button>
+
+        <div id="modalContent"></div>
+
+    </div>
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
