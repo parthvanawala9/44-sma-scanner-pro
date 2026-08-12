@@ -2,7 +2,7 @@
   "version": 1,
   "allocationPerStock": 5000,
   "createdAt": "2026-08-12T10:15:35.585004+00:00",
-  "updatedAt": "2026-08-12T10:57:26.408149+00:00",
+  "updatedAt": "2026-08-12T12:42:30.956695+00:00",
   "openPositions": [
     {
       "symbol": "BHEL",
@@ -17,7 +17,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
     },
     {
       "symbol": "DATAPATTNS",
@@ -32,7 +32,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
     },
     {
       "symbol": "NAM-INDIA",
@@ -47,7 +47,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
     },
     {
       "symbol": "SCI",
@@ -62,7 +62,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
     },
     {
       "symbol": "SPLPETRO",
@@ -77,7 +77,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
     },
     {
       "symbol": "WELSPUNLIV",
@@ -92,17 +92,47 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
+    },
+    {
+      "symbol": "IKS",
+      "ticker": "IKS.NS",
+      "buyDate": "2026-08-12",
+      "buyTimestamp": "2026-08-12T12:42:30.956695+00:00",
+      "buyPrice": 1785.6,
+      "quantity": 2,
+      "invested": 3571.2,
+      "currentPrice": 1785.6,
+      "currentValue": 3571.2,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
+    },
+    {
+      "symbol": "OBEROIRLTY",
+      "ticker": "OBEROIRLTY.NS",
+      "buyDate": "2026-08-12",
+      "buyTimestamp": "2026-08-12T12:42:30.956695+00:00",
+      "buyPrice": 1799.9,
+      "quantity": 2,
+      "invested": 3599.8,
+      "currentPrice": 1799.9,
+      "currentValue": 3599.8,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-08-12T12:42:30.956695+00:00"
     }
   ],
   "closedTrades": [],
   "realizedPnL": 0.0,
   "unrealizedPnL": 0.0,
-  "totalInvested": 27931.8,
-  "totalCurrentValue": 27931.8,
+  "totalInvested": 35102.8,
+  "totalCurrentValue": 35102.8,
   "totalPnL": 0.0,
   "totalPnLPercent": 0.0,
-  "openPositionsCount": 6,
+  "openPositionsCount": 8,
   "totalTrades": 0,
   "winningTrades": 0,
   "losingTrades": 0
