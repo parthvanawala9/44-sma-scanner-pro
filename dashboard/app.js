@@ -59,6 +59,8 @@ let currentTab = "dashboard";
 
 let currentChartRows = null;
 
+let isLoadingData = false;
+
 
 // ============================================================
 // HELPERS
@@ -158,13 +160,41 @@ function escapeHtml(value) {
 // LOAD DATA
 // ============================================================
 
-async function loadData() {
+async function loadData(options = {}) {
+
+    if (isLoadingData) {
+        return;
+    }
+
+    isLoadingData = true;
+
+    const refreshButton =
+        findRefreshButton();
+
+    const originalRefreshText =
+        refreshButton
+            ? refreshButton.textContent
+            : null;
+
+    if (refreshButton) {
+
+        refreshButton.disabled = true;
+
+        refreshButton.dataset.loading = "true";
+
+        refreshButton.textContent =
+            "↻ Loading...";
+
+        refreshButton.style.opacity = "0.7";
+
+        refreshButton.style.cursor = "wait";
+
+    }
 
     try {
 
         const timestamp =
             Date.now();
-
 
         const [
             signalResponse,
@@ -173,31 +203,27 @@ async function loadData() {
         ] = await Promise.all([
 
             fetch(
-                "./data/signals.json?" +
-                timestamp,
+                "./data/signals.json?" + timestamp,
                 {
                     cache: "no-store"
                 }
             ),
 
             fetch(
-                "./data/history.json?" +
-                timestamp,
+                "./data/history.json?" + timestamp,
                 {
                     cache: "no-store"
                 }
             ),
 
             fetch(
-                "./data/portfolio.json?" +
-                timestamp,
+                "./data/portfolio.json?" + timestamp,
                 {
                     cache: "no-store"
                 }
             )
 
         ]);
-
 
         if (!signalResponse.ok) {
 
@@ -207,10 +233,8 @@ async function loadData() {
 
         }
 
-
         signals =
             await signalResponse.json();
-
 
         if (historyResponse.ok) {
 
@@ -223,7 +247,6 @@ async function loadData() {
 
         }
 
-
         if (portfolioResponse.ok) {
 
             portfolio =
@@ -231,32 +254,18 @@ async function loadData() {
 
         } else {
 
-            portfolio = {
-
-                allocationPerStock: 5000,
-
-                openPositions: [],
-                closedTrades: [],
-
-                realizedPnL: 0,
-                unrealizedPnL: 0,
-
-                totalInvested: 0,
-                totalCurrentValue: 0,
-
-                totalPnL: 0,
-                totalPnLPercent: 0,
-
-                openPositionsCount: 0,
-
-                totalTrades: 0,
-                winningTrades: 0,
-                losingTrades: 0
-
-            };
+            /*
+             * portfolio.json is optional.
+             * Keeping this fallback means the
+             * dashboard still works when the
+             * portfolio file has not been created
+             * by the scanner workflow yet.
+             */
+            portfolio = createEmptyPortfolio();
 
         }
 
+        normalizePortfolio();
 
         updateLastScan();
 
@@ -271,7 +280,6 @@ async function loadData() {
             portfolio
         );
 
-
     } catch (error) {
 
         console.error(
@@ -283,9 +291,259 @@ async function loadData() {
             "Unable to load dashboard data."
         );
 
+    } finally {
+
+        isLoadingData = false;
+
+        const button =
+            findRefreshButton();
+
+        if (button) {
+
+            button.disabled = false;
+
+            button.dataset.loading = "false";
+
+            button.textContent =
+                originalRefreshText ||
+                "↻ Refresh";
+
+            button.style.opacity = "";
+
+            button.style.cursor = "";
+
+        }
+
     }
 
 }
+
+// ============================================================
+// PORTFOLIO HELPERS
+// ============================================================
+
+function createEmptyPortfolio() {
+
+    return {
+
+        allocationPerStock: 5000,
+
+        openPositions: [],
+        closedTrades: [],
+
+        realizedPnL: 0,
+        unrealizedPnL: 0,
+
+        totalInvested: 0,
+        totalCurrentValue: 0,
+
+        totalPnL: 0,
+        totalPnLPercent: 0,
+
+        openPositionsCount: 0,
+
+        totalTrades: 0,
+        winningTrades: 0,
+        losingTrades: 0
+
+    };
+
+}
+
+
+function normalizePortfolio() {
+
+    if (!portfolio ||
+        typeof portfolio !== "object") {
+
+        portfolio =
+            createEmptyPortfolio();
+
+        return;
+
+    }
+
+    const defaults =
+        createEmptyPortfolio();
+
+    Object.keys(defaults).forEach(
+        key => {
+
+            if (
+                portfolio[key] === undefined ||
+                portfolio[key] === null
+            ) {
+
+                portfolio[key] =
+                    defaults[key];
+
+            }
+
+        }
+    );
+
+    if (!Array.isArray(
+        portfolio.openPositions
+    )) {
+
+        portfolio.openPositions = [];
+
+    }
+
+    if (!Array.isArray(
+        portfolio.closedTrades
+    )) {
+
+        portfolio.closedTrades = [];
+
+    }
+
+    portfolio.allocationPerStock =
+        Number(
+            portfolio.allocationPerStock
+        ) || 5000;
+
+    portfolio.realizedPnL =
+        Number(
+            portfolio.realizedPnL
+        ) || 0;
+
+    portfolio.unrealizedPnL =
+        Number(
+            portfolio.unrealizedPnL
+        ) || 0;
+
+    portfolio.totalInvested =
+        Number(
+            portfolio.totalInvested
+        ) || 0;
+
+    portfolio.totalCurrentValue =
+        Number(
+            portfolio.totalCurrentValue
+        ) || 0;
+
+    portfolio.totalPnL =
+        Number(
+            portfolio.totalPnL
+        ) || 0;
+
+    portfolio.totalPnLPercent =
+        Number(
+            portfolio.totalPnLPercent
+        ) || 0;
+
+    portfolio.openPositionsCount =
+        Number(
+            portfolio.openPositionsCount
+        ) ||
+        portfolio.openPositions.length;
+
+}
+
+
+function findRefreshButton() {
+
+    const selectors = [
+
+        "#refreshButton",
+        "#refreshBtn",
+        "#refresh",
+        "[data-action='refresh']",
+        "[data-refresh]"
+
+    ];
+
+    for (
+        const selector of selectors
+    ) {
+
+        const button =
+            document.querySelector(
+                selector
+            );
+
+        if (button) {
+
+            return button;
+
+        }
+
+    }
+
+    /*
+     * Fallback for the existing dashboard
+     * if the button has no id/data attribute.
+     */
+    const buttons =
+        Array.from(
+            document.querySelectorAll(
+                "button"
+            )
+        );
+
+    return buttons.find(
+        button =>
+            /refresh/i.test(
+                button.textContent || ""
+            )
+    ) || null;
+
+}
+
+
+function setupRefreshButton() {
+
+    const button =
+        findRefreshButton();
+
+    if (!button) {
+
+        return;
+
+    }
+
+    /*
+     * Prevent duplicate listeners when
+     * render() is called repeatedly.
+     */
+    if (
+        button.dataset.refreshBound ===
+        "true"
+    ) {
+
+        return;
+
+    }
+
+    button.dataset.refreshBound =
+        "true";
+
+    button.addEventListener(
+        "click",
+        event => {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            if (isLoadingData) {
+
+                return;
+
+            }
+
+            loadData({
+                manual: true
+            });
+
+        }
+    );
+
+}
+
+
+
 
 
 // ============================================================
@@ -1960,6 +2218,8 @@ function render() {
     setupSearch();
 
     setupStockButtons();
+
+    setupRefreshButton();
 
 }
 
