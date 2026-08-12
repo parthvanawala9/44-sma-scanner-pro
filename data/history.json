@@ -1,5 +1,61 @@
 [
   {
+    "scannedAt": "2026-08-12T05:06:16.277836+00:00",
+    "universe": "symbols.csv fallback",
+    "symbol": "BHARTIARTL",
+    "ticker": "BHARTIARTL.NS",
+    "date": "2026-08-12",
+    "signal": "SELL",
+    "Open": 1908.5999755859375,
+    "High": 1913.800048828125,
+    "Low": 1901.300048828125,
+    "Close": 1907.9000244140625,
+    "sma44": 1910.1840931285512,
+    "sma100": 1868.917000732422,
+    "sma200": 1948.9930041503906,
+    "sma44_10d": 1877.0863619717684,
+    "distanceFrom44": -0.11957322452349484,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-12T05:06:16.277836+00:00",
+    "universe": "symbols.csv fallback",
+    "symbol": "LT",
+    "ticker": "LT.NS",
+    "date": "2026-08-12",
+    "signal": "SELL",
+    "Open": 4038.0,
+    "High": 4044.10009765625,
+    "Low": 3993.699951171875,
+    "Close": 3999.89990234375,
+    "sma44": 4005.3840775923295,
+    "sma100": 3954.46099609375,
+    "sma200": 3977.504998779297,
+    "sma44_10d": 3989.6704489968038,
+    "distanceFrom44": -0.13692008412526935,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true
+    }
+  },
+  {
     "scannedAt": "2026-08-12T05:03:03.602706+00:00",
     "universe": "symbols.csv fallback",
     "symbol": "BHARTIARTL",

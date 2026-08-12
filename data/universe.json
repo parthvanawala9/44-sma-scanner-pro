@@ -1,0 +1,17 @@
+{
+  "updatedAt": "2026-08-12T05:06:16.277836+00:00",
+  "source": "symbols.csv fallback",
+  "count": 10,
+  "symbols": [
+    "RELIANCE",
+    "TCS",
+    "INFY",
+    "HDFCBANK",
+    "ICICIBANK",
+    "SBIN",
+    "ITC",
+    "LT",
+    "BHARTIARTL",
+    "AXISBANK"
+  ]
+}
