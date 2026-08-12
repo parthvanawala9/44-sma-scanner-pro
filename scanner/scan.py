@@ -23,7 +23,6 @@ PORTFOLIO_ALLOCATION = 5000
 ROOT = Path(__file__).resolve().parents[1]
 
 DATA = ROOT / "data"
-
 CHARTS = DATA / "charts"
 
 DATA.mkdir(exist_ok=True)
@@ -67,10 +66,7 @@ def get_nifty500_symbols():
     print("=" * 70)
 
     session = requests.Session()
-
-    session.headers.update(
-        HEADERS
-    )
+    session.headers.update(HEADERS)
 
     try:
 
@@ -114,10 +110,7 @@ def get_nifty500_symbols():
                 ""
             )
 
-            symbol = symbol.lstrip(
-                "$"
-            )
-
+            symbol = symbol.lstrip("$")
             symbol = symbol.strip()
 
             if not symbol:
@@ -131,10 +124,7 @@ def get_nifty500_symbols():
                 continue
 
             if symbol not in symbols:
-
-                symbols.append(
-                    symbol
-                )
+                symbols.append(symbol)
 
         if len(symbols) < 450:
 
@@ -145,37 +135,24 @@ def get_nifty500_symbols():
 
         print("")
         print(
-            f"CURRENT NIFTY 500 STOCKS: "
-            f"{len(symbols)}"
+            f"CURRENT NIFTY 500 STOCKS: {len(symbols)}"
         )
 
         print("")
-        print(
-            "First 10:"
-        )
-
-        print(
-            symbols[:10]
-        )
+        print("First 10:")
+        print(symbols[:10])
 
         return symbols
 
     except Exception as error:
 
         print("")
-        print(
-            "NIFTY 500 DOWNLOAD FAILED"
-        )
-
-        print(
-            str(error)
-        )
-
+        print("NIFTY 500 DOWNLOAD FAILED")
+        print(str(error))
         print("")
 
         raise Exception(
-            "Could not download current "
-            "NIFTY 500 list."
+            "Could not download current NIFTY 500 list."
         )
 
 
@@ -220,13 +197,8 @@ def download_batch(
 
     except Exception as error:
 
-        print(
-            "Batch download failed:"
-        )
-
-        print(
-            str(error)
-        )
+        print("Batch download failed:")
+        print(str(error))
 
         return None
 
@@ -298,70 +270,43 @@ def save_chart_data(
                     None
             }
 
-
-            if pd.notna(
-                row["sma44"]
-            ):
+            if pd.notna(row["sma44"]):
 
                 item["sma44"] = round(
-                    float(
-                        row["sma44"]
-                    ),
+                    float(row["sma44"]),
                     2
                 )
 
-
-            if pd.notna(
-                row["sma100"]
-            ):
+            if pd.notna(row["sma100"]):
 
                 item["sma100"] = round(
-                    float(
-                        row["sma100"]
-                    ),
+                    float(row["sma100"]),
                     2
                 )
 
-
-            if pd.notna(
-                row["sma200"]
-            ):
+            if pd.notna(row["sma200"]):
 
                 item["sma200"] = round(
-                    float(
-                        row["sma200"]
-                    ),
+                    float(row["sma200"]),
                     2
                 )
 
-
-            chart_rows.append(
-                item
-            )
-
+            chart_rows.append(item)
 
         chart_file = (
             CHARTS /
             f"{symbol}.json"
         )
 
-
         chart_file.write_text(
-
             json.dumps(
                 {
-                    "symbol":
-                        symbol,
-
-                    "ticker":
-                        f"{symbol}.NS",
-
-                    "data":
-                        chart_rows
+                    "symbol": symbol,
+                    "ticker": f"{symbol}.NS",
+                    "data": chart_rows
                 },
                 indent=2
             ),
-
             encoding="utf-8"
         )
 
@@ -370,15 +315,15 @@ def save_chart_data(
     except Exception as error:
 
         print(
-            f"Chart save failed for "
-            f"{symbol}: {error}"
+            f"Chart save failed for {symbol}: "
+            f"{error}"
         )
 
         return False
 
 
 # ============================================================
-# PORTFOLIO DEFAULT
+# EMPTY PORTFOLIO
 # ============================================================
 
 def empty_portfolio():
@@ -395,8 +340,7 @@ def empty_portfolio():
                 timezone.utc
             ).isoformat(),
 
-        "updatedAt":
-            None,
+        "updatedAt": None,
 
         "openPositions": [],
 
@@ -404,17 +348,17 @@ def empty_portfolio():
 
         "realizedPnL": 0,
 
-        "totalInvested":
-            0,
+        "unrealizedPnL": 0,
 
-        "totalCurrentValue":
-            0,
+        "totalInvested": 0,
 
-        "totalPnL":
-            0,
+        "totalCurrentValue": 0,
 
-        "totalPnLPercent":
-            0,
+        "totalPnL": 0,
+
+        "totalPnLPercent": 0,
+
+        "openPositionsCount": 0,
 
         "totalTrades": 0,
 
@@ -430,24 +374,21 @@ def empty_portfolio():
 
 def load_portfolio():
 
-    portfolio_file =
+    portfolio_file = (
         DATA / "portfolio.json"
-
+    )
 
     if not portfolio_file.exists():
 
         return empty_portfolio()
 
-
     try:
 
-        portfolio =
-            json.loads(
-                portfolio_file.read_text(
-                    encoding="utf-8"
-                )
+        portfolio = json.loads(
+            portfolio_file.read_text(
+                encoding="utf-8"
             )
-
+        )
 
         if not isinstance(
             portfolio,
@@ -456,34 +397,21 @@ def load_portfolio():
 
             return empty_portfolio()
 
-
         if "openPositions" not in portfolio:
-
             portfolio["openPositions"] = []
 
-
         if "closedTrades" not in portfolio:
-
             portfolio["closedTrades"] = []
 
-
         if "realizedPnL" not in portfolio:
-
             portfolio["realizedPnL"] = 0
-
 
         return portfolio
 
-
     except Exception as error:
 
-        print(
-            "Portfolio load failed:"
-        )
-
-        print(
-            str(error)
-        )
+        print("Portfolio load failed:")
+        print(str(error))
 
         return empty_portfolio()
 
@@ -492,21 +420,17 @@ def load_portfolio():
 # SAVE PORTFOLIO
 # ============================================================
 
-def save_portfolio(
-    portfolio
-):
+def save_portfolio(portfolio):
 
-    portfolio_file =
+    portfolio_file = (
         DATA / "portfolio.json"
-
+    )
 
     portfolio_file.write_text(
-
         json.dumps(
             portfolio,
             indent=2
         ),
-
         encoding="utf-8"
     )
 
@@ -517,6 +441,7 @@ def save_portfolio(
 
 def update_portfolio(
     portfolio,
+    results,
     buys,
     sells,
     scanned_at
@@ -527,22 +452,15 @@ def update_portfolio(
     print("UPDATING ₹5,000 PER STOCK PORTFOLIO")
     print("=" * 70)
 
-
-    open_positions = (
-        portfolio.get(
-            "openPositions",
-            []
-        )
+    open_positions = portfolio.get(
+        "openPositions",
+        []
     )
 
-
-    closed_trades = (
-        portfolio.get(
-            "closedTrades",
-            []
-        )
+    closed_trades = portfolio.get(
+        "closedTrades",
+        []
     )
-
 
     realized_pnl = float(
         portfolio.get(
@@ -551,6 +469,75 @@ def update_portfolio(
         )
     )
 
+    # ========================================================
+    # CREATE QUICK LOOKUP OF LATEST PRICES
+    # ========================================================
+
+    latest_prices = {}
+
+    for item in results:
+
+        symbol = item.get("symbol")
+
+        if symbol:
+
+            latest_prices[symbol] = item
+
+    # ========================================================
+    # UPDATE EXISTING POSITIONS WITH CURRENT PRICE
+    # ========================================================
+
+    for position in open_positions:
+
+        symbol = position["symbol"]
+
+        latest = latest_prices.get(
+            symbol
+        )
+
+        if latest is None:
+            continue
+
+        current_price = float(
+            latest["Close"]
+        )
+
+        position["currentPrice"] = round(
+            current_price,
+            2
+        )
+
+        position["currentValue"] = round(
+            position["quantity"] *
+            current_price,
+            2
+        )
+
+        position["unrealizedPnL"] = round(
+            position["currentValue"] -
+            position["invested"],
+            2
+        )
+
+        if position["invested"] > 0:
+
+            position[
+                "unrealizedPnLPercent"
+            ] = round(
+                (
+                    position["unrealizedPnL"] /
+                    position["invested"]
+                ) * 100,
+                2
+            )
+
+        else:
+
+            position[
+                "unrealizedPnLPercent"
+            ] = 0
+
+        position["lastUpdated"] = scanned_at
 
     # ========================================================
     # BUY SIGNALS
@@ -558,19 +545,12 @@ def update_portfolio(
 
     for item in buys:
 
-        symbol =
-            item["symbol"]
-
+        symbol = item["symbol"]
 
         already_held = any(
-
-            position["symbol"] ==
-            symbol
-
-            for position in
-            open_positions
+            position["symbol"] == symbol
+            for position in open_positions
         )
-
 
         if already_held:
 
@@ -581,25 +561,17 @@ def update_portfolio(
 
             continue
 
-
-        buy_price =
-            float(
-                item["Close"]
-            )
-
-
-        if buy_price <= 0:
-
-            continue
-
-
-        quantity = math.floor(
-
-            PORTFOLIO_ALLOCATION /
-            buy_price
-
+        buy_price = float(
+            item["Close"]
         )
 
+        if buy_price <= 0:
+            continue
+
+        quantity = math.floor(
+            PORTFOLIO_ALLOCATION /
+            buy_price
+        )
 
         if quantity <= 0:
 
@@ -611,10 +583,10 @@ def update_portfolio(
 
             continue
 
-
-        invested =
-            quantity * buy_price
-
+        invested = (
+            quantity *
+            buy_price
+        )
 
         position = {
 
@@ -664,14 +636,15 @@ def update_portfolio(
                 0,
 
             "signal":
-                "BUY"
-        }
+                "BUY",
 
+            "lastUpdated":
+                scanned_at
+        }
 
         open_positions.append(
             position
         )
-
 
         print(
             f"🟢 PORTFOLIO BUY "
@@ -680,43 +653,31 @@ def update_portfolio(
             f"₹{invested:.2f}"
         )
 
-
     # ========================================================
     # SELL SIGNALS
     # ========================================================
 
     for item in sells:
 
-        symbol =
-            item["symbol"]
+        symbol = item["symbol"]
 
-
-        sell_price =
-            float(
-                item["Close"]
-            )
-
+        sell_price = float(
+            item["Close"]
+        )
 
         position_index = None
-
 
         for index, position in enumerate(
             open_positions
         ):
 
-            if (
-                position["symbol"]
-                == symbol
-            ):
+            if position["symbol"] == symbol:
 
-                position_index =
-                    index
-
+                position_index = index
                 break
 
-
         # ----------------------------------------------------
-        # No position
+        # SELL SIGNAL BUT STOCK NOT HELD
         # ----------------------------------------------------
 
         if position_index is None:
@@ -728,48 +689,51 @@ def update_portfolio(
 
             continue
 
+        position = open_positions[
+            position_index
+        ]
 
-        position =
-            open_positions[
-                position_index
-            ]
+        quantity = int(
+            position["quantity"]
+        )
 
+        buy_price = float(
+            position["buyPrice"]
+        )
 
-        quantity =
-            int(
-                position["quantity"]
-            )
+        invested = float(
+            position["invested"]
+        )
 
+        sell_value = (
+            quantity *
+            sell_price
+        )
 
-        buy_price =
-            float(
-                position["buyPrice"]
-            )
+        trade_pnl = (
+            sell_value -
+            invested
+        )
 
+        if invested > 0:
 
-        invested =
-            float(
-                position["invested"]
-            )
+            trade_pnl_percent = (
+                trade_pnl /
+                invested
+            ) * 100
 
+        else:
 
-        sell_value =
-            quantity * sell_price
+            trade_pnl_percent = 0
 
+        if trade_pnl > 0:
+            result_text = "WIN"
 
-        trade_pnl =
-            sell_value - invested
+        elif trade_pnl < 0:
+            result_text = "LOSS"
 
-
-        trade_pnl_percent = (
-
-            (
-                sell_price /
-                buy_price
-            ) - 1
-
-        ) * 100
-
+        else:
+            result_text = "BREAKEVEN"
 
         closed_trade = {
 
@@ -831,44 +795,19 @@ def update_portfolio(
                 ),
 
             "result":
-                (
-                    "WIN"
-                    if trade_pnl > 0
-                    else
-                    "LOSS"
-                    if trade_pnl < 0
-                    else
-                    "BREAKEVEN"
-                )
+                result_text
         }
-
 
         closed_trades.insert(
             0,
             closed_trade
         )
 
-
-        realized_pnl += (
-            trade_pnl
-        )
-
+        realized_pnl += trade_pnl
 
         open_positions.pop(
             position_index
         )
-
-
-        if trade_pnl >= 0:
-
-            result_text =
-                "WIN"
-
-        else:
-
-            result_text =
-                "LOSS"
-
 
         print(
             f"🔴 PORTFOLIO SELL "
@@ -878,184 +817,110 @@ def update_portfolio(
             f"{result_text}"
         )
 
-
     # ========================================================
-    # UPDATE CURRENT VALUES
+    # FINAL CURRENT VALUE
     # ========================================================
 
     total_invested = 0
-
     total_current_value = 0
-
 
     for position in open_positions:
 
-        current_price =
-            float(
-                position.get(
-                    "currentPrice",
-                    position["buyPrice"]
-                )
-            )
-
-
-        # The latest scanner result
-        # gives us the latest close.
-
-        position["currentValue"] = round(
-
-            position["quantity"] *
-            current_price,
-
-            2
-
-        )
-
-
-        position["unrealizedPnL"] = round(
-
-            position["currentValue"] -
-            position["invested"],
-
-            2
-
-        )
-
-
-        if position["invested"] > 0:
-
-            position[
-                "unrealizedPnLPercent"
-            ] = round(
-
-                (
-                    position[
-                        "unrealizedPnL"
-                    ] /
-                    position["invested"]
-                ) * 100,
-
-                2
-
-            )
-
-        else:
-
-            position[
-                "unrealizedPnLPercent"
-            ] = 0
-
-
-        total_invested += (
+        total_invested += float(
             position["invested"]
         )
 
-
-        total_current_value += (
+        total_current_value += float(
             position["currentValue"]
         )
 
+    # ========================================================
+    # UNREALIZED P&L
+    # ========================================================
+
+    unrealized_pnl = (
+        total_current_value -
+        total_invested
+    )
 
     # ========================================================
     # TOTAL P&L
     # ========================================================
 
-    unrealized_pnl = (
-
-        total_current_value -
-        total_invested
-
-    )
-
-
     total_pnl = (
-
         realized_pnl +
         unrealized_pnl
-
     )
 
+    # Percentage based on capital
+    # deployed into currently open
+    # positions plus positive realized
+    # gains.
 
     capital_basis = (
-
         total_invested +
         max(
             0,
             realized_pnl
         )
-
     )
 
-
-    if capital_basis != 0:
+    if capital_basis > 0:
 
         total_pnl_percent = (
-
             total_pnl /
             capital_basis
-
         ) * 100
 
     else:
 
         total_pnl_percent = 0
 
-
     # ========================================================
-    # STATISTICS
+    # TRADE STATISTICS
     # ========================================================
 
     winning_trades = sum(
-
         1
-
         for trade in closed_trades
-
         if float(
             trade.get(
                 "pnl",
                 0
             )
         ) > 0
-
     )
 
-
     losing_trades = sum(
-
         1
-
         for trade in closed_trades
-
         if float(
             trade.get(
                 "pnl",
                 0
             )
         ) < 0
-
     )
 
+    # ========================================================
+    # SAVE PORTFOLIO
+    # ========================================================
 
     portfolio[
         "allocationPerStock"
     ] = PORTFOLIO_ALLOCATION
 
-
     portfolio[
         "updatedAt"
     ] = scanned_at
-
 
     portfolio[
         "openPositions"
     ] = open_positions
 
-
     portfolio[
         "closedTrades"
     ] = closed_trades[:10000]
-
 
     portfolio[
         "realizedPnL"
@@ -1064,14 +929,12 @@ def update_portfolio(
         2
     )
 
-
     portfolio[
         "unrealizedPnL"
     ] = round(
         unrealized_pnl,
         2
     )
-
 
     portfolio[
         "totalInvested"
@@ -1080,14 +943,12 @@ def update_portfolio(
         2
     )
 
-
     portfolio[
         "totalCurrentValue"
     ] = round(
         total_current_value,
         2
     )
-
 
     portfolio[
         "totalPnL"
@@ -1096,7 +957,6 @@ def update_portfolio(
         2
     )
 
-
     portfolio[
         "totalPnLPercent"
     ] = round(
@@ -1104,13 +964,11 @@ def update_portfolio(
         2
     )
 
-
     portfolio[
         "openPositionsCount"
     ] = len(
         open_positions
     )
-
 
     portfolio[
         "totalTrades"
@@ -1118,21 +976,21 @@ def update_portfolio(
         closed_trades
     )
 
-
     portfolio[
         "winningTrades"
     ] = winning_trades
-
 
     portfolio[
         "losingTrades"
     ] = losing_trades
 
-
     save_portfolio(
         portfolio
     )
 
+    # ========================================================
+    # REPORT
+    # ========================================================
 
     print("")
     print(
@@ -1143,6 +1001,11 @@ def update_portfolio(
     print(
         f"Realized P&L   : "
         f"₹{realized_pnl:.2f}"
+    )
+
+    print(
+        f"Unrealized P&L : "
+        f"₹{unrealized_pnl:.2f}"
     )
 
     print(
@@ -1158,6 +1021,11 @@ def update_portfolio(
     print(
         f"Total P&L      : "
         f"₹{total_pnl:.2f}"
+    )
+
+    print(
+        f"Total P&L %    : "
+        f"{total_pnl_percent:.2f}%"
     )
 
     print("=" * 70)
@@ -1207,7 +1075,6 @@ def process_stock(
         for column in required_columns:
 
             if column not in df.columns:
-
                 return None
 
         df = df.dropna(
@@ -1215,9 +1082,7 @@ def process_stock(
         ).copy()
 
         if len(df) < 210:
-
             return None
-
 
         # ====================================================
         # MOVING AVERAGES
@@ -1246,9 +1111,8 @@ def process_stock(
             .shift(10)
         )
 
-
         # ====================================================
-        # SAVE FULL CHART HISTORY
+        # SAVE CHART HISTORY
         # ====================================================
 
         save_chart_data(
@@ -1256,13 +1120,11 @@ def process_stock(
             df
         )
 
-
         # ====================================================
         # CURRENT DAY
         # ====================================================
 
         row = df.iloc[-1]
-
 
         required_values = [
             "Open",
@@ -1275,15 +1137,12 @@ def process_stock(
             "sma44_10d"
         ]
 
-
         for column in required_values:
 
             if pd.isna(
                 row[column]
             ):
-
                 return None
-
 
         open_price = float(
             row["Open"]
@@ -1317,18 +1176,8 @@ def process_stock(
             row["sma44_10d"]
         )
 
-
         # ====================================================
         # BUY STRATEGY
-        #
-        # ALL CONDITIONS:
-        #
-        # 1. 44 SMA > 44 SMA 10 days ago
-        # 2. Today's Low <= Today's 44 SMA
-        # 3. Today's Close > Today's 44 SMA
-        # 4. 44 SMA > 100 SMA
-        # 5. 100 SMA > 200 SMA
-        # 6. Today's candle is GREEN
         # ====================================================
 
         buy_checks = {
@@ -1352,16 +1201,12 @@ def process_stock(
                 close_price > open_price
         }
 
-
         buy = all(
             buy_checks.values()
         )
 
-
         # ====================================================
         # SELL STRATEGY
-        #
-        # UNCHANGED
         # ====================================================
 
         sell_checks = {
@@ -1373,11 +1218,9 @@ def process_stock(
                 close_price < sma44
         }
 
-
         sell = all(
             sell_checks.values()
         )
-
 
         if buy:
 
@@ -1391,16 +1234,12 @@ def process_stock(
 
             signal = "NONE"
 
-
         distance_from_44 = (
-
             (
                 close_price /
                 sma44
             ) - 1
-
         ) * 100
-
 
         return {
 
@@ -1452,7 +1291,6 @@ def process_stock(
                 sell_checks
         }
 
-
     except Exception as error:
 
         print(
@@ -1475,19 +1313,16 @@ def main():
     print("=" * 70)
     print("")
 
-
     # ========================================================
     # CURRENT NIFTY 500
     # ========================================================
 
     symbols = get_nifty500_symbols()
 
-
     print("")
     print(
         f"TOTAL UNIVERSE: {len(symbols)}"
     )
-
 
     # ========================================================
     # BATCHES
@@ -1496,9 +1331,7 @@ def main():
     batch_size = 50
 
     batches = [
-
         symbols[i:i + batch_size]
-
         for i in range(
             0,
             len(symbols),
@@ -1506,11 +1339,8 @@ def main():
         )
     ]
 
-
     results = []
-
     skipped = []
-
 
     # ========================================================
     # SCAN
@@ -1521,27 +1351,18 @@ def main():
         start=1
     ):
 
-
         batch_data = download_batch(
-
             batch_symbols,
-
             batch_number,
-
             len(batches)
         )
 
-
         for symbol in batch_symbols:
 
-
             result = process_stock(
-
                 symbol,
-
                 batch_data
             )
-
 
             if result is None:
 
@@ -1551,11 +1372,9 @@ def main():
 
                 continue
 
-
             results.append(
                 result
             )
-
 
             if result["signal"] == "BUY":
 
@@ -1563,46 +1382,33 @@ def main():
                     f"🟢 BUY  {symbol}"
                 )
 
-
             elif result["signal"] == "SELL":
 
                 print(
                     f"🔴 SELL {symbol}"
                 )
 
-
     # ========================================================
     # BUY / SELL
     # ========================================================
 
     buys = [
-
         item
-
         for item in results
-
         if item["signal"] == "BUY"
-
     ]
-
 
     sells = [
-
         item
-
         for item in results
-
         if item["signal"] == "SELL"
-
     ]
-
 
     scanned_at = (
         datetime.now(
             timezone.utc
         ).isoformat()
     )
-
 
     # ========================================================
     # SIGNALS
@@ -1644,41 +1450,33 @@ def main():
             sells
     }
 
-
     (
         DATA /
         "signals.json"
     ).write_text(
-
         json.dumps(
             signals,
             indent=2
         ),
-
         encoding="utf-8"
     )
-
 
     # ========================================================
     # HISTORY
     # ========================================================
 
     history_file = (
-        DATA /
-        "history.json"
+        DATA / "history.json"
     )
-
 
     if history_file.exists():
 
         try:
 
             history = json.loads(
-
                 history_file.read_text(
                     encoding="utf-8"
                 )
-
             )
 
         except Exception:
@@ -1689,20 +1487,13 @@ def main():
 
         history = []
 
-
-    # Add EVERY BUY and SELL
-    # from this scan.
-
     for item in (
         buys + sells
     ):
 
         history.insert(
-
             0,
-
             {
-
                 "scannedAt":
                     scanned_at,
 
@@ -1710,46 +1501,32 @@ def main():
                     "NIFTY 500",
 
                 **item
-
             }
-
         )
-
 
     history = history[:10000]
 
-
     history_file.write_text(
-
         json.dumps(
             history,
             indent=2
         ),
-
         encoding="utf-8"
     )
-
 
     # ========================================================
     # PORTFOLIO
     # ========================================================
 
-    portfolio =
-        load_portfolio()
-
+    portfolio = load_portfolio()
 
     update_portfolio(
-
         portfolio,
-
+        results,
         buys,
-
         sells,
-
         scanned_at
-
     )
-
 
     # ========================================================
     # UNIVERSE
@@ -1768,23 +1545,18 @@ def main():
 
         "symbols":
             symbols
-
     }
-
 
     (
         DATA /
         "universe.json"
     ).write_text(
-
         json.dumps(
             universe,
             indent=2
         ),
-
         encoding="utf-8"
     )
-
 
     # ========================================================
     # SKIPPED
@@ -1800,23 +1572,18 @@ def main():
 
         "symbols":
             skipped
-
     }
-
 
     (
         DATA /
         "skipped.json"
     ).write_text(
-
         json.dumps(
             skipped_data,
             indent=2
         ),
-
         encoding="utf-8"
     )
-
 
     # ========================================================
     # FINAL REPORT
@@ -1829,7 +1596,6 @@ def main():
             )
         )
     )
-
 
     print("")
     print("=" * 70)
@@ -1878,8 +1644,23 @@ def main():
     )
 
     print(
+        f"Portfolio invested    : "
+        f"₹{portfolio['totalInvested']:.2f}"
+    )
+
+    print(
+        f"Portfolio value       : "
+        f"₹{portfolio['totalCurrentValue']:.2f}"
+    )
+
+    print(
         f"Portfolio total P&L   : "
         f"₹{portfolio['totalPnL']:.2f}"
+    )
+
+    print(
+        f"Portfolio P&L %       : "
+        f"{portfolio['totalPnLPercent']:.2f}%"
     )
 
     print("=" * 70)
@@ -1891,5 +1672,4 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-
     main()
