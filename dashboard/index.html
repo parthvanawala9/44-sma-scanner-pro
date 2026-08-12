@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -14,18 +16,34 @@
         rel="stylesheet"
         href="style.css"
     >
+
 </head>
+
 
 <body>
 
+
 <div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
     <aside class="sidebar">
 
         <div class="logo">
-            <div class="logo-main">44 SMA</div>
-            <div class="logo-sub">SCANNER PRO</div>
+
+            <div class="logo-main">
+                44 SMA
+            </div>
+
+            <div class="logo-sub">
+                SCANNER PRO
+            </div>
+
         </div>
+
 
         <nav>
 
@@ -37,6 +55,7 @@
                 Dashboard
             </button>
 
+
             <button
                 class="nav-item"
                 data-tab="buy"
@@ -45,6 +64,7 @@
                 BUY
             </button>
 
+
             <button
                 class="nav-item"
                 data-tab="sell"
@@ -52,6 +72,16 @@
                 <span class="red-dot"></span>
                 SELL
             </button>
+
+
+            <button
+                class="nav-item"
+                data-tab="portfolio"
+            >
+                <span>▣</span>
+                Portfolio
+            </button>
+
 
             <button
                 class="nav-item"
@@ -62,6 +92,7 @@
             </button>
 
         </nav>
+
 
         <div class="strategy-box">
 
@@ -81,12 +112,22 @@
                 200 SMA
             </div>
 
+            <div class="strategy-line">
+                ₹5,000 / BUY
+            </div>
+
         </div>
 
     </aside>
 
 
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
     <main class="main">
+
 
         <header class="topbar">
 
@@ -102,6 +143,7 @@
 
             </div>
 
+
             <div class="top-actions">
 
                 <div
@@ -111,11 +153,13 @@
                     Last scan: —
                 </div>
 
+
                 <button
                     id="refreshButton"
                     class="refresh-button"
+                    type="button"
                 >
-                    ↻ Refresh
+                    ↻ Refresh Data
                 </button>
 
             </div>
@@ -125,10 +169,16 @@
 
         <section id="content"></section>
 
+
     </main>
 
 </div>
 
+
+
+<!-- =========================================================
+     STOCK MODAL
+========================================================== -->
 
 <div
     id="stockModal"
@@ -142,6 +192,7 @@
         <button
             id="closeModal"
             class="modal-close"
+            type="button"
         >
             ×
         </button>
@@ -153,7 +204,10 @@
 </div>
 
 
+
 <script src="app.js"></script>
 
+
 </body>
+
 </html>
