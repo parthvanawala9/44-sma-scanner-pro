@@ -6,7 +6,7 @@ let signals = {
     scannedAt: null,
     buyCount: 0,
     sellCount: 0,
-    universe: "",
+    universe: "NIFTY 500",
     universeCount: 0
 };
 
@@ -14,6 +14,10 @@ let history = [];
 
 let currentTab = "dashboard";
 
+
+// ============================================================
+// HELPERS
+// ============================================================
 
 const $ = (selector) => {
     return document.querySelector(selector);
@@ -48,26 +52,42 @@ function percentage(value) {
 }
 
 
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+// ============================================================
+// LOAD DATA
+// ============================================================
+
 async function loadData() {
 
     try {
 
-        /*
-         * IMPORTANT:
-         * GitHub Pages publishes index.html at the root.
-         * Therefore data is inside ./data/
-         */
-
         const signalResponse = await fetch(
-            "./data/signals.json?" + Date.now()
+            "./data/signals.json?" + Date.now(),
+            {
+                cache: "no-store"
+            }
         );
 
         const historyResponse = await fetch(
-            "./data/history.json?" + Date.now()
+            "./data/history.json?" + Date.now(),
+            {
+                cache: "no-store"
+            }
         );
 
 
         if (!signalResponse.ok) {
+
             throw new Error(
                 "signals.json could not be loaded"
             );
@@ -84,12 +104,18 @@ async function loadData() {
         } else {
 
             history = [];
-
         }
 
 
-        console.log("Scanner data loaded:", signals);
-        console.log("History loaded:", history);
+        console.log(
+            "44 SMA scanner data:",
+            signals
+        );
+
+        console.log(
+            "44 SMA history:",
+            history
+        );
 
 
     } catch (error) {
@@ -99,7 +125,6 @@ async function loadData() {
             error
         );
 
-
         signals = {
             buy: [],
             sell: [],
@@ -108,7 +133,7 @@ async function loadData() {
             scannedAt: null,
             buyCount: 0,
             sellCount: 0,
-            universe: "",
+            universe: "NIFTY 500",
             universeCount: 0
         };
 
@@ -122,9 +147,20 @@ async function loadData() {
 }
 
 
+// ============================================================
+// LAST SCAN
+// ============================================================
+
 function updateLastScan() {
 
-    const element = $("#lastScan");
+    const element =
+        $("#lastScan");
+
+
+    if (!element) {
+        return;
+    }
+
 
     if (!signals.scannedAt) {
 
@@ -136,7 +172,9 @@ function updateLastScan() {
 
 
     const date =
-        new Date(signals.scannedAt);
+        new Date(
+            signals.scannedAt
+        );
 
 
     element.textContent =
@@ -150,6 +188,10 @@ function updateLastScan() {
         );
 }
 
+
+// ============================================================
+// SIGNAL BADGE
+// ============================================================
 
 function signalBadge(signal) {
 
@@ -177,10 +219,16 @@ function signalBadge(signal) {
 }
 
 
+// ============================================================
+// STOCK ROW
+// ============================================================
+
 function stockRow(item) {
 
     const distance =
-        Number(item.distanceFrom44);
+        Number(
+            item.distanceFrom44
+        );
 
 
     return `
@@ -190,10 +238,11 @@ function stockRow(item) {
             <td>
 
                 <button
+                    type="button"
                     class="stock-button"
-                    data-symbol="${item.symbol}"
+                    data-symbol="${escapeHtml(item.symbol)}"
                 >
-                    ${item.symbol}
+                    ${escapeHtml(item.symbol)}
                 </button>
 
             </td>
@@ -236,13 +285,17 @@ function stockRow(item) {
 
 
             <td class="muted">
-                ${item.date || "—"}
+                ${escapeHtml(item.date || "—")}
             </td>
 
         </tr>
     `;
 }
 
+
+// ============================================================
+// STOCK TABLE
+// ============================================================
 
 function stockTable(items) {
 
@@ -269,37 +322,21 @@ function stockTable(items) {
 
                     <tr>
 
-                        <th>
-                            Stock
-                        </th>
+                        <th>Stock</th>
 
-                        <th>
-                            Signal
-                        </th>
+                        <th>Signal</th>
 
-                        <th>
-                            Close
-                        </th>
+                        <th>Close</th>
 
-                        <th>
-                            44 SMA
-                        </th>
+                        <th>44 SMA</th>
 
-                        <th>
-                            Vs 44
-                        </th>
+                        <th>Vs 44</th>
 
-                        <th>
-                            100 SMA
-                        </th>
+                        <th>100 SMA</th>
 
-                        <th>
-                            200 SMA
-                        </th>
+                        <th>200 SMA</th>
 
-                        <th>
-                            Date
-                        </th>
+                        <th>Date</th>
 
                     </tr>
 
@@ -308,9 +345,9 @@ function stockTable(items) {
 
                 <tbody>
 
-                    ${items.map(
-                        stockRow
-                    ).join("")}
+                    ${items
+                        .map(stockRow)
+                        .join("")}
 
                 </tbody>
 
@@ -320,6 +357,10 @@ function stockTable(items) {
     `;
 }
 
+
+// ============================================================
+// DASHBOARD
+// ============================================================
 
 function dashboardView() {
 
@@ -374,7 +415,7 @@ function dashboardView() {
 
                 <div class="kpi-sub">
                     ${signals.universeCount || 0}
-                    stocks in universe
+                    stocks in NIFTY 500
                 </div>
 
             </div>
@@ -466,7 +507,6 @@ function dashboardView() {
 
             <div class="conditions">
 
-
                 <div class="condition ok">
                     ✓ 44 SMA greater than
                     44 SMA 10 days before
@@ -510,6 +550,10 @@ function dashboardView() {
 }
 
 
+// ============================================================
+// BUY / SELL PAGE
+// ============================================================
+
 function signalPage(type) {
 
     const isBuy =
@@ -526,7 +570,6 @@ function signalPage(type) {
 
         <div class="panel">
 
-
             <div class="panel-header">
 
                 <h2 class="panel-title">
@@ -541,14 +584,11 @@ function signalPage(type) {
 
 
                 <span class="panel-count">
-
                     ${items.length}
                     stocks
-
                 </span>
 
             </div>
-
 
 
             <div class="toolbar">
@@ -556,12 +596,12 @@ function signalPage(type) {
                 <input
                     id="stockSearch"
                     class="search"
+                    type="search"
                     placeholder="Search stock..."
                     autocomplete="off"
                 >
 
             </div>
-
 
 
             <div id="signalTable">
@@ -575,12 +615,15 @@ function signalPage(type) {
 }
 
 
+// ============================================================
+// HISTORY
+// ============================================================
+
 function historyPage() {
 
     return `
 
         <div class="panel">
-
 
             <div class="panel-header">
 
@@ -597,18 +640,17 @@ function historyPage() {
             </div>
 
 
-
             <div class="toolbar">
 
                 <input
                     id="historySearch"
                     class="search"
+                    type="search"
                     placeholder="Search stock..."
                     autocomplete="off"
                 >
 
             </div>
-
 
 
             <div id="historyTable">
@@ -622,10 +664,19 @@ function historyPage() {
 }
 
 
+// ============================================================
+// RENDER
+// ============================================================
+
 function render() {
 
     const content =
         $("#content");
+
+
+    if (!content) {
+        return;
+    }
 
 
     let title =
@@ -633,25 +684,29 @@ function render() {
 
 
     if (currentTab === "buy") {
-
         title = "BUY";
     }
 
 
     if (currentTab === "sell") {
-
         title = "SELL";
     }
 
 
     if (currentTab === "history") {
-
         title = "History";
     }
 
 
-    $("#pageTitle").textContent =
-        title;
+    const pageTitle =
+        $("#pageTitle");
+
+
+    if (pageTitle) {
+
+        pageTitle.textContent =
+            title;
+    }
 
 
     if (
@@ -700,6 +755,10 @@ function render() {
 }
 
 
+// ============================================================
+// SEARCH
+// ============================================================
+
 function setupSearch() {
 
     const search =
@@ -727,17 +786,25 @@ function setupSearch() {
                 const filtered =
                     items.filter(
                         item =>
-                            item.symbol
-                                .toUpperCase()
-                                .includes(query)
+                            String(
+                                item.symbol
+                            )
+                            .toUpperCase()
+                            .includes(query)
                     );
 
 
-                $("#signalTable")
-                    .innerHTML =
-                    stockTable(
-                        filtered
-                    );
+                const table =
+                    $("#signalTable");
+
+
+                if (table) {
+
+                    table.innerHTML =
+                        stockTable(
+                            filtered
+                        );
+                }
 
 
                 setupStockButtons();
@@ -765,17 +832,25 @@ function setupSearch() {
                 const filtered =
                     history.filter(
                         item =>
-                            item.symbol
-                                .toUpperCase()
-                                .includes(query)
+                            String(
+                                item.symbol
+                            )
+                            .toUpperCase()
+                            .includes(query)
                     );
 
 
-                $("#historyTable")
-                    .innerHTML =
-                    stockTable(
-                        filtered
-                    );
+                const table =
+                    $("#historyTable");
+
+
+                if (table) {
+
+                    table.innerHTML =
+                        stockTable(
+                            filtered
+                        );
+                }
 
 
                 setupStockButtons();
@@ -785,47 +860,62 @@ function setupSearch() {
 }
 
 
+// ============================================================
+// STOCK BUTTONS
+// ============================================================
+
 function setupStockButtons() {
 
     document
         .querySelectorAll(
             ".stock-button"
         )
-        .forEach(button => {
+        .forEach(
+            button => {
 
-            button.addEventListener(
-                "click",
-                () => {
+                button.addEventListener(
+                    "click",
+                    () => {
 
-                    const symbol =
-                        button.dataset.symbol;
-
-
-                    const item =
-                        findStock(
-                            symbol
-                        );
+                        const symbol =
+                            button.dataset.symbol;
 
 
-                    if (item) {
+                        const item =
+                            findStock(
+                                symbol
+                            );
 
-                        openStock(item);
+
+                        if (item) {
+
+                            openStockChart(
+                                item
+                            );
+                        }
                     }
-                }
-            );
+                );
 
-        });
+            }
+        );
 }
 
 
+// ============================================================
+// FIND STOCK
+// ============================================================
+
 function findStock(symbol) {
 
-    const all =
-        [
-            ...signals.buy,
-            ...signals.sell,
-            ...history
-        ];
+    const all = [
+
+        ...signals.buy,
+
+        ...signals.sell,
+
+        ...history
+
+    ];
 
 
     return all.find(
@@ -835,250 +925,392 @@ function findStock(symbol) {
 }
 
 
-function openStock(item) {
+// ============================================================
+// CREATE CHART MODAL
+// ============================================================
 
-    const modal =
-        $("#stockModal");
+function createChartModal() {
 
-
-    const content =
-        $("#modalContent");
-
-
-    const checks =
-        item.signal === "BUY"
-            ? item.buyChecks
-            : item.sellChecks;
-
-
-    const conditions =
-        Object.entries(
-            checks || {}
-        )
-        .map(
-            ([name, passed]) => {
-
-                return `
-
-                    <div class="
-                        condition
-                        ${
-                            passed
-                                ? "ok"
-                                : "no"
-                        }
-                    ">
-
-                        <strong>
-                            ${
-                                passed
-                                    ? "✓"
-                                    : "✕"
-                            }
-                        </strong>
-
-                        ${
-                            formatConditionName(
-                                name
-                            )
-                        }
-
-                    </div>
-                `;
-            }
-        )
-        .join("");
-
-
-    const symbol =
-        encodeURIComponent(
-            item.symbol
+    let modal =
+        document.getElementById(
+            "stockChartModal"
         );
 
 
-    content.innerHTML = `
-
-        <div class="stock-heading">
-
-
-            <h2>
-                ${item.symbol}
-            </h2>
+    if (modal) {
+        return modal;
+    }
 
 
-            ${signalBadge(
-                item.signal
-            )}
-
-        </div>
-
+    modal =
+        document.createElement(
+            "div"
+        );
 
 
-        <div class="chart-container">
+    modal.id =
+        "stockChartModal";
 
-            <iframe
-                src="
-                https://www.tradingview.com/widgetembed/
-                ?symbol=NSE%3A${symbol}
-                &interval=D
-                &theme=dark
-                &style=1
-                &locale=en
-                &hide_top_toolbar=0
-                &hide_legend=0
-                &allow_symbol_change=0
+
+    modal.style.position =
+        "fixed";
+
+    modal.style.inset =
+        "0";
+
+    modal.style.zIndex =
+        "99999";
+
+    modal.style.background =
+        "rgba(0,0,0,0.78)";
+
+    modal.style.display =
+        "none";
+
+    modal.style.alignItems =
+        "center";
+
+    modal.style.justifyContent =
+        "center";
+
+    modal.style.padding =
+        "20px";
+
+    modal.style.boxSizing =
+        "border-box";
+
+
+    modal.innerHTML = `
+
+        <div
+            id="chartModalBox"
+            style="
+                width: min(1200px, 100%);
+                height: min(850px, 95vh);
+                background: #0b111b;
+                border: 1px solid #26364d;
+                border-radius: 16px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 25px 80px rgba(0,0,0,.6);
+            "
+        >
+
+            <div
+                style="
+                    min-height: 64px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0 18px;
+                    border-bottom: 1px solid #26364d;
+                    background: #0e1724;
+                    box-sizing: border-box;
                 "
-                loading="lazy"
             >
-            </iframe>
 
-        </div>
-
-
-
-        <div class="metrics-grid">
-
-
-            <div class="metric">
-
-                <div class="metric-label">
-                    Close
+                <div
+                    id="chartStockTitle"
+                    style="
+                        color: white;
+                        font-size: 20px;
+                        font-weight: 700;
+                    "
+                >
+                    Stock Chart
                 </div>
 
-                <div class="metric-value">
-                    ₹${money(item.Close)}
-                </div>
+
+                <button
+                    id="chartCloseButton"
+                    type="button"
+                    style="
+                        border: 0;
+                        background: #1b2737;
+                        color: white;
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 10px;
+                        font-size: 22px;
+                        cursor: pointer;
+                    "
+                >
+                    ×
+                </button>
 
             </div>
 
 
-            <div class="metric">
-
-                <div class="metric-label">
-                    44 SMA
-                </div>
-
-                <div class="metric-value">
-                    ₹${money(item.sma44)}
-                </div>
-
+            <div
+                id="chartInfo"
+                style="
+                    padding: 12px 18px;
+                    color: #8fa3bd;
+                    font-size: 13px;
+                    border-bottom: 1px solid #1c2a3d;
+                    background: #0b111b;
+                "
+            >
             </div>
 
 
-            <div class="metric">
-
-                <div class="metric-label">
-                    100 SMA
-                </div>
-
-                <div class="metric-value">
-                    ₹${money(item.sma100)}
-                </div>
-
-            </div>
-
-
-            <div class="metric">
-
-                <div class="metric-label">
-                    200 SMA
-                </div>
-
-                <div class="metric-value">
-                    ₹${money(item.sma200)}
-                </div>
-
+            <div
+                id="chartFrameContainer"
+                style="
+                    flex: 1;
+                    min-height: 500px;
+                    background: #0b111b;
+                "
+            >
             </div>
 
         </div>
+    `;
 
 
+    document.body.appendChild(
+        modal
+    );
 
-        <h3 class="conditions-title">
 
-            ${
-                item.signal
+    const closeButton =
+        document.getElementById(
+            "chartCloseButton"
+        );
+
+
+    closeButton.addEventListener(
+        "click",
+        closeChart
+    );
+
+
+    modal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                modal
+            ) {
+
+                closeChart();
             }
-            signal conditions
-
-        </h3>
-
+        }
+    );
 
 
-        <div class="conditions">
-
-            ${conditions}
-
-        </div>
+    return modal;
+}
 
 
+// ============================================================
+// OPEN STOCK CHART
+// ============================================================
 
-        <div class="metrics-grid">
+function openStockChart(item) {
 
-
-            <div class="metric">
-
-                <div class="metric-label">
-                    Today's High
-                </div>
-
-                <div class="metric-value">
-                    ₹${money(item.High)}
-                </div>
-
-            </div>
+    const modal =
+        createChartModal();
 
 
-            <div class="metric">
-
-                <div class="metric-label">
-                    Today's Low
-                </div>
-
-                <div class="metric-value">
-                    ₹${money(item.Low)}
-                </div>
-
-            </div>
+    const title =
+        document.getElementById(
+            "chartStockTitle"
+        );
 
 
-            <div class="metric">
-
-                <div class="metric-label">
-                    44 SMA / 10D Ago
-                </div>
-
-                <div class="metric-value">
-                    ₹${money(
-                        item.sma44_10d
-                    )}
-                </div>
-
-            </div>
+    const info =
+        document.getElementById(
+            "chartInfo"
+        );
 
 
-            <div class="metric">
+    const container =
+        document.getElementById(
+            "chartFrameContainer"
+        );
 
-                <div class="metric-label">
-                    Signal Date
-                </div>
 
-                <div class="metric-value">
-                    ${item.date || "—"}
-                </div>
+    const symbol =
+        String(
+            item.symbol || ""
+        )
+        .trim()
+        .toUpperCase();
 
-            </div>
 
-        </div>
+    title.textContent =
+        `${symbol} — ${item.signal || "STOCK"}`;
+
+
+    info.innerHTML = `
+
+        Close:
+        <strong style="color:white">
+            ₹${money(item.Close)}
+        </strong>
+
+        &nbsp;&nbsp; |
+
+        &nbsp;&nbsp;
+
+        44 SMA:
+        <strong style="color:white">
+            ₹${money(item.sma44)}
+        </strong>
+
+        &nbsp;&nbsp; |
+
+        &nbsp;&nbsp;
+
+        100 SMA:
+        <strong style="color:white">
+            ₹${money(item.sma100)}
+        </strong>
+
+        &nbsp;&nbsp; |
+
+        &nbsp;&nbsp;
+
+        200 SMA:
+        <strong style="color:white">
+            ₹${money(item.sma200)}
+        </strong>
 
     `;
 
 
-    modal.classList.remove(
-        "hidden"
+    container.innerHTML = "";
+
+
+    // ========================================================
+    // TRADINGVIEW CHART
+    // ========================================================
+
+    const iframe =
+        document.createElement(
+            "iframe"
+        );
+
+
+    const tradingViewSymbol =
+        encodeURIComponent(
+            `NSE:${symbol}`
+        );
+
+
+    iframe.src =
+        "https://www.tradingview.com/widgetembed/" +
+        "?symbol=" +
+        tradingViewSymbol +
+        "&interval=D" +
+        "&range=6M" +
+        "&theme=dark" +
+        "&style=1" +
+        "&locale=en" +
+        "&timezone=Asia%2FKolkata" +
+        "&hide_top_toolbar=0" +
+        "&hide_side_toolbar=0" +
+        "&hide_legend=0" +
+        "&allow_symbol_change=0" +
+        "&save_image=0" +
+        "&withdateranges=1" +
+        "&details=1" +
+        "&calendar=0";
+
+
+    iframe.title =
+        `${symbol} stock chart`;
+
+
+    iframe.style.width =
+        "100%";
+
+
+    iframe.style.height =
+        "100%";
+
+
+    iframe.style.minHeight =
+        "500px";
+
+
+    iframe.style.border =
+        "0";
+
+
+    iframe.style.display =
+        "block";
+
+
+    iframe.setAttribute(
+        "allowfullscreen",
+        ""
     );
+
+
+    iframe.setAttribute(
+        "loading",
+        "eager"
+    );
+
+
+    container.appendChild(
+        iframe
+    );
+
+
+    modal.style.display =
+        "flex";
+
+
+    document.body.style.overflow =
+        "hidden";
 }
 
+
+// ============================================================
+// CLOSE CHART
+// ============================================================
+
+function closeChart() {
+
+    const modal =
+        document.getElementById(
+            "stockChartModal"
+        );
+
+
+    if (modal) {
+
+        modal.style.display =
+            "none";
+    }
+
+
+    const container =
+        document.getElementById(
+            "chartFrameContainer"
+        );
+
+
+    if (container) {
+
+        container.innerHTML =
+            "";
+    }
+
+
+    document.body.style.overflow =
+        "";
+}
+
+
+// ============================================================
+// CONDITIONS
+// ============================================================
 
 function formatConditionName(name) {
 
@@ -1114,13 +1346,9 @@ function formatConditionName(name) {
 }
 
 
-function closeModal() {
-
-    $("#stockModal")
-        .classList
-        .add("hidden");
-}
-
+// ============================================================
+// NAVIGATION
+// ============================================================
 
 document
     .querySelectorAll(
@@ -1163,25 +1391,25 @@ document
     );
 
 
-$("#refreshButton")
-    .addEventListener(
+// ============================================================
+// REFRESH
+// ============================================================
+
+const refreshButton =
+    $("#refreshButton");
+
+
+if (refreshButton) {
+
+    refreshButton.addEventListener(
         "click",
         loadData
     );
+}
 
 
-$("#closeModal")
-    .addEventListener(
-        "click",
-        closeModal
-    );
-
-
-$(".modal-overlay")
-    .addEventListener(
-        "click",
-        closeModal
-    );
-
+// ============================================================
+// START
+// ============================================================
 
 loadData();
