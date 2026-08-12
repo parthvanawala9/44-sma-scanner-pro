@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "scannedAt": "2026-08-12T04:32:01.749082+00:00",
+    "symbol": "LT",
+    "ticker": "LT.NS",
+    "date": "2026-08-12",
+    "signal": "SELL",
+    "Open": 4038.0,
+    "High": 4044.10009765625,
+    "Low": 3996.39990234375,
+    "Close": 4000.39990234375,
+    "sma44": 4006.40907981179,
+    "sma100": 3950.6369970703126,
+    "sma200": 3977.944998779297,
+    "sma44_10d": 3994.8999966708097,
+    "buyChecks": {
+      "sma44Rising10d": true,
+      "lowTouches44": true,
+      "closeAbove44": false,
+      "sma44Above100": true,
+      "sma100Above200": false
+    },
+    "sellChecks": {
+      "highTouches44": true,
+      "closeBelow44": true
+    }
+  }
+]
