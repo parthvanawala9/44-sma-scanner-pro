@@ -2,17 +2,22 @@ let signals = {
     buy: [],
     sell: [],
     scanned: 0,
+    skipped: 0,
     scannedAt: null,
     buyCount: 0,
-    sellCount: 0
+    sellCount: 0,
+    universe: "",
+    universeCount: 0
 };
 
 let history = [];
 
 let currentTab = "dashboard";
 
-const $ = (selector) =>
-    document.querySelector(selector);
+
+const $ = (selector) => {
+    return document.querySelector(selector);
+};
 
 
 function money(value) {
@@ -47,43 +52,72 @@ async function loadData() {
 
     try {
 
+        /*
+         * IMPORTANT:
+         * GitHub Pages publishes index.html at the root.
+         * Therefore data is inside ./data/
+         */
+
         const signalResponse = await fetch(
-            "../data/signals.json?" + Date.now()
+            "./data/signals.json?" + Date.now()
         );
 
         const historyResponse = await fetch(
-            "../data/history.json?" + Date.now()
+            "./data/history.json?" + Date.now()
         );
 
+
         if (!signalResponse.ok) {
-            throw new Error("Signals file unavailable");
+            throw new Error(
+                "signals.json could not be loaded"
+            );
         }
+
 
         signals = await signalResponse.json();
 
+
         if (historyResponse.ok) {
+
             history = await historyResponse.json();
+
         } else {
+
             history = [];
+
         }
+
+
+        console.log("Scanner data loaded:", signals);
+        console.log("History loaded:", history);
+
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Dashboard data error:",
+            error
+        );
+
 
         signals = {
             buy: [],
             sell: [],
             scanned: 0,
+            skipped: 0,
             scannedAt: null,
             buyCount: 0,
-            sellCount: 0
+            sellCount: 0,
+            universe: "",
+            universeCount: 0
         };
 
         history = [];
     }
 
+
     updateLastScan();
+
     render();
 }
 
@@ -93,30 +127,51 @@ function updateLastScan() {
     const element = $("#lastScan");
 
     if (!signals.scannedAt) {
-        element.textContent = "Last scan: Not scanned yet";
+
+        element.textContent =
+            "Last scan: Not scanned yet";
+
         return;
     }
 
-    const date = new Date(signals.scannedAt);
+
+    const date =
+        new Date(signals.scannedAt);
+
 
     element.textContent =
         "Last scan: " +
-        date.toLocaleString("en-IN", {
-            dateStyle: "medium",
-            timeStyle: "short"
-        });
+        date.toLocaleString(
+            "en-IN",
+            {
+                dateStyle: "medium",
+                timeStyle: "short"
+            }
+        );
 }
 
 
 function signalBadge(signal) {
 
     if (signal === "BUY") {
-        return `<span class="signal-badge signal-buy">BUY</span>`;
+
+        return `
+            <span class="signal-badge signal-buy">
+                BUY
+            </span>
+        `;
     }
 
+
     if (signal === "SELL") {
-        return `<span class="signal-badge signal-sell">SELL</span>`;
+
+        return `
+            <span class="signal-badge signal-sell">
+                SELL
+            </span>
+        `;
     }
+
 
     return "";
 }
@@ -124,43 +179,61 @@ function signalBadge(signal) {
 
 function stockRow(item) {
 
-    const distance = Number(item.distanceFrom44);
+    const distance =
+        Number(item.distanceFrom44);
+
 
     return `
+
         <tr>
 
             <td>
+
                 <button
                     class="stock-button"
-                    onclick='openStock(${JSON.stringify(item).replace(/'/g, "&#39;")})'
+                    data-symbol="${item.symbol}"
                 >
                     ${item.symbol}
                 </button>
+
             </td>
+
 
             <td>
                 ${signalBadge(item.signal)}
             </td>
 
+
             <td>
                 ₹${money(item.Close)}
             </td>
+
 
             <td>
                 ₹${money(item.sma44)}
             </td>
 
-            <td class="${distance >= 0 ? "green" : "red"}">
+
+            <td class="${
+                distance >= 0
+                    ? "green"
+                    : "red"
+            }">
+
                 ${percentage(distance)}
+
             </td>
+
 
             <td>
                 ₹${money(item.sma100)}
             </td>
 
+
             <td>
                 ₹${money(item.sma200)}
             </td>
+
 
             <td class="muted">
                 ${item.date || "—"}
@@ -173,7 +246,10 @@ function stockRow(item) {
 
 function stockTable(items) {
 
-    if (!items || items.length === 0) {
+    if (
+        !items ||
+        items.length === 0
+    ) {
 
         return `
             <div class="empty">
@@ -182,7 +258,9 @@ function stockTable(items) {
         `;
     }
 
+
     return `
+
         <div class="table-wrap">
 
             <table class="table">
@@ -190,21 +268,49 @@ function stockTable(items) {
                 <thead>
 
                     <tr>
-                        <th>Stock</th>
-                        <th>Signal</th>
-                        <th>Close</th>
-                        <th>44 SMA</th>
-                        <th>Vs 44</th>
-                        <th>100 SMA</th>
-                        <th>200 SMA</th>
-                        <th>Date</th>
+
+                        <th>
+                            Stock
+                        </th>
+
+                        <th>
+                            Signal
+                        </th>
+
+                        <th>
+                            Close
+                        </th>
+
+                        <th>
+                            44 SMA
+                        </th>
+
+                        <th>
+                            Vs 44
+                        </th>
+
+                        <th>
+                            100 SMA
+                        </th>
+
+                        <th>
+                            200 SMA
+                        </th>
+
+                        <th>
+                            Date
+                        </th>
+
                     </tr>
 
                 </thead>
 
+
                 <tbody>
 
-                    ${items.map(stockRow).join("")}
+                    ${items.map(
+                        stockRow
+                    ).join("")}
 
                 </tbody>
 
@@ -220,6 +326,7 @@ function dashboardView() {
     return `
 
         <div class="kpi-grid">
+
 
             <div class="kpi">
 
@@ -266,7 +373,8 @@ function dashboardView() {
                 </div>
 
                 <div class="kpi-sub">
-                    NSE universe
+                    ${signals.universeCount || 0}
+                    stocks in universe
                 </div>
 
             </div>
@@ -283,7 +391,7 @@ function dashboardView() {
                 </div>
 
                 <div class="kpi-sub">
-                    Total recorded signals
+                    Recorded signals
                 </div>
 
             </div>
@@ -291,7 +399,9 @@ function dashboardView() {
         </div>
 
 
+
         <div class="two-column">
+
 
             <div class="panel">
 
@@ -302,14 +412,19 @@ function dashboardView() {
                     </h2>
 
                     <span class="panel-count">
-                        ${signals.buy.length} stocks
+                        ${signals.buy.length}
+                        stocks
                     </span>
 
                 </div>
 
-                ${stockTable(signals.buy.slice(0, 10))}
+
+                ${stockTable(
+                    signals.buy
+                )}
 
             </div>
+
 
 
             <div class="panel">
@@ -321,16 +436,21 @@ function dashboardView() {
                     </h2>
 
                     <span class="panel-count">
-                        ${signals.sell.length} stocks
+                        ${signals.sell.length}
+                        stocks
                     </span>
 
                 </div>
 
-                ${stockTable(signals.sell.slice(0, 10))}
+
+                ${stockTable(
+                    signals.sell
+                )}
 
             </div>
 
         </div>
+
 
 
         <div class="panel">
@@ -338,35 +458,49 @@ function dashboardView() {
             <div class="panel-header">
 
                 <h2 class="panel-title">
-                    Strategy
+                    44 SMA Strategy
                 </h2>
 
             </div>
 
+
             <div class="conditions">
 
-                <div class="condition ok">
-                    ✓ 44 SMA rising versus 10 days ago
-                </div>
 
                 <div class="condition ok">
-                    ✓ Low touches 44 SMA
+                    ✓ 44 SMA greater than
+                    44 SMA 10 days before
                 </div>
 
-                <div class="condition ok">
-                    ✓ Close above 44 SMA
-                </div>
 
                 <div class="condition ok">
-                    ✓ 44 SMA above 100 SMA
+                    ✓ Stock Low touches
+                    44 SMA
                 </div>
 
+
                 <div class="condition ok">
-                    ✓ 100 SMA above 200 SMA
+                    ✓ Stock Close is above
+                    44 SMA
                 </div>
+
+
+                <div class="condition ok">
+                    ✓ 44 SMA is above
+                    100 SMA
+                </div>
+
+
+                <div class="condition ok">
+                    ✓ 100 SMA is above
+                    200 SMA
+                </div>
+
 
                 <div class="condition no">
-                    SELL: High touches 44 SMA + Close below 44 SMA
+                    SELL = High touches
+                    44 SMA + Close below
+                    44 SMA
                 </div>
 
             </div>
@@ -378,27 +512,43 @@ function dashboardView() {
 
 function signalPage(type) {
 
-    const isBuy = type === "buy";
+    const isBuy =
+        type === "buy";
 
-    const items = isBuy
-        ? signals.buy
-        : signals.sell;
+
+    const items =
+        isBuy
+            ? signals.buy
+            : signals.sell;
+
 
     return `
 
         <div class="panel">
 
+
             <div class="panel-header">
 
                 <h2 class="panel-title">
-                    ${isBuy ? "🟢 BUY TRIGGERS" : "🔴 SELL TRIGGERS"}
+
+                    ${
+                        isBuy
+                            ? "🟢 BUY TRIGGERS"
+                            : "🔴 SELL TRIGGERS"
+                    }
+
                 </h2>
 
+
                 <span class="panel-count">
-                    ${items.length} stocks
+
+                    ${items.length}
+                    stocks
+
                 </span>
 
             </div>
+
 
 
             <div class="toolbar">
@@ -413,8 +563,11 @@ function signalPage(type) {
             </div>
 
 
+
             <div id="signalTable">
+
                 ${stockTable(items)}
+
             </div>
 
         </div>
@@ -428,17 +581,21 @@ function historyPage() {
 
         <div class="panel">
 
+
             <div class="panel-header">
 
                 <h2 class="panel-title">
                     Signal History
                 </h2>
 
+
                 <span class="panel-count">
-                    ${history.length} records
+                    ${history.length}
+                    records
                 </span>
 
             </div>
+
 
 
             <div class="toolbar">
@@ -453,8 +610,11 @@ function historyPage() {
             </div>
 
 
+
             <div id="historyTable">
+
                 ${stockTable(history)}
+
             </div>
 
         </div>
@@ -464,96 +624,226 @@ function historyPage() {
 
 function render() {
 
-    const content = $("#content");
+    const content =
+        $("#content");
 
-    let title = "Dashboard";
+
+    let title =
+        "Dashboard";
+
 
     if (currentTab === "buy") {
+
         title = "BUY";
     }
 
+
     if (currentTab === "sell") {
+
         title = "SELL";
     }
 
+
     if (currentTab === "history") {
+
         title = "History";
     }
 
-    $("#pageTitle").textContent = title;
+
+    $("#pageTitle").textContent =
+        title;
 
 
-    if (currentTab === "dashboard") {
-        content.innerHTML = dashboardView();
+    if (
+        currentTab ===
+        "dashboard"
+    ) {
+
+        content.innerHTML =
+            dashboardView();
     }
 
-    if (currentTab === "buy") {
-        content.innerHTML = signalPage("buy");
+
+    if (
+        currentTab ===
+        "buy"
+    ) {
+
+        content.innerHTML =
+            signalPage("buy");
     }
 
-    if (currentTab === "sell") {
-        content.innerHTML = signalPage("sell");
+
+    if (
+        currentTab ===
+        "sell"
+    ) {
+
+        content.innerHTML =
+            signalPage("sell");
     }
 
-    if (currentTab === "history") {
-        content.innerHTML = historyPage();
+
+    if (
+        currentTab ===
+        "history"
+    ) {
+
+        content.innerHTML =
+            historyPage();
     }
 
 
     setupSearch();
+
+    setupStockButtons();
 }
 
 
 function setupSearch() {
 
-    const search = $("#stockSearch");
+    const search =
+        $("#stockSearch");
+
 
     if (search) {
 
-        search.addEventListener("input", () => {
+        search.addEventListener(
+            "input",
+            () => {
 
-            const query =
-                search.value.trim().toUpperCase();
+                const query =
+                    search.value
+                        .trim()
+                        .toUpperCase();
 
-            const items =
-                currentTab === "buy"
-                    ? signals.buy
-                    : signals.sell;
 
-            const filtered = items.filter(item =>
-                item.symbol.includes(query)
-            );
+                const items =
+                    currentTab === "buy"
+                        ? signals.buy
+                        : signals.sell;
 
-            $("#signalTable").innerHTML =
-                stockTable(filtered);
-        });
+
+                const filtered =
+                    items.filter(
+                        item =>
+                            item.symbol
+                                .toUpperCase()
+                                .includes(query)
+                    );
+
+
+                $("#signalTable")
+                    .innerHTML =
+                    stockTable(
+                        filtered
+                    );
+
+
+                setupStockButtons();
+            }
+        );
     }
 
 
-    const historySearch = $("#historySearch");
+    const historySearch =
+        $("#historySearch");
+
 
     if (historySearch) {
 
-        historySearch.addEventListener("input", () => {
+        historySearch.addEventListener(
+            "input",
+            () => {
 
-            const query =
-                historySearch.value.trim().toUpperCase();
+                const query =
+                    historySearch.value
+                        .trim()
+                        .toUpperCase();
 
-            const filtered = history.filter(item =>
-                item.symbol.includes(query)
+
+                const filtered =
+                    history.filter(
+                        item =>
+                            item.symbol
+                                .toUpperCase()
+                                .includes(query)
+                    );
+
+
+                $("#historyTable")
+                    .innerHTML =
+                    stockTable(
+                        filtered
+                    );
+
+
+                setupStockButtons();
+            }
+        );
+    }
+}
+
+
+function setupStockButtons() {
+
+    document
+        .querySelectorAll(
+            ".stock-button"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const symbol =
+                        button.dataset.symbol;
+
+
+                    const item =
+                        findStock(
+                            symbol
+                        );
+
+
+                    if (item) {
+
+                        openStock(item);
+                    }
+                }
             );
 
-            $("#historyTable").innerHTML =
-                stockTable(filtered);
         });
-    }
+}
+
+
+function findStock(symbol) {
+
+    const all =
+        [
+            ...signals.buy,
+            ...signals.sell,
+            ...history
+        ];
+
+
+    return all.find(
+        item =>
+            item.symbol === symbol
+    );
 }
 
 
 function openStock(item) {
 
-    const modal = $("#stockModal");
-    const content = $("#modalContent");
+    const modal =
+        $("#stockModal");
+
+
+    const content =
+        $("#modalContent");
+
 
     const checks =
         item.signal === "BUY"
@@ -561,45 +851,93 @@ function openStock(item) {
             : item.sellChecks;
 
 
-    const conditions = Object.entries(checks)
-        .map(([name, passed]) => {
+    const conditions =
+        Object.entries(
+            checks || {}
+        )
+        .map(
+            ([name, passed]) => {
 
-            return `
-                <div class="condition ${passed ? "ok" : "no"}">
-                    <strong>
-                        ${passed ? "✓" : "✕"}
-                    </strong>
-                    ${formatConditionName(name)}
-                </div>
-            `;
-        })
+                return `
+
+                    <div class="
+                        condition
+                        ${
+                            passed
+                                ? "ok"
+                                : "no"
+                        }
+                    ">
+
+                        <strong>
+                            ${
+                                passed
+                                    ? "✓"
+                                    : "✕"
+                            }
+                        </strong>
+
+                        ${
+                            formatConditionName(
+                                name
+                            )
+                        }
+
+                    </div>
+                `;
+            }
+        )
         .join("");
+
+
+    const symbol =
+        encodeURIComponent(
+            item.symbol
+        );
 
 
     content.innerHTML = `
 
         <div class="stock-heading">
 
+
             <h2>
                 ${item.symbol}
             </h2>
 
-            ${signalBadge(item.signal)}
+
+            ${signalBadge(
+                item.signal
+            )}
 
         </div>
+
 
 
         <div class="chart-container">
 
             <iframe
-                src="https://www.tradingview.com/widgetembed/?symbol=NSE%3A${encodeURIComponent(item.symbol)}&interval=D&theme=dark&style=1&locale=en&hide_top_toolbar=0&hide_legend=0&allow_symbol_change=0"
+                src="
+                https://www.tradingview.com/widgetembed/
+                ?symbol=NSE%3A${symbol}
+                &interval=D
+                &theme=dark
+                &style=1
+                &locale=en
+                &hide_top_toolbar=0
+                &hide_legend=0
+                &allow_symbol_change=0
+                "
                 loading="lazy"
-            ></iframe>
+            >
+            </iframe>
 
         </div>
 
 
+
         <div class="metrics-grid">
+
 
             <div class="metric">
 
@@ -655,17 +993,28 @@ function openStock(item) {
         </div>
 
 
+
         <h3 class="conditions-title">
-            ${item.signal} signal conditions
+
+            ${
+                item.signal
+            }
+            signal conditions
+
         </h3>
 
 
+
         <div class="conditions">
+
             ${conditions}
+
         </div>
 
 
+
         <div class="metrics-grid">
+
 
             <div class="metric">
 
@@ -700,7 +1049,9 @@ function openStock(item) {
                 </div>
 
                 <div class="metric-value">
-                    ₹${money(item.sma44_10d)}
+                    ₹${money(
+                        item.sma44_10d
+                    )}
                 </div>
 
             </div>
@@ -722,7 +1073,10 @@ function openStock(item) {
 
     `;
 
-    modal.classList.remove("hidden");
+
+    modal.classList.remove(
+        "hidden"
+    );
 }
 
 
@@ -730,73 +1084,100 @@ function formatConditionName(name) {
 
     const names = {
 
-        sma44Rising10d:
-            "44 SMA is higher than 10 trading days ago",
+        "44 SMA rising":
+            "44 SMA is greater than 44 SMA 10 trading days ago",
 
-        lowTouches44:
-            "Stock Low touched 44 SMA",
+        "Low touches 44 SMA":
+            "Stock Low is at or below 44 SMA",
 
-        closeAbove44:
+        "Close above 44 SMA":
             "Stock Close is above 44 SMA",
 
-        sma44Above100:
+        "44 SMA above 100 SMA":
             "44 SMA is above 100 SMA",
 
-        sma100Above200:
+        "100 SMA above 200 SMA":
             "100 SMA is above 200 SMA",
 
-        highTouches44:
-            "Stock High touched 44 SMA",
+        "High touches 44 SMA":
+            "Stock High is at or above 44 SMA",
 
-        closeBelow44:
+        "Close below 44 SMA":
             "Stock Close is below 44 SMA"
     };
 
-    return names[name] || name;
+
+    return (
+        names[name] ||
+        name
+    );
 }
 
 
 function closeModal() {
-    $("#stockModal").classList.add("hidden");
+
+    $("#stockModal")
+        .classList
+        .add("hidden");
 }
 
 
 document
-    .querySelectorAll(".nav-item")
-    .forEach(button => {
+    .querySelectorAll(
+        ".nav-item"
+    )
+    .forEach(
+        button => {
 
-        button.addEventListener("click", () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-            currentTab = button.dataset.tab;
-
-            document
-                .querySelectorAll(".nav-item")
-                .forEach(item =>
-                    item.classList.remove("active")
-                );
-
-            button.classList.add("active");
-
-            render();
-        });
-
-    });
+                    currentTab =
+                        button.dataset.tab;
 
 
-$("#refreshButton").addEventListener(
-    "click",
-    loadData
-);
+                    document
+                        .querySelectorAll(
+                            ".nav-item"
+                        )
+                        .forEach(
+                            item =>
+                                item.classList
+                                    .remove(
+                                        "active"
+                                    )
+                        );
 
 
-$("#closeModal").addEventListener(
-    "click",
-    closeModal
-);
+                    button.classList.add(
+                        "active"
+                    );
 
 
-document
-    .querySelector(".modal-overlay")
+                    render();
+                }
+            );
+
+        }
+    );
+
+
+$("#refreshButton")
+    .addEventListener(
+        "click",
+        loadData
+    );
+
+
+$("#closeModal")
+    .addEventListener(
+        "click",
+        closeModal
+    );
+
+
+$(".modal-overlay")
     .addEventListener(
         "click",
         closeModal
