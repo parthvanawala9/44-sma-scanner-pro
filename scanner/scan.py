@@ -1,4 +1,5 @@
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from io import StringIO
@@ -6,6 +7,13 @@ from io import StringIO
 import pandas as pd
 import requests
 import yfinance as yf
+
+
+# ============================================================
+# SETTINGS
+# ============================================================
+
+PORTFOLIO_ALLOCATION = 5000
 
 
 # ============================================================
@@ -370,6 +378,792 @@ def save_chart_data(
 
 
 # ============================================================
+# PORTFOLIO DEFAULT
+# ============================================================
+
+def empty_portfolio():
+
+    return {
+
+        "version": 1,
+
+        "allocationPerStock":
+            PORTFOLIO_ALLOCATION,
+
+        "createdAt":
+            datetime.now(
+                timezone.utc
+            ).isoformat(),
+
+        "updatedAt":
+            None,
+
+        "openPositions": [],
+
+        "closedTrades": [],
+
+        "realizedPnL": 0,
+
+        "totalInvested":
+            0,
+
+        "totalCurrentValue":
+            0,
+
+        "totalPnL":
+            0,
+
+        "totalPnLPercent":
+            0,
+
+        "totalTrades": 0,
+
+        "winningTrades": 0,
+
+        "losingTrades": 0
+    }
+
+
+# ============================================================
+# LOAD PORTFOLIO
+# ============================================================
+
+def load_portfolio():
+
+    portfolio_file =
+        DATA / "portfolio.json"
+
+
+    if not portfolio_file.exists():
+
+        return empty_portfolio()
+
+
+    try:
+
+        portfolio =
+            json.loads(
+                portfolio_file.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+
+        if not isinstance(
+            portfolio,
+            dict
+        ):
+
+            return empty_portfolio()
+
+
+        if "openPositions" not in portfolio:
+
+            portfolio["openPositions"] = []
+
+
+        if "closedTrades" not in portfolio:
+
+            portfolio["closedTrades"] = []
+
+
+        if "realizedPnL" not in portfolio:
+
+            portfolio["realizedPnL"] = 0
+
+
+        return portfolio
+
+
+    except Exception as error:
+
+        print(
+            "Portfolio load failed:"
+        )
+
+        print(
+            str(error)
+        )
+
+        return empty_portfolio()
+
+
+# ============================================================
+# SAVE PORTFOLIO
+# ============================================================
+
+def save_portfolio(
+    portfolio
+):
+
+    portfolio_file =
+        DATA / "portfolio.json"
+
+
+    portfolio_file.write_text(
+
+        json.dumps(
+            portfolio,
+            indent=2
+        ),
+
+        encoding="utf-8"
+    )
+
+
+# ============================================================
+# UPDATE PORTFOLIO
+# ============================================================
+
+def update_portfolio(
+    portfolio,
+    buys,
+    sells,
+    scanned_at
+):
+
+    print("")
+    print("=" * 70)
+    print("UPDATING ₹5,000 PER STOCK PORTFOLIO")
+    print("=" * 70)
+
+
+    open_positions = (
+        portfolio.get(
+            "openPositions",
+            []
+        )
+    )
+
+
+    closed_trades = (
+        portfolio.get(
+            "closedTrades",
+            []
+        )
+    )
+
+
+    realized_pnl = float(
+        portfolio.get(
+            "realizedPnL",
+            0
+        )
+    )
+
+
+    # ========================================================
+    # BUY SIGNALS
+    # ========================================================
+
+    for item in buys:
+
+        symbol =
+            item["symbol"]
+
+
+        already_held = any(
+
+            position["symbol"] ==
+            symbol
+
+            for position in
+            open_positions
+        )
+
+
+        if already_held:
+
+            print(
+                f"⏭️ HOLD {symbol} "
+                f"- already in portfolio"
+            )
+
+            continue
+
+
+        buy_price =
+            float(
+                item["Close"]
+            )
+
+
+        if buy_price <= 0:
+
+            continue
+
+
+        quantity = math.floor(
+
+            PORTFOLIO_ALLOCATION /
+            buy_price
+
+        )
+
+
+        if quantity <= 0:
+
+            print(
+                f"⚠️ SKIP {symbol} "
+                f"- price ₹{buy_price:.2f} "
+                f"is above ₹5,000"
+            )
+
+            continue
+
+
+        invested =
+            quantity * buy_price
+
+
+        position = {
+
+            "symbol":
+                symbol,
+
+            "ticker":
+                item["ticker"],
+
+            "buyDate":
+                item["date"],
+
+            "buyTimestamp":
+                scanned_at,
+
+            "buyPrice":
+                round(
+                    buy_price,
+                    2
+                ),
+
+            "quantity":
+                quantity,
+
+            "invested":
+                round(
+                    invested,
+                    2
+                ),
+
+            "currentPrice":
+                round(
+                    buy_price,
+                    2
+                ),
+
+            "currentValue":
+                round(
+                    invested,
+                    2
+                ),
+
+            "unrealizedPnL":
+                0,
+
+            "unrealizedPnLPercent":
+                0,
+
+            "signal":
+                "BUY"
+        }
+
+
+        open_positions.append(
+            position
+        )
+
+
+        print(
+            f"🟢 PORTFOLIO BUY "
+            f"{symbol} | "
+            f"{quantity} shares | "
+            f"₹{invested:.2f}"
+        )
+
+
+    # ========================================================
+    # SELL SIGNALS
+    # ========================================================
+
+    for item in sells:
+
+        symbol =
+            item["symbol"]
+
+
+        sell_price =
+            float(
+                item["Close"]
+            )
+
+
+        position_index = None
+
+
+        for index, position in enumerate(
+            open_positions
+        ):
+
+            if (
+                position["symbol"]
+                == symbol
+            ):
+
+                position_index =
+                    index
+
+                break
+
+
+        # ----------------------------------------------------
+        # No position
+        # ----------------------------------------------------
+
+        if position_index is None:
+
+            print(
+                f"⏭️ SELL {symbol} "
+                f"- not held in portfolio"
+            )
+
+            continue
+
+
+        position =
+            open_positions[
+                position_index
+            ]
+
+
+        quantity =
+            int(
+                position["quantity"]
+            )
+
+
+        buy_price =
+            float(
+                position["buyPrice"]
+            )
+
+
+        invested =
+            float(
+                position["invested"]
+            )
+
+
+        sell_value =
+            quantity * sell_price
+
+
+        trade_pnl =
+            sell_value - invested
+
+
+        trade_pnl_percent = (
+
+            (
+                sell_price /
+                buy_price
+            ) - 1
+
+        ) * 100
+
+
+        closed_trade = {
+
+            "symbol":
+                symbol,
+
+            "ticker":
+                position["ticker"],
+
+            "buyDate":
+                position["buyDate"],
+
+            "buyTimestamp":
+                position["buyTimestamp"],
+
+            "buyPrice":
+                round(
+                    buy_price,
+                    2
+                ),
+
+            "quantity":
+                quantity,
+
+            "invested":
+                round(
+                    invested,
+                    2
+                ),
+
+            "sellDate":
+                item["date"],
+
+            "sellTimestamp":
+                scanned_at,
+
+            "sellPrice":
+                round(
+                    sell_price,
+                    2
+                ),
+
+            "sellValue":
+                round(
+                    sell_value,
+                    2
+                ),
+
+            "pnl":
+                round(
+                    trade_pnl,
+                    2
+                ),
+
+            "pnlPercent":
+                round(
+                    trade_pnl_percent,
+                    2
+                ),
+
+            "result":
+                (
+                    "WIN"
+                    if trade_pnl > 0
+                    else
+                    "LOSS"
+                    if trade_pnl < 0
+                    else
+                    "BREAKEVEN"
+                )
+        }
+
+
+        closed_trades.insert(
+            0,
+            closed_trade
+        )
+
+
+        realized_pnl += (
+            trade_pnl
+        )
+
+
+        open_positions.pop(
+            position_index
+        )
+
+
+        if trade_pnl >= 0:
+
+            result_text =
+                "WIN"
+
+        else:
+
+            result_text =
+                "LOSS"
+
+
+        print(
+            f"🔴 PORTFOLIO SELL "
+            f"{symbol} | "
+            f"{quantity} shares | "
+            f"P&L ₹{trade_pnl:.2f} | "
+            f"{result_text}"
+        )
+
+
+    # ========================================================
+    # UPDATE CURRENT VALUES
+    # ========================================================
+
+    total_invested = 0
+
+    total_current_value = 0
+
+
+    for position in open_positions:
+
+        current_price =
+            float(
+                position.get(
+                    "currentPrice",
+                    position["buyPrice"]
+                )
+            )
+
+
+        # The latest scanner result
+        # gives us the latest close.
+
+        position["currentValue"] = round(
+
+            position["quantity"] *
+            current_price,
+
+            2
+
+        )
+
+
+        position["unrealizedPnL"] = round(
+
+            position["currentValue"] -
+            position["invested"],
+
+            2
+
+        )
+
+
+        if position["invested"] > 0:
+
+            position[
+                "unrealizedPnLPercent"
+            ] = round(
+
+                (
+                    position[
+                        "unrealizedPnL"
+                    ] /
+                    position["invested"]
+                ) * 100,
+
+                2
+
+            )
+
+        else:
+
+            position[
+                "unrealizedPnLPercent"
+            ] = 0
+
+
+        total_invested += (
+            position["invested"]
+        )
+
+
+        total_current_value += (
+            position["currentValue"]
+        )
+
+
+    # ========================================================
+    # TOTAL P&L
+    # ========================================================
+
+    unrealized_pnl = (
+
+        total_current_value -
+        total_invested
+
+    )
+
+
+    total_pnl = (
+
+        realized_pnl +
+        unrealized_pnl
+
+    )
+
+
+    capital_basis = (
+
+        total_invested +
+        max(
+            0,
+            realized_pnl
+        )
+
+    )
+
+
+    if capital_basis != 0:
+
+        total_pnl_percent = (
+
+            total_pnl /
+            capital_basis
+
+        ) * 100
+
+    else:
+
+        total_pnl_percent = 0
+
+
+    # ========================================================
+    # STATISTICS
+    # ========================================================
+
+    winning_trades = sum(
+
+        1
+
+        for trade in closed_trades
+
+        if float(
+            trade.get(
+                "pnl",
+                0
+            )
+        ) > 0
+
+    )
+
+
+    losing_trades = sum(
+
+        1
+
+        for trade in closed_trades
+
+        if float(
+            trade.get(
+                "pnl",
+                0
+            )
+        ) < 0
+
+    )
+
+
+    portfolio[
+        "allocationPerStock"
+    ] = PORTFOLIO_ALLOCATION
+
+
+    portfolio[
+        "updatedAt"
+    ] = scanned_at
+
+
+    portfolio[
+        "openPositions"
+    ] = open_positions
+
+
+    portfolio[
+        "closedTrades"
+    ] = closed_trades[:10000]
+
+
+    portfolio[
+        "realizedPnL"
+    ] = round(
+        realized_pnl,
+        2
+    )
+
+
+    portfolio[
+        "unrealizedPnL"
+    ] = round(
+        unrealized_pnl,
+        2
+    )
+
+
+    portfolio[
+        "totalInvested"
+    ] = round(
+        total_invested,
+        2
+    )
+
+
+    portfolio[
+        "totalCurrentValue"
+    ] = round(
+        total_current_value,
+        2
+    )
+
+
+    portfolio[
+        "totalPnL"
+    ] = round(
+        total_pnl,
+        2
+    )
+
+
+    portfolio[
+        "totalPnLPercent"
+    ] = round(
+        total_pnl_percent,
+        2
+    )
+
+
+    portfolio[
+        "openPositionsCount"
+    ] = len(
+        open_positions
+    )
+
+
+    portfolio[
+        "totalTrades"
+    ] = len(
+        closed_trades
+    )
+
+
+    portfolio[
+        "winningTrades"
+    ] = winning_trades
+
+
+    portfolio[
+        "losingTrades"
+    ] = losing_trades
+
+
+    save_portfolio(
+        portfolio
+    )
+
+
+    print("")
+    print(
+        f"Open positions : "
+        f"{len(open_positions)}"
+    )
+
+    print(
+        f"Realized P&L   : "
+        f"₹{realized_pnl:.2f}"
+    )
+
+    print(
+        f"Invested       : "
+        f"₹{total_invested:.2f}"
+    )
+
+    print(
+        f"Current value  : "
+        f"₹{total_current_value:.2f}"
+    )
+
+    print(
+        f"Total P&L      : "
+        f"₹{total_pnl:.2f}"
+    )
+
+    print("=" * 70)
+
+
+# ============================================================
 # PROCESS STOCK
 # ============================================================
 
@@ -527,15 +1321,14 @@ def process_stock(
         # ====================================================
         # BUY STRATEGY
         #
-        # ALL CONDITIONS MUST BE TRUE:
+        # ALL CONDITIONS:
         #
         # 1. 44 SMA > 44 SMA 10 days ago
         # 2. Today's Low <= Today's 44 SMA
         # 3. Today's Close > Today's 44 SMA
         # 4. 44 SMA > 100 SMA
         # 5. 100 SMA > 200 SMA
-        # 6. TODAY'S CANDLE IS GREEN
-        #    Close > Open
+        # 6. Today's candle is GREEN
         # ====================================================
 
         buy_checks = {
@@ -678,7 +1471,7 @@ def main():
     print("")
     print("=" * 70)
     print("44 SMA SCANNER PRO")
-    print("WITH BUILT-IN CHART DATA")
+    print("₹5,000 PER STOCK PORTFOLIO")
     print("=" * 70)
     print("")
 
@@ -823,6 +1616,9 @@ def main():
         "strategy":
             "44 SMA Support / Breakdown",
 
+        "portfolioAllocation":
+            PORTFOLIO_ALLOCATION,
+
         "universe":
             "NIFTY 500",
 
@@ -920,8 +1716,6 @@ def main():
         )
 
 
-    # Keep 10,000 records.
-
     history = history[:10000]
 
 
@@ -933,6 +1727,27 @@ def main():
         ),
 
         encoding="utf-8"
+    )
+
+
+    # ========================================================
+    # PORTFOLIO
+    # ========================================================
+
+    portfolio =
+        load_portfolio()
+
+
+    update_portfolio(
+
+        portfolio,
+
+        buys,
+
+        sells,
+
+        scanned_at
+
     )
 
 
@@ -1049,6 +1864,22 @@ def main():
     print(
         f"Chart files created   : "
         f"{chart_count}"
+    )
+
+    print(
+        f"Portfolio allocation  : "
+        f"₹{PORTFOLIO_ALLOCATION:,} "
+        f"per stock"
+    )
+
+    print(
+        f"Portfolio positions   : "
+        f"{len(portfolio['openPositions'])}"
+    )
+
+    print(
+        f"Portfolio total P&L   : "
+        f"₹{portfolio['totalPnL']:.2f}"
     )
 
     print("=" * 70)
