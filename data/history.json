@@ -1,5 +1,33 @@
 [
   {
+    "scannedAt": "2026-08-12T09:16:01.784188+00:00",
+    "universe": "NSE NIFTY 500",
+    "symbol": "BHARTIARTL",
+    "ticker": "BHARTIARTL.NS",
+    "date": "2026-08-12",
+    "signal": "SELL",
+    "Open": 1908.5999755859375,
+    "High": 1913.800048828125,
+    "Low": 1901.300048828125,
+    "Close": 1907.300048828125,
+    "sma44": 1910.1704573197799,
+    "sma100": 1868.9110009765625,
+    "sma200": 1948.990004272461,
+    "sma44_10d": 1877.0863619717684,
+    "distanceFrom44": -0.1502697563275257,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true
+    }
+  },
+  {
     "scannedAt": "2026-08-12T08:25:30.582948+00:00",
     "universe": "symbols.csv fallback",
     "symbol": "BHARTIARTL",
