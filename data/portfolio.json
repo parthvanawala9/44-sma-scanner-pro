@@ -2,7 +2,7 @@
   "version": 1,
   "allocationPerStock": 5000,
   "createdAt": "2026-08-12T10:15:35.585004+00:00",
-  "updatedAt": "2026-08-12T10:15:35.572801+00:00",
+  "updatedAt": "2026-08-12T10:21:15.518882+00:00",
   "openPositions": [
     {
       "symbol": "BHEL",
@@ -14,10 +14,10 @@
       "invested": 4620.0,
       "currentPrice": 420.0,
       "currentValue": 4620.0,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:15:35.572801+00:00"
+      "lastUpdated": "2026-08-12T10:21:15.518882+00:00"
     },
     {
       "symbol": "DATAPATTNS",
@@ -29,10 +29,10 @@
       "invested": 4491.0,
       "currentPrice": 4491.0,
       "currentValue": 4491.0,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:15:35.572801+00:00"
+      "lastUpdated": "2026-08-12T10:21:15.518882+00:00"
     },
     {
       "symbol": "NAM-INDIA",
@@ -44,10 +44,10 @@
       "invested": 4729.2,
       "currentPrice": 1182.3,
       "currentValue": 4729.2,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:15:35.572801+00:00"
+      "lastUpdated": "2026-08-12T10:21:15.518882+00:00"
     },
     {
       "symbol": "SCI",
@@ -59,10 +59,10 @@
       "invested": 4780.8,
       "currentPrice": 298.8,
       "currentValue": 4780.8,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:15:35.572801+00:00"
+      "lastUpdated": "2026-08-12T10:21:15.518882+00:00"
     },
     {
       "symbol": "SPLPETRO",
@@ -74,10 +74,10 @@
       "invested": 4353.9,
       "currentPrice": 725.65,
       "currentValue": 4353.9,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:15:35.572801+00:00"
+      "lastUpdated": "2026-08-12T10:21:15.518882+00:00"
     },
     {
       "symbol": "WELSPUNLIV",
@@ -89,10 +89,10 @@
       "invested": 4956.9,
       "currentPrice": 165.23,
       "currentValue": 4956.9,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:15:35.572801+00:00"
+      "lastUpdated": "2026-08-12T10:21:15.518882+00:00"
     }
   ],
   "closedTrades": [],
