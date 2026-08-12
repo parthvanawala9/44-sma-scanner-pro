@@ -1,24 +1,65 @@
+// ============================================================
+// 44 SMA SCANNER PRO
+// DASHBOARD + PORTFOLIO
+// ============================================================
+
+
 let signals = {
+
     buy: [],
     sell: [],
+
     scanned: 0,
     skipped: 0,
+
     scannedAt: null,
+
     buyCount: 0,
     sellCount: 0,
+
     universe: "NIFTY 500",
     universeCount: 0
+
 };
 
+
 let history = [];
+
+
+let portfolio = {
+
+    allocationPerStock: 5000,
+
+    openPositions: [],
+    closedTrades: [],
+
+    realizedPnL: 0,
+    unrealizedPnL: 0,
+
+    totalInvested: 0,
+    totalCurrentValue: 0,
+
+    totalPnL: 0,
+    totalPnLPercent: 0,
+
+    openPositionsCount: 0,
+
+    totalTrades: 0,
+    winningTrades: 0,
+    losingTrades: 0
+
+};
+
+
 let currentTab = "dashboard";
 
 
 // ============================================================
-// BASIC HELPERS
+// HELPERS
 // ============================================================
 
-const $ = (selector) => document.querySelector(selector);
+const $ = selector =>
+    document.querySelector(selector);
 
 
 function money(value) {
@@ -29,9 +70,13 @@ function money(value) {
         return "—";
     }
 
-    return number.toLocaleString("en-IN", {
-        maximumFractionDigits: 2
-    });
+    return number.toLocaleString(
+        "en-IN",
+        {
+            maximumFractionDigits: 2
+        }
+    );
+
 }
 
 
@@ -43,45 +88,123 @@ function percentage(value) {
         return "—";
     }
 
-    const sign = number >= 0 ? "+" : "";
+    const sign =
+        number >= 0
+            ? "+"
+            : "";
 
-    return `${sign}${number.toFixed(2)}%`;
+    return (
+        sign +
+        number.toFixed(2) +
+        "%"
+    );
+
+}
+
+
+function pnlClass(value) {
+
+    const number = Number(value);
+
+    if (number > 0) {
+        return "green";
+    }
+
+    if (number < 0) {
+        return "red";
+    }
+
+    return "";
+
 }
 
 
 function escapeHtml(value) {
 
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
 }
 
 
 // ============================================================
-// LOAD SCANNER DATA
+// LOAD ALL DATA
 // ============================================================
 
 async function loadData() {
 
+    const refreshButton =
+        $("#refreshButton");
+
+
+    if (refreshButton) {
+
+        refreshButton.disabled = true;
+
+        refreshButton.textContent =
+            "↻ Loading...";
+
+    }
+
+
     try {
 
-        const signalResponse = await fetch(
-            "./data/signals.json?" + Date.now(),
-            {
-                cache: "no-store"
-            }
-        );
+        const timestamp =
+            Date.now();
 
 
-        const historyResponse = await fetch(
-            "./data/history.json?" + Date.now(),
-            {
-                cache: "no-store"
-            }
-        );
+        const [
+            signalResponse,
+            historyResponse,
+            portfolioResponse
+        ] = await Promise.all([
+
+            fetch(
+                "./data/signals.json?" +
+                timestamp,
+                {
+                    cache: "no-store"
+                }
+            ),
+
+            fetch(
+                "./data/history.json?" +
+                timestamp,
+                {
+                    cache: "no-store"
+                }
+            ),
+
+            fetch(
+                "./data/portfolio.json?" +
+                timestamp,
+                {
+                    cache: "no-store"
+                }
+            )
+
+        ]);
 
 
         if (!signalResponse.ok) {
@@ -89,6 +212,7 @@ async function loadData() {
             throw new Error(
                 "signals.json could not be loaded"
             );
+
         }
 
 
@@ -104,12 +228,64 @@ async function loadData() {
         } else {
 
             history = [];
+
+        }
+
+
+        if (portfolioResponse.ok) {
+
+            portfolio =
+                await portfolioResponse.json();
+
+        } else {
+
+            portfolio = {
+
+                allocationPerStock: 5000,
+
+                openPositions: [],
+                closedTrades: [],
+
+                realizedPnL: 0,
+                unrealizedPnL: 0,
+
+                totalInvested: 0,
+                totalCurrentValue: 0,
+
+                totalPnL: 0,
+                totalPnLPercent: 0,
+
+                openPositionsCount: 0,
+
+                totalTrades: 0,
+                winningTrades: 0,
+                losingTrades: 0
+
+            };
+
         }
 
 
         console.log(
-            "Scanner:",
+            "Scanner data loaded",
             signals
+        );
+
+
+        console.log(
+            "Portfolio loaded",
+            portfolio
+        );
+
+
+        updateLastScan();
+
+
+        render();
+
+
+        showRefreshStatus(
+            "✓ Data refreshed"
         );
 
 
@@ -121,26 +297,65 @@ async function loadData() {
         );
 
 
-        signals = {
-            buy: [],
-            sell: [],
-            scanned: 0,
-            skipped: 0,
-            scannedAt: null,
-            buyCount: 0,
-            sellCount: 0,
-            universe: "NIFTY 500",
-            universeCount: 0
-        };
+        showRefreshStatus(
+            "⚠ Refresh failed"
+        );
 
-
-        history = [];
     }
 
 
-    updateLastScan();
+    if (refreshButton) {
 
-    render();
+        refreshButton.disabled = false;
+
+        refreshButton.textContent =
+            "↻ Refresh Data";
+
+    }
+
+}
+
+
+// ============================================================
+// REFRESH STATUS
+// ============================================================
+
+function showRefreshStatus(text) {
+
+    const button =
+        $("#refreshButton");
+
+    if (!button) {
+        return;
+    }
+
+
+    const original =
+        button.textContent;
+
+
+    button.textContent =
+        text;
+
+
+    setTimeout(
+        () => {
+
+            if (
+                document.body.contains(
+                    button
+                )
+            ) {
+
+                button.textContent =
+                    original;
+
+            }
+
+        },
+        1500
+    );
+
 }
 
 
@@ -165,6 +380,7 @@ function updateLastScan() {
             "Last scan: Not scanned yet";
 
         return;
+
     }
 
 
@@ -183,6 +399,7 @@ function updateLastScan() {
                 timeStyle: "short"
             }
         );
+
 }
 
 
@@ -199,6 +416,7 @@ function signalBadge(signal) {
                 BUY
             </span>
         `;
+
     }
 
 
@@ -209,10 +427,12 @@ function signalBadge(signal) {
                 SELL
             </span>
         `;
+
     }
 
 
     return "";
+
 }
 
 
@@ -237,16 +457,26 @@ function stockRow(item) {
                 <button
                     type="button"
                     class="stock-button"
-                    data-symbol="${escapeHtml(item.symbol)}"
+                    data-symbol="${escapeHtml(
+                        item.symbol
+                    )}"
                 >
-                    ${escapeHtml(item.symbol)}
+
+                    ${escapeHtml(
+                        item.symbol
+                    )}
+
                 </button>
 
             </td>
 
 
             <td>
-                ${signalBadge(item.signal)}
+
+                ${signalBadge(
+                    item.signal
+                )}
+
             </td>
 
 
@@ -266,7 +496,9 @@ function stockRow(item) {
                     : "red"
             }">
 
-                ${percentage(distance)}
+                ${percentage(
+                    distance
+                )}
 
             </td>
 
@@ -282,16 +514,20 @@ function stockRow(item) {
 
 
             <td class="muted">
-                ${escapeHtml(item.date || "—")}
+                ${escapeHtml(
+                    item.date || "—"
+                )}
             </td>
 
         </tr>
+
     `;
+
 }
 
 
 // ============================================================
-// TABLE
+// STOCK TABLE
 // ============================================================
 
 function stockTable(items) {
@@ -302,10 +538,15 @@ function stockTable(items) {
     ) {
 
         return `
+
             <div class="empty">
+
                 No qualifying stocks found.
+
             </div>
+
         `;
+
     }
 
 
@@ -344,7 +585,9 @@ function stockTable(items) {
             </table>
 
         </div>
+
     `;
+
 }
 
 
@@ -354,9 +597,20 @@ function stockTable(items) {
 
 function dashboardView() {
 
+    const totalPnL =
+        Number(
+            portfolio.totalPnL || 0
+        );
+
+
     return `
 
+        <!-- =================================================
+             SCANNER KPIs
+        ================================================== -->
+
         <div class="kpi-grid">
+
 
             <div class="kpi">
 
@@ -365,7 +619,9 @@ function dashboardView() {
                 </div>
 
                 <div class="kpi-value green">
+
                     ${signals.buy.length}
+
                 </div>
 
                 <div class="kpi-sub">
@@ -382,7 +638,9 @@ function dashboardView() {
                 </div>
 
                 <div class="kpi-value red">
+
                     ${signals.sell.length}
+
                 </div>
 
                 <div class="kpi-sub">
@@ -399,12 +657,16 @@ function dashboardView() {
                 </div>
 
                 <div class="kpi-value">
+
                     ${signals.scanned || 0}
+
                 </div>
 
                 <div class="kpi-sub">
+
                     ${signals.universeCount || 0}
                     stocks in NIFTY 500
+
                 </div>
 
             </div>
@@ -413,23 +675,157 @@ function dashboardView() {
             <div class="kpi">
 
                 <div class="kpi-label">
-                    HISTORY
+                    PORTFOLIO P&L
                 </div>
 
-                <div class="kpi-value">
-                    ${history.length}
+                <div class="
+                    kpi-value
+                    ${pnlClass(totalPnL)}
+                ">
+
+                    ₹${money(totalPnL)}
+
                 </div>
 
                 <div class="kpi-sub">
-                    Recorded signals
+
+                    ${percentage(
+                        portfolio.totalPnLPercent
+                    )}
+
                 </div>
 
             </div>
 
+
         </div>
 
 
+
+        <!-- =================================================
+             PORTFOLIO SUMMARY
+        ================================================== -->
+
+        <div class="panel portfolio-summary-panel">
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    💼 Portfolio
+                </h2>
+
+                <span class="panel-count">
+
+                    ${portfolio.openPositionsCount || 0}
+                    open positions
+
+                </span>
+
+            </div>
+
+
+            <div class="portfolio-summary-grid">
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        INVESTED
+                    </div>
+
+                    <div class="portfolio-stat-value">
+
+                        ₹${money(
+                            portfolio.totalInvested
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        CURRENT VALUE
+                    </div>
+
+                    <div class="portfolio-stat-value">
+
+                        ₹${money(
+                            portfolio.totalCurrentValue
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        UNREALIZED P&L
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        ${pnlClass(
+                            portfolio.unrealizedPnL
+                        )}
+                    ">
+
+                        ₹${money(
+                            portfolio.unrealizedPnL
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        REALIZED P&L
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        ${pnlClass(
+                            portfolio.realizedPnL
+                        )}
+                    ">
+
+                        ₹${money(
+                            portfolio.realizedPnL
+                        )}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <button
+                type="button"
+                class="portfolio-open-button"
+                data-tab="portfolio"
+            >
+                View Portfolio →
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             BUY / SELL
+        ================================================== -->
+
         <div class="two-column">
+
 
             <div class="panel">
 
@@ -440,8 +836,10 @@ function dashboardView() {
                     </h2>
 
                     <span class="panel-count">
+
                         ${signals.buy.length}
                         stocks
+
                     </span>
 
                 </div>
@@ -454,6 +852,7 @@ function dashboardView() {
             </div>
 
 
+
             <div class="panel">
 
                 <div class="panel-header">
@@ -463,8 +862,10 @@ function dashboardView() {
                     </h2>
 
                     <span class="panel-count">
+
                         ${signals.sell.length}
                         stocks
+
                     </span>
 
                 </div>
@@ -476,8 +877,14 @@ function dashboardView() {
 
             </div>
 
+
         </div>
 
+
+
+        <!-- =================================================
+             STRATEGY
+        ================================================== -->
 
         <div class="panel">
 
@@ -492,30 +899,41 @@ function dashboardView() {
 
             <div class="conditions">
 
+
                 <div class="condition ok">
                     ✓ 44 SMA greater than
                     44 SMA 10 days before
                 </div>
+
 
                 <div class="condition ok">
                     ✓ Stock Low touches
                     44 SMA
                 </div>
 
+
                 <div class="condition ok">
                     ✓ Stock Close is above
                     44 SMA
                 </div>
+
 
                 <div class="condition ok">
                     ✓ 44 SMA is above
                     100 SMA
                 </div>
 
+
                 <div class="condition ok">
                     ✓ 100 SMA is above
                     200 SMA
                 </div>
+
+
+                <div class="condition ok">
+                    ✓ Green candle
+                </div>
+
 
                 <div class="condition no">
                     SELL = High touches
@@ -523,15 +941,18 @@ function dashboardView() {
                     44 SMA
                 </div>
 
+
             </div>
 
         </div>
+
     `;
+
 }
 
 
 // ============================================================
-// BUY / SELL PAGE
+// SIGNAL PAGE
 // ============================================================
 
 function signalPage(type) {
@@ -545,6 +966,7 @@ function signalPage(type) {
     return `
 
         <div class="panel">
+
 
             <div class="panel-header">
 
@@ -560,8 +982,10 @@ function signalPage(type) {
 
 
                 <span class="panel-count">
+
                     ${items.length}
                     stocks
+
                 </span>
 
             </div>
@@ -586,8 +1010,653 @@ function signalPage(type) {
 
             </div>
 
+
         </div>
+
     `;
+
+}
+
+
+// ============================================================
+// PORTFOLIO PAGE
+// ============================================================
+
+function portfolioPage() {
+
+    const positions =
+        portfolio.openPositions || [];
+
+
+    const trades =
+        portfolio.closedTrades || [];
+
+
+    return `
+
+        <!-- =================================================
+             PORTFOLIO HEADER
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2 class="panel-title">
+                        💼 My Portfolio
+                    </h2>
+
+                    <div
+                        class="portfolio-subtitle"
+                    >
+                        ₹5,000 allocated to
+                        every BUY signal
+                    </div>
+
+                </div>
+
+
+                <span class="panel-count">
+
+                    ${positions.length}
+                    open
+
+                </span>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PORTFOLIO KPIs
+            ================================================== -->
+
+            <div class="portfolio-summary-grid">
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        TOTAL INVESTED
+                    </div>
+
+                    <div class="portfolio-stat-value">
+
+                        ₹${money(
+                            portfolio.totalInvested
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        CURRENT VALUE
+                    </div>
+
+                    <div class="portfolio-stat-value">
+
+                        ₹${money(
+                            portfolio.totalCurrentValue
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        TOTAL P&L
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        ${pnlClass(
+                            portfolio.totalPnL
+                        )}
+                    ">
+
+                        ₹${money(
+                            portfolio.totalPnL
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        RETURN
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        ${pnlClass(
+                            portfolio.totalPnL
+                        )}
+                    ">
+
+                        ${percentage(
+                            portfolio.totalPnLPercent
+                        )}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             OPEN POSITIONS
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    Open Positions
+                </h2>
+
+                <span class="panel-count">
+
+                    ${positions.length}
+                    stocks
+
+                </span>
+
+            </div>
+
+
+            ${
+                positions.length === 0
+                    ? `
+                        <div class="empty">
+                            No open positions.
+                        </div>
+                    `
+                    : `
+                        <div class="table-wrap">
+
+                            <table class="table portfolio-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Stock</th>
+                                        <th>Qty</th>
+                                        <th>Buy Price</th>
+                                        <th>Current</th>
+                                        <th>Invested</th>
+                                        <th>Value</th>
+                                        <th>P&L</th>
+                                        <th>Return</th>
+                                        <th>Buy Date</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    ${positions
+                                        .map(
+                                            portfolioRow
+                                        )
+                                        .join("")}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                    `
+            }
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             REALIZED TRADES
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    Closed Trades
+                </h2>
+
+                <span class="panel-count">
+
+                    ${trades.length}
+                    trades
+
+                </span>
+
+            </div>
+
+
+            ${
+                trades.length === 0
+                    ? `
+                        <div class="empty">
+                            No closed trades yet.
+                        </div>
+                    `
+                    : `
+                        <div class="table-wrap">
+
+                            <table class="table portfolio-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Stock</th>
+                                        <th>Qty</th>
+                                        <th>Buy</th>
+                                        <th>Sell</th>
+                                        <th>Invested</th>
+                                        <th>Sell Value</th>
+                                        <th>P&L</th>
+                                        <th>Return</th>
+                                        <th>Result</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    ${trades
+                                        .map(
+                                            closedTradeRow
+                                        )
+                                        .join("")}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                    `
+            }
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             PORTFOLIO STATISTICS
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-header">
+
+                <h2 class="panel-title">
+                    Portfolio Statistics
+                </h2>
+
+            </div>
+
+
+            <div class="portfolio-summary-grid">
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        REALIZED P&L
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        ${pnlClass(
+                            portfolio.realizedPnL
+                        )}
+                    ">
+
+                        ₹${money(
+                            portfolio.realizedPnL
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        UNREALIZED P&L
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        ${pnlClass(
+                            portfolio.unrealizedPnL
+                        )}
+                    ">
+
+                        ₹${money(
+                            portfolio.unrealizedPnL
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        WINNING TRADES
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        green
+                    ">
+
+                        ${portfolio.winningTrades || 0}
+
+                    </div>
+
+                </div>
+
+
+                <div class="portfolio-stat">
+
+                    <div class="portfolio-stat-label">
+                        LOSING TRADES
+                    </div>
+
+                    <div class="
+                        portfolio-stat-value
+                        red
+                    ">
+
+                        ${portfolio.losingTrades || 0}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    `;
+
+}
+
+
+// ============================================================
+// PORTFOLIO ROW
+// ============================================================
+
+function portfolioRow(position) {
+
+    const pnl =
+        Number(
+            position.unrealizedPnL || 0
+        );
+
+
+    return `
+
+        <tr>
+
+
+            <td>
+
+                <button
+                    type="button"
+                    class="stock-button"
+                    data-symbol="${escapeHtml(
+                        position.symbol
+                    )}"
+                >
+
+                    ${escapeHtml(
+                        position.symbol
+                    )}
+
+                </button>
+
+            </td>
+
+
+            <td>
+
+                ${money(
+                    position.quantity
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    position.buyPrice
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    position.currentPrice
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    position.invested
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    position.currentValue
+                )}
+
+            </td>
+
+
+            <td class="${pnlClass(pnl)}">
+
+                ${pnl >= 0 ? "+" : ""}
+                ₹${money(Math.abs(pnl))}
+
+            </td>
+
+
+            <td class="${pnlClass(pnl)}">
+
+                ${percentage(
+                    position.unrealizedPnLPercent
+                )}
+
+            </td>
+
+
+            <td class="muted">
+
+                ${escapeHtml(
+                    position.buyDate || "—"
+                )}
+
+            </td>
+
+
+        </tr>
+
+    `;
+
+}
+
+
+// ============================================================
+// CLOSED TRADE ROW
+// ============================================================
+
+function closedTradeRow(trade) {
+
+    const pnl =
+        Number(
+            trade.pnl || 0
+        );
+
+
+    return `
+
+        <tr>
+
+
+            <td>
+
+                <button
+                    type="button"
+                    class="stock-button"
+                    data-symbol="${escapeHtml(
+                        trade.symbol
+                    )}"
+                >
+
+                    ${escapeHtml(
+                        trade.symbol
+                    )}
+
+                </button>
+
+            </td>
+
+
+            <td>
+
+                ${money(
+                    trade.quantity
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    trade.buyPrice
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    trade.sellPrice
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    trade.invested
+                )}
+
+            </td>
+
+
+            <td>
+
+                ₹${money(
+                    trade.sellValue
+                )}
+
+            </td>
+
+
+            <td class="${pnlClass(pnl)}">
+
+                ${pnl >= 0 ? "+" : ""}
+                ₹${money(Math.abs(pnl))}
+
+            </td>
+
+
+            <td class="${pnlClass(pnl)}">
+
+                ${percentage(
+                    trade.pnlPercent
+                )}
+
+            </td>
+
+
+            <td>
+
+                <span class="
+                    signal-badge
+                    ${
+                        pnl >= 0
+                            ? "signal-buy"
+                            : "signal-sell"
+                    }
+                ">
+
+                    ${escapeHtml(
+                        trade.result || "—"
+                    )}
+
+                </span>
+
+            </td>
+
+
+        </tr>
+
+    `;
+
 }
 
 
@@ -601,6 +1670,7 @@ function historyPage() {
 
         <div class="panel">
 
+
             <div class="panel-header">
 
                 <h2 class="panel-title">
@@ -609,8 +1679,10 @@ function historyPage() {
 
 
                 <span class="panel-count">
+
                     ${history.length}
                     records
+
                 </span>
 
             </div>
@@ -635,8 +1707,11 @@ function historyPage() {
 
             </div>
 
+
         </div>
+
     `;
+
 }
 
 
@@ -659,57 +1734,172 @@ function render() {
         $("#pageTitle");
 
 
-    if (currentTab === "dashboard") {
+    if (
+        currentTab ===
+        "dashboard"
+    ) {
 
         if (pageTitle) {
+
             pageTitle.textContent =
                 "Dashboard";
+
         }
 
         content.innerHTML =
             dashboardView();
+
     }
 
 
-    if (currentTab === "buy") {
+    if (
+        currentTab ===
+        "buy"
+    ) {
 
         if (pageTitle) {
+
             pageTitle.textContent =
                 "BUY";
+
         }
 
         content.innerHTML =
             signalPage("buy");
+
     }
 
 
-    if (currentTab === "sell") {
+    if (
+        currentTab ===
+        "sell"
+    ) {
 
         if (pageTitle) {
+
             pageTitle.textContent =
                 "SELL";
+
         }
 
         content.innerHTML =
             signalPage("sell");
+
     }
 
 
-    if (currentTab === "history") {
+    if (
+        currentTab ===
+        "portfolio"
+    ) {
 
         if (pageTitle) {
+
+            pageTitle.textContent =
+                "Portfolio";
+
+        }
+
+        content.innerHTML =
+            portfolioPage();
+
+    }
+
+
+    if (
+        currentTab ===
+        "history"
+    ) {
+
+        if (pageTitle) {
+
             pageTitle.textContent =
                 "History";
+
         }
 
         content.innerHTML =
             historyPage();
+
     }
 
 
     setupSearch();
 
     setupStockButtons();
+
+    setupPortfolioButtons();
+
+}
+
+
+// ============================================================
+// PORTFOLIO BUTTON
+// ============================================================
+
+function setupPortfolioButtons() {
+
+    document
+        .querySelectorAll(
+            "[data-tab='portfolio']"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        currentTab =
+                            "portfolio";
+
+
+                        document
+                            .querySelectorAll(
+                                ".nav-item"
+                            )
+                            .forEach(
+                                item => {
+
+                                    item.classList
+                                        .remove(
+                                            "active"
+                                        );
+
+                                }
+                            );
+
+
+                        const nav =
+                            document.querySelector(
+                                ".nav-item[data-tab='portfolio']"
+                            );
+
+
+                        if (nav) {
+
+                            nav.classList.add(
+                                "active"
+                            );
+
+                        }
+
+
+                        render();
+
+                        window.scrollTo(
+                            {
+                                top: 0,
+                                behavior: "smooth"
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
 }
 
 
@@ -748,7 +1938,9 @@ function setupSearch() {
                                 item.symbol
                             )
                             .toUpperCase()
-                            .includes(query)
+                            .includes(
+                                query
+                            )
                     );
 
 
@@ -762,12 +1954,15 @@ function setupSearch() {
                         stockTable(
                             filtered
                         );
+
                 }
 
 
                 setupStockButtons();
+
             }
         );
+
     }
 
 
@@ -794,7 +1989,9 @@ function setupSearch() {
                                 item.symbol
                             )
                             .toUpperCase()
-                            .includes(query)
+                            .includes(
+                                query
+                            )
                     );
 
 
@@ -808,13 +2005,17 @@ function setupSearch() {
                         stockTable(
                             filtered
                         );
+
                 }
 
 
                 setupStockButtons();
+
             }
         );
+
     }
+
 }
 
 
@@ -850,12 +2051,15 @@ function setupStockButtons() {
                             openStockChart(
                                 item
                             );
+
                         }
+
                     }
                 );
 
             }
         );
+
 }
 
 
@@ -871,27 +2075,37 @@ function findStock(symbol) {
 
         ...signals.sell,
 
-        ...history
+        ...history,
+
+        ...(portfolio.openPositions || []),
+
+        ...(portfolio.closedTrades || [])
 
     ];
 
 
     return all.find(
         item =>
-            item.symbol === symbol
+            item.symbol ===
+            symbol
     );
+
 }
 
 
 // ============================================================
-// LOAD CHART DATA
+// CHART DATA
 // ============================================================
 
-async function loadChartData(symbol) {
+async function loadChartData(
+    symbol
+) {
 
     const response =
         await fetch(
-            `./data/charts/${encodeURIComponent(symbol)}.json?${Date.now()}`,
+            `./data/charts/${encodeURIComponent(
+                symbol
+            )}.json?${Date.now()}`,
             {
                 cache: "no-store"
             }
@@ -903,15 +2117,17 @@ async function loadChartData(symbol) {
         throw new Error(
             `Chart data unavailable for ${symbol}`
         );
+
     }
 
 
     return await response.json();
+
 }
 
 
 // ============================================================
-// CREATE CHART MODAL
+// CHART MODAL
 // ============================================================
 
 function createChartModal() {
@@ -938,15 +2154,23 @@ function createChartModal() {
 
 
     modal.style.cssText = `
+
         position:fixed;
         inset:0;
         z-index:99999;
-        background:rgba(0,0,0,.82);
+
+        background:
+            rgba(0,0,0,.84);
+
         display:none;
+
         align-items:center;
         justify-content:center;
+
         padding:16px;
+
         box-sizing:border-box;
+
     `;
 
 
@@ -956,24 +2180,41 @@ function createChartModal() {
             style="
                 width:min(1250px,100%);
                 height:min(850px,96vh);
+
                 background:#0b111b;
+
                 border:1px solid #26364d;
+
                 border-radius:16px;
+
                 overflow:hidden;
+
                 display:flex;
+
                 flex-direction:column;
-                box-shadow:0 25px 80px rgba(0,0,0,.65);
+
+                box-shadow:
+                    0 25px 80px
+                    rgba(0,0,0,.65);
             "
         >
+
 
             <div
                 style="
                     min-height:64px;
+
                     display:flex;
+
                     align-items:center;
+
                     justify-content:space-between;
+
                     padding:0 18px;
-                    border-bottom:1px solid #26364d;
+
+                    border-bottom:
+                        1px solid #26364d;
+
                     background:#0e1724;
                 "
             >
@@ -1012,10 +2253,14 @@ function createChartModal() {
                         border:0;
                         background:#1b2737;
                         color:#fff;
+
                         width:40px;
                         height:40px;
+
                         border-radius:10px;
+
                         font-size:24px;
+
                         cursor:pointer;
                     "
                 >
@@ -1029,15 +2274,26 @@ function createChartModal() {
                 id="chartStats"
                 style="
                     min-height:52px;
+
                     display:flex;
+
                     align-items:center;
+
                     gap:22px;
+
                     padding:8px 18px;
+
                     box-sizing:border-box;
-                    border-bottom:1px solid #1c2a3d;
+
+                    border-bottom:
+                        1px solid #1c2a3d;
+
                     background:#0b111b;
+
                     color:#91a4bd;
+
                     font-size:13px;
+
                     flex-wrap:wrap;
                 "
             >
@@ -1047,8 +2303,11 @@ function createChartModal() {
             <div
                 style="
                     flex:1;
+
                     min-height:0;
+
                     position:relative;
+
                     background:#0b111b;
                 "
             >
@@ -1068,12 +2327,20 @@ function createChartModal() {
                     id="chartLoading"
                     style="
                         position:absolute;
+
                         inset:0;
+
                         display:none;
+
                         align-items:center;
+
                         justify-content:center;
+
                         color:#91a4bd;
-                        background:rgba(11,17,27,.9);
+
+                        background:
+                            rgba(11,17,27,.9);
+
                         font-size:14px;
                     "
                 >
@@ -1086,35 +2353,66 @@ function createChartModal() {
             <div
                 style="
                     min-height:48px;
+
                     display:flex;
+
                     align-items:center;
+
                     gap:18px;
+
                     padding:0 18px;
-                    border-top:1px solid #26364d;
+
+                    border-top:
+                        1px solid #26364d;
+
                     background:#0e1724;
+
                     color:#9badc5;
+
                     font-size:12px;
                 "
             >
 
                 <span>
-                    <b style="color:#f0b90b">●</b>
+                    <b
+                        style="
+                            color:#f0b90b
+                        "
+                    >
+                        ●
+                    </b>
                     44 SMA
                 </span>
 
+
                 <span>
-                    <b style="color:#5aa9ff">●</b>
+                    <b
+                        style="
+                            color:#5aa9ff
+                        "
+                    >
+                        ●
+                    </b>
                     100 SMA
                 </span>
 
+
                 <span>
-                    <b style="color:#d88cff">●</b>
+                    <b
+                        style="
+                            color:#d88cff
+                        "
+                    >
+                        ●
+                    </b>
                     200 SMA
                 </span>
+
 
                 <span>
                     🟢 Bullish candle
                 </span>
+
 
                 <span>
                     🔴 Bearish candle
@@ -1122,7 +2420,9 @@ function createChartModal() {
 
             </div>
 
+
         </div>
+
     `;
 
 
@@ -1146,11 +2446,14 @@ function createChartModal() {
         event => {
 
             if (
-                event.target === modal
+                event.target ===
+                modal
             ) {
 
                 closeChart();
+
             }
+
         }
     );
 
@@ -1171,13 +2474,17 @@ function createChartModal() {
                     drawStockChart(
                         window.currentChartRows
                     );
+
                 }
+
             }
+
         }
     );
 
 
     return modal;
+
 }
 
 
@@ -1185,7 +2492,9 @@ function createChartModal() {
 // OPEN CHART
 // ============================================================
 
-async function openStockChart(item) {
+async function openStockChart(
+    item
+) {
 
     const modal =
         createChartModal();
@@ -1216,7 +2525,9 @@ async function openStockChart(item) {
 
 
     title.textContent =
-        `${item.symbol} — ${item.signal}`;
+        `${item.symbol} — ${
+            item.signal || "STOCK"
+        }`;
 
 
     subtitle.textContent =
@@ -1227,36 +2538,52 @@ async function openStockChart(item) {
 
         <span>
             Close:
-            <strong style="color:#fff">
+            <strong
+                style="color:#fff"
+            >
                 ₹${money(item.Close)}
             </strong>
         </span>
 
+
         <span>
             44 SMA:
-            <strong style="color:#f0b90b">
+            <strong
+                style="color:#f0b90b"
+            >
                 ₹${money(item.sma44)}
             </strong>
         </span>
 
+
         <span>
             100 SMA:
-            <strong style="color:#5aa9ff">
+            <strong
+                style="color:#5aa9ff"
+            >
                 ₹${money(item.sma100)}
             </strong>
         </span>
 
+
         <span>
             200 SMA:
-            <strong style="color:#d88cff">
+            <strong
+                style="color:#d88cff"
+            >
                 ₹${money(item.sma200)}
             </strong>
         </span>
 
+
         <span>
             Date:
-            <strong style="color:#fff">
-                ${escapeHtml(item.date || "—")}
+            <strong
+                style="color:#fff"
+            >
+                ${escapeHtml(
+                    item.date || "—"
+                )}
             </strong>
         </span>
 
@@ -1269,6 +2596,10 @@ async function openStockChart(item) {
 
     document.body.style.overflow =
         "hidden";
+
+
+    loading.textContent =
+        "Loading chart...";
 
 
     loading.style.display =
@@ -1292,10 +2623,10 @@ async function openStockChart(item) {
             throw new Error(
                 "No chart data available"
             );
+
         }
 
 
-        // Keep approximately last 6 months.
         const visibleRows =
             rows.slice(
                 Math.max(
@@ -1331,7 +2662,9 @@ async function openStockChart(item) {
 
         loading.style.display =
             "flex";
+
     }
+
 }
 
 
@@ -1351,6 +2684,7 @@ function closeChart() {
 
         modal.style.display =
             "none";
+
     }
 
 
@@ -1360,6 +2694,7 @@ function closeChart() {
 
     window.currentChartRows =
         null;
+
 }
 
 
@@ -1367,7 +2702,9 @@ function closeChart() {
 // DRAW CHART
 // ============================================================
 
-function drawStockChart(rows) {
+function drawStockChart(
+    rows
+) {
 
     const canvas =
         document.getElementById(
@@ -1375,8 +2712,13 @@ function drawStockChart(rows) {
         );
 
 
-    if (!canvas || !rows.length) {
+    if (
+        !canvas ||
+        !rows.length
+    ) {
+
         return;
+
     }
 
 
@@ -1385,7 +2727,8 @@ function drawStockChart(rows) {
 
 
     const dpr =
-        window.devicePixelRatio || 1;
+        window.devicePixelRatio ||
+        1;
 
 
     const width =
@@ -1426,12 +2769,9 @@ function drawStockChart(rows) {
     );
 
 
-    // ========================================================
-    // BACKGROUND
-    // ========================================================
-
     ctx.fillStyle =
         "#0b111b";
+
 
     ctx.fillRect(
         0,
@@ -1441,21 +2781,10 @@ function drawStockChart(rows) {
     );
 
 
-    // ========================================================
-    // CHART AREA
-    // ========================================================
-
-    const left =
-        62;
-
-    const right =
-        20;
-
-    const top =
-        20;
-
-    const bottom =
-        42;
+    const left = 62;
+    const right = 20;
+    const top = 20;
+    const bottom = 42;
 
 
     const chartWidth =
@@ -1470,59 +2799,37 @@ function drawStockChart(rows) {
         bottom;
 
 
-    // ========================================================
-    // FIND PRICE RANGE
-    // ========================================================
-
     const prices = [];
 
 
     rows.forEach(
         row => {
 
-            if (
-                Number.isFinite(
-                    Number(row.high)
-                )
-            ) {
-
-                prices.push(
-                    Number(row.high)
-                );
-            }
-
-
-            if (
-                Number.isFinite(
-                    Number(row.low)
-                )
-            ) {
-
-                prices.push(
-                    Number(row.low)
-                );
-            }
-
-
             [
+                row.high,
+                row.low,
                 row.sma44,
                 row.sma100,
                 row.sma200
-            ].forEach(
-                value => {
+            ]
+                .forEach(
+                    value => {
 
-                    if (
-                        Number.isFinite(
-                            Number(value)
-                        )
-                    ) {
+                        if (
+                            Number.isFinite(
+                                Number(value)
+                            )
+                        ) {
 
-                        prices.push(
-                            Number(value)
-                        );
+                            prices.push(
+                                Number(value)
+                            );
+
+                        }
+
                     }
-                }
-            );
+                );
+
         }
     );
 
@@ -1544,9 +2851,21 @@ function drawStockChart(rows) {
         );
 
 
-    const padding =
-        (maxPrice - minPrice) *
-        0.08;
+    let padding =
+        (
+            maxPrice -
+            minPrice
+        ) * 0.08;
+
+
+    if (
+        padding === 0
+    ) {
+
+        padding =
+            maxPrice * 0.02;
+
+    }
 
 
     minPrice -=
@@ -1562,11 +2881,9 @@ function drawStockChart(rows) {
         minPrice;
 
 
-    // ========================================================
-    // PRICE -> Y
-    // ========================================================
-
-    function priceY(price) {
+    function priceY(
+        price
+    ) {
 
         return (
             top +
@@ -1579,19 +2896,18 @@ function drawStockChart(rows) {
             ) *
             chartHeight
         );
+
     }
 
-
-    // ========================================================
-    // X
-    // ========================================================
 
     const step =
         chartWidth /
         rows.length;
 
 
-    function xPosition(index) {
+    function xPosition(
+        index
+    ) {
 
         return (
             left +
@@ -1601,6 +2917,7 @@ function drawStockChart(rows) {
             ) *
             step
         );
+
     }
 
 
@@ -1637,15 +2954,19 @@ function drawStockChart(rows) {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             left,
             y
         );
 
+
         ctx.lineTo(
-            width - right,
+            width -
+            right,
             y
         );
+
 
         ctx.stroke();
 
@@ -1662,11 +2983,14 @@ function drawStockChart(rows) {
         ctx.fillStyle =
             "#7d8fa8";
 
+
         ctx.font =
             "11px Arial";
 
+
         ctx.textAlign =
             "right";
+
 
         ctx.fillText(
             "₹" +
@@ -1674,11 +2998,12 @@ function drawStockChart(rows) {
             left - 8,
             y + 4
         );
+
     }
 
 
     // ========================================================
-    // CANDLESTICKS
+    // CANDLES
     // ========================================================
 
     const candleWidth =
@@ -1692,19 +3017,33 @@ function drawStockChart(rows) {
 
 
     rows.forEach(
-        (row, index) => {
+        (
+            row,
+            index
+        ) => {
 
             const open =
-                Number(row.open);
+                Number(
+                    row.open
+                );
+
 
             const high =
-                Number(row.high);
+                Number(
+                    row.high
+                );
+
 
             const low =
-                Number(row.low);
+                Number(
+                    row.low
+                );
+
 
             const close =
-                Number(row.close);
+                Number(
+                    row.close
+                );
 
 
             if (
@@ -1719,6 +3058,7 @@ function drawStockChart(rows) {
             ) {
 
                 return;
+
             }
 
 
@@ -1729,19 +3069,27 @@ function drawStockChart(rows) {
 
 
             const yHigh =
-                priceY(high);
+                priceY(
+                    high
+                );
 
 
             const yLow =
-                priceY(low);
+                priceY(
+                    low
+                );
 
 
             const yOpen =
-                priceY(open);
+                priceY(
+                    open
+                );
 
 
             const yClose =
-                priceY(close);
+                priceY(
+                    close
+                );
 
 
             const bullish =
@@ -1760,23 +3108,26 @@ function drawStockChart(rows) {
                     : "#ff5d6c";
 
 
-            // Wick
-
             ctx.lineWidth =
                 1;
 
 
+            // Wick
+
             ctx.beginPath();
+
 
             ctx.moveTo(
                 x,
                 yHigh
             );
 
+
             ctx.lineTo(
                 x,
                 yLow
             );
+
 
             ctx.stroke();
 
@@ -1815,6 +3166,7 @@ function drawStockChart(rows) {
                 candleWidth,
 
                 bodyHeight
+
             );
 
         }
@@ -1856,14 +3208,16 @@ function drawStockChart(rows) {
 
 
     // ========================================================
-    // DATE LABELS
+    // DATES
     // ========================================================
 
     ctx.fillStyle =
         "#7d8fa8";
 
+
     ctx.font =
         "10px Arial";
+
 
     ctx.textAlign =
         "center";
@@ -1918,6 +3272,7 @@ function drawStockChart(rows) {
             x,
             height - 15
         );
+
     }
 
 
@@ -1928,8 +3283,10 @@ function drawStockChart(rows) {
     ctx.strokeStyle =
         "#26364d";
 
+
     ctx.lineWidth =
         1;
+
 
     ctx.strokeRect(
         left,
@@ -1937,11 +3294,12 @@ function drawStockChart(rows) {
         chartWidth,
         chartHeight
     );
+
 }
 
 
 // ============================================================
-// DRAW SMA
+// DRAW SMA LINE
 // ============================================================
 
 function drawLine(
@@ -1956,8 +3314,10 @@ function drawLine(
     ctx.strokeStyle =
         lineColor;
 
+
     ctx.lineWidth =
         1.5;
+
 
     ctx.beginPath();
 
@@ -1967,7 +3327,10 @@ function drawLine(
 
 
     rows.forEach(
-        (row, index) => {
+        (
+            row,
+            index
+        ) => {
 
             const value =
                 Number(
@@ -1982,6 +3345,7 @@ function drawLine(
             ) {
 
                 return;
+
             }
 
 
@@ -2004,7 +3368,8 @@ function drawLine(
                     y
                 );
 
-                started = true;
+                started =
+                    true;
 
             } else {
 
@@ -2012,7 +3377,9 @@ function drawLine(
                     x,
                     y
                 );
+
             }
+
         }
     );
 
@@ -2020,27 +3387,10 @@ function drawLine(
     if (started) {
 
         ctx.stroke();
+
     }
+
 }
-
-
-// ============================================================
-// KEYBOARD ESC
-// ============================================================
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key ===
-            "Escape"
-        ) {
-
-            closeChart();
-        }
-    }
-);
 
 
 // ============================================================
@@ -2073,6 +3423,7 @@ document
                                     .remove(
                                         "active"
                                     );
+
                             }
                         );
 
@@ -2083,6 +3434,15 @@ document
 
 
                     render();
+
+
+                    window.scrollTo(
+                        {
+                            top: 0,
+                            behavior: "smooth"
+                        }
+                    );
+
                 }
             );
 
@@ -2091,7 +3451,7 @@ document
 
 
 // ============================================================
-// REFRESH
+// REFRESH DATA
 // ============================================================
 
 const refreshButton =
@@ -2104,7 +3464,29 @@ if (refreshButton) {
         "click",
         loadData
     );
+
 }
+
+
+// ============================================================
+// ESC CLOSE
+// ============================================================
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            closeChart();
+
+        }
+
+    }
+);
 
 
 // ============================================================
