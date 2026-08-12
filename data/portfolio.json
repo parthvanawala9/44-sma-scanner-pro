@@ -2,7 +2,7 @@
   "version": 1,
   "allocationPerStock": 5000,
   "createdAt": "2026-08-12T10:15:35.585004+00:00",
-  "updatedAt": "2026-08-12T10:43:54.693403+00:00",
+  "updatedAt": "2026-08-12T10:57:26.408149+00:00",
   "openPositions": [
     {
       "symbol": "BHEL",
@@ -17,7 +17,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:43:54.693403+00:00"
+      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
     },
     {
       "symbol": "DATAPATTNS",
@@ -32,7 +32,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:43:54.693403+00:00"
+      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
     },
     {
       "symbol": "NAM-INDIA",
@@ -47,7 +47,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:43:54.693403+00:00"
+      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
     },
     {
       "symbol": "SCI",
@@ -62,7 +62,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:43:54.693403+00:00"
+      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
     },
     {
       "symbol": "SPLPETRO",
@@ -77,7 +77,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:43:54.693403+00:00"
+      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
     },
     {
       "symbol": "WELSPUNLIV",
@@ -92,7 +92,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-12T10:43:54.693403+00:00"
+      "lastUpdated": "2026-08-12T10:57:26.408149+00:00"
     }
   ],
   "closedTrades": [],
