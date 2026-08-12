@@ -21,14 +21,24 @@ concurrency:
 jobs:
 
   build:
+
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     runs-on: ubuntu-latest
 
     steps:
 
+      # ======================================================
+      # CHECKOUT
+      # ======================================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
+
+      # ======================================================
+      # PREPARE DASHBOARD
+      # ======================================================
 
       - name: Prepare dashboard
         run: |
@@ -37,30 +47,97 @@ jobs:
 
           mkdir -p site
           mkdir -p site/data
+          mkdir -p site/data/charts
+
+
+          # Dashboard files
 
           cp dashboard/index.html site/index.html
           cp dashboard/app.js site/app.js
           cp dashboard/style.css site/style.css
 
+
+          # Scanner result files
+
           cp data/signals.json site/data/signals.json
           cp data/history.json site/data/history.json
+
 
           if [ -f data/universe.json ]; then
             cp data/universe.json site/data/universe.json
           fi
 
+
           if [ -f data/skipped.json ]; then
             cp data/skipped.json site/data/skipped.json
           fi
 
+
+          # ==================================================
+          # IMPORTANT:
+          # COPY ALL CHART FILES
+          # ==================================================
+
+          if [ -d data/charts ]; then
+
+            cp -r data/charts/. site/data/charts/
+
+            echo "Chart files copied:"
+            find site/data/charts -type f -name "*.json" | wc -l
+
+          else
+
+            echo "WARNING: data/charts folder not found"
+
+          fi
+
+
+          # ==================================================
+          # SHOW PUBLISHED FILES
+          # ==================================================
+
+          echo ""
+          echo "=============================================="
+          echo "PAGES BUILD CONTENT"
+          echo "=============================================="
+
+          echo ""
+          echo "Dashboard files:"
+          ls -la site
+
+          echo ""
+          echo "Data files:"
+          ls -la site/data
+
+          echo ""
+          echo "Chart files:"
+          find site/data/charts -type f -name "*.json" | wc -l
+
+          echo ""
+          echo "=============================================="
+
+
+      # ======================================================
+      # SETUP GITHUB PAGES
+      # ======================================================
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
+
+
+      # ======================================================
+      # UPLOAD DASHBOARD
+      # ======================================================
 
       - name: Upload dashboard
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
 
+
+  # ========================================================
+  # DEPLOY
+  # ========================================================
 
   deploy:
 
