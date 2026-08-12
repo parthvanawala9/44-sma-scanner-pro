@@ -21,7 +21,6 @@ concurrency:
 jobs:
 
   build:
-
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     runs-on: ubuntu-latest
@@ -29,7 +28,7 @@ jobs:
     steps:
 
       # ======================================================
-      # CHECKOUT
+      # CHECKOUT REPOSITORY
       # ======================================================
 
       - name: Checkout repository
@@ -47,74 +46,98 @@ jobs:
 
           mkdir -p site
           mkdir -p site/data
-          mkdir -p site/data/charts
 
 
-          # Dashboard files
+          # --------------------------------------------------
+          # DASHBOARD FILES
+          # --------------------------------------------------
 
           cp dashboard/index.html site/index.html
           cp dashboard/app.js site/app.js
           cp dashboard/style.css site/style.css
 
 
-          # Scanner result files
+          # --------------------------------------------------
+          # SCANNER DATA
+          # --------------------------------------------------
 
           cp data/signals.json site/data/signals.json
           cp data/history.json site/data/history.json
 
+
+          # --------------------------------------------------
+          # PORTFOLIO DATA
+          # --------------------------------------------------
+
+          if [ -f data/portfolio.json ]; then
+            cp data/portfolio.json site/data/portfolio.json
+          fi
+
+
+          # --------------------------------------------------
+          # UNIVERSE DATA
+          # --------------------------------------------------
 
           if [ -f data/universe.json ]; then
             cp data/universe.json site/data/universe.json
           fi
 
 
+          # --------------------------------------------------
+          # SKIPPED STOCKS
+          # --------------------------------------------------
+
           if [ -f data/skipped.json ]; then
             cp data/skipped.json site/data/skipped.json
           fi
 
 
-          # ==================================================
-          # IMPORTANT:
-          # COPY ALL CHART FILES
-          # ==================================================
+          # --------------------------------------------------
+          # CHART DATA
+          # --------------------------------------------------
 
           if [ -d data/charts ]; then
-
+            mkdir -p site/data/charts
             cp -r data/charts/. site/data/charts/
-
-            echo "Chart files copied:"
-            find site/data/charts -type f -name "*.json" | wc -l
-
-          else
-
-            echo "WARNING: data/charts folder not found"
-
           fi
 
 
-          # ==================================================
-          # SHOW PUBLISHED FILES
-          # ==================================================
+          # --------------------------------------------------
+          # SHOW WHAT WILL BE DEPLOYED
+          # --------------------------------------------------
 
           echo ""
-          echo "=============================================="
-          echo "PAGES BUILD CONTENT"
-          echo "=============================================="
+          echo "========================================"
+          echo "DASHBOARD FILES"
+          echo "========================================"
+
+          find site -type f | sort
 
           echo ""
-          echo "Dashboard files:"
-          ls -la site
+          echo "========================================"
+          echo "PORTFOLIO CHECK"
+          echo "========================================"
+
+          if [ -f site/data/portfolio.json ]; then
+            echo "✅ portfolio.json copied successfully"
+          else
+            echo "⚠️ portfolio.json not found"
+          fi
 
           echo ""
-          echo "Data files:"
-          ls -la site/data
+          echo "========================================"
+          echo "CHART CHECK"
+          echo "========================================"
 
-          echo ""
-          echo "Chart files:"
-          find site/data/charts -type f -name "*.json" | wc -l
+          if [ -d site/data/charts ]; then
+            echo "✅ Charts directory copied"
 
-          echo ""
-          echo "=============================================="
+            echo "Chart files:"
+            find site/data/charts -type f | wc -l
+
+          else
+            echo "⚠️ No charts directory found"
+          fi
 
 
       # ======================================================
