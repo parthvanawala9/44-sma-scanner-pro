@@ -1,9 +1,11 @@
 name: Deploy 44 SMA Dashboard
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows:
+      - "44 SMA Scanner"
+    types:
+      - completed
 
   workflow_dispatch:
 
@@ -19,6 +21,7 @@ concurrency:
 jobs:
 
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     runs-on: ubuntu-latest
 
@@ -39,17 +42,8 @@ jobs:
           cp dashboard/app.js site/app.js
           cp dashboard/style.css site/style.css
 
-          if [ -f data/signals.json ]; then
-            cp data/signals.json site/data/signals.json
-          else
-            echo '{"scannedAt":null,"buy":[],"sell":[],"buyCount":0,"sellCount":0,"scanned":0}' > site/data/signals.json
-          fi
-
-          if [ -f data/history.json ]; then
-            cp data/history.json site/data/history.json
-          else
-            echo '[]' > site/data/history.json
-          fi
+          cp data/signals.json site/data/signals.json
+          cp data/history.json site/data/history.json
 
           if [ -f data/universe.json ]; then
             cp data/universe.json site/data/universe.json
@@ -59,15 +53,18 @@ jobs:
             cp data/skipped.json site/data/skipped.json
           fi
 
-      - name: Setup Pages
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload Pages artifact
+      - name: Upload dashboard
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
 
+
   deploy:
+
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     environment:
       name: github-pages
@@ -79,6 +76,6 @@ jobs:
 
     steps:
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy dashboard
         id: deployment
         uses: actions/deploy-pages@v4
