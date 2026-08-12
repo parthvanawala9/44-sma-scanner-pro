@@ -1,40 +1,53 @@
 name: 44 SMA Scanner
 
 on:
+
   schedule:
-    # 4:00 PM IST = 10:30 AM UTC
-    - cron: '30 10 * * 1-5'
+
+    # 10:30 UTC = 4:00 PM IST
+    # Monday to Friday
+    - cron: "30 10 * * 1-5"
 
   workflow_dispatch:
 
+
 permissions:
+
   contents: write
+  pages: write
+  id-token: write
+
 
 jobs:
+
   scan:
 
     runs-on: ubuntu-latest
 
+
     steps:
+
 
       # ======================================================
       # CHECKOUT
       # ======================================================
 
       - name: Checkout repository
+
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
 
       # ======================================================
-      # PYTHON
+      # SETUP PYTHON
       # ======================================================
 
       - name: Setup Python
+
         uses: actions/setup-python@v5
+
         with:
-          python-version: '3.12'
+
+          python-version: "3.12"
 
 
       # ======================================================
@@ -42,8 +55,11 @@ jobs:
       # ======================================================
 
       - name: Install dependencies
+
         run: |
+
           python -m pip install --upgrade pip
+
           pip install -r scanner/requirements.txt
 
 
@@ -52,7 +68,9 @@ jobs:
       # ======================================================
 
       - name: Run 44 SMA scanner
+
         run: |
+
           python scanner/scan.py
 
 
@@ -61,69 +79,132 @@ jobs:
       # ======================================================
 
       - name: Show scan summary
-        run: |
-          echo ""
-          echo "=============================================="
-          echo "44 SMA SCANNER RESULT"
-          echo "=============================================="
 
-          if [ -f data/signals.json ]; then
-            python - <<'PY'
+        run: |
+
+          echo "========================================"
+
+          echo "44 SMA SCANNER RESULT"
+
+          echo "========================================"
+
+          python - <<'PY'
+
           import json
 
-          with open("data/signals.json", "r", encoding="utf-8") as f:
+          with open("data/signals.json", "r") as f:
+
               data = json.load(f)
 
-          print("Universe          :", data.get("universe"))
-          print("Universe count    :", data.get("universeCount"))
-          print("Successfully scanned :", data.get("scanned"))
-          print("Skipped            :", data.get("skipped"))
-          print("BUY                :", data.get("buyCount"))
-          print("SELL               :", data.get("sellCount"))
+
+          print(
+              "Universe:",
+              data.get("universe")
+          )
+
+          print(
+              "Universe count:",
+              data.get("universeCount")
+          )
+
+          print(
+              "Successfully scanned:",
+              data.get("scanned")
+          )
+
+          print(
+              "Skipped:",
+              data.get("skipped")
+          )
+
+          print(
+              "BUY:",
+              data.get("buyCount")
+          )
+
+          print(
+              "SELL:",
+              data.get("sellCount")
+          )
+
+
+          try:
+
+              with open(
+                  "data/portfolio.json",
+                  "r"
+              ) as f:
+
+                  portfolio = json.load(f)
+
+
+              print(
+                  "Portfolio positions:",
+                  portfolio.get(
+                      "openPositionsCount",
+                      0
+                  )
+              )
+
+              print(
+                  "Portfolio invested:",
+                  portfolio.get(
+                      "totalInvested",
+                      0
+                  )
+              )
+
+              print(
+                  "Portfolio value:",
+                  portfolio.get(
+                      "totalCurrentValue",
+                      0
+                  )
+              )
+
+              print(
+                  "Portfolio P&L:",
+                  portfolio.get(
+                      "totalPnL",
+                      0
+                  )
+              )
+
+          except Exception as error:
+
+              print(
+                  "Portfolio summary error:",
+                  error
+              )
+
           PY
-          else
-            echo "signals.json not found"
-          fi
-
-          echo ""
-          echo "Chart files:"
-          
-          if [ -d data/charts ]; then
-            find data/charts -type f -name "*.json" | wc -l
-          else
-            echo "0"
-          fi
-
-          echo ""
-          echo "=============================================="
 
 
       # ======================================================
-      # COMMIT EVERYTHING IN DATA/
+      # COMMIT ALL SCAN DATA
       # ======================================================
 
       - name: Commit scan results
+
         run: |
 
           git config user.name "github-actions[bot]"
 
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
 
-          # Add EVERYTHING inside data/
-          # This includes:
-          #
-          # data/signals.json
-          # data/history.json
-          # data/universe.json
-          # data/skipped.json
-          # data/charts/*.json
+          git add data/signals.json
 
-          git add data/
+          git add data/history.json
 
+          git add data/universe.json
 
-          # Check whether anything changed
+          git add data/skipped.json
+
+          git add data/portfolio.json
+
+          git add data/charts/
+
 
           if git diff --cached --quiet; then
 
@@ -131,8 +212,7 @@ jobs:
 
           else
 
-            git commit \
-              -m "Update 44 SMA scan results and charts"
+            git commit -m "Update 44 SMA scan results"
 
             git push
 
