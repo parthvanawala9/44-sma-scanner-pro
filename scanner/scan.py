@@ -526,6 +526,16 @@ def process_stock(
 
         # ====================================================
         # BUY STRATEGY
+        #
+        # ALL CONDITIONS MUST BE TRUE:
+        #
+        # 1. 44 SMA > 44 SMA 10 days ago
+        # 2. Today's Low <= Today's 44 SMA
+        # 3. Today's Close > Today's 44 SMA
+        # 4. 44 SMA > 100 SMA
+        # 5. 100 SMA > 200 SMA
+        # 6. TODAY'S CANDLE IS GREEN
+        #    Close > Open
         # ====================================================
 
         buy_checks = {
@@ -543,7 +553,10 @@ def process_stock(
                 sma44 > sma100,
 
             "100 SMA above 200 SMA":
-                sma100 > sma200
+                sma100 > sma200,
+
+            "Green candle":
+                close_price > open_price
         }
 
 
@@ -554,6 +567,8 @@ def process_stock(
 
         # ====================================================
         # SELL STRATEGY
+        #
+        # UNCHANGED
         # ====================================================
 
         sell_checks = {
