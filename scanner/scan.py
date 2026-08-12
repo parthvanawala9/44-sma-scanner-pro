@@ -13,7 +13,7 @@ DATA.mkdir(exist_ok=True)
 
 SYMBOLS_FILE = Path(__file__).resolve().parent / "symbols.csv"
 
-NIFTY_500_API = (
+NSE_API = (
     "https://www.nseindia.com/api/equity-stockIndices"
     "?index=NIFTY%20500"
 )
@@ -27,60 +27,38 @@ NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "en-US,en;q=0.9",
     "Referer": "https://www.nseindia.com/",
-    "Connection": "keep-alive",
 }
 
 
-def load_fallback_symbols():
-    """Load symbols.csv if the live NIFTY 500 list cannot be downloaded."""
+# ============================================================
+# GET NIFTY 500
+# ============================================================
 
-    if not SYMBOLS_FILE.exists():
-        return []
-
-    df = pd.read_csv(SYMBOLS_FILE)
-
-    if "symbol" not in df.columns:
-        raise ValueError(
-            "symbols.csv must contain a 'symbol' column"
-        )
-
-    symbols = []
-
-    for value in df["symbol"].dropna():
-
-        symbol = str(value).strip().upper()
-
-        if symbol and symbol not in symbols:
-            symbols.append(symbol)
-
-    return symbols
-
-
-def fetch_nifty500_symbols():
-    """
-    Fetch the current NIFTY 500 constituents from NSE.
-    """
+def get_nifty500_symbols():
 
     session = requests.Session()
+
     session.headers.update(NSE_HEADERS)
 
     try:
 
+        print("Connecting to NSE...")
+
         session.get(
             "https://www.nseindia.com/",
-            timeout=20,
+            timeout=20
         )
 
         response = session.get(
-            NIFTY_500_API,
-            timeout=30,
+            NSE_API,
+            timeout=30
         )
 
         response.raise_for_status()
 
-        payload = response.json()
+        data = response.json()
 
-        rows = payload.get("data", [])
+        rows = data.get("data", [])
 
         symbols = []
 
@@ -93,349 +71,455 @@ def fetch_nifty500_symbols():
             if (
                 symbol
                 and symbol not in symbols
-                and symbol not in {
+                and symbol not in [
                     "NIFTY 500",
-                    "NIFTY500",
-                }
+                    "NIFTY500"
+                ]
             ):
+
                 symbols.append(symbol)
 
         if len(symbols) < 400:
 
-            raise RuntimeError(
-                f"NSE returned only {len(symbols)} symbols"
+            raise Exception(
+                f"NSE returned only {len(symbols)} stocks"
             )
+
+        print(
+            f"NSE returned {len(symbols)} stocks"
+        )
 
         return symbols
 
     except Exception as error:
 
         print(
-            f"NSE NIFTY 500 download failed: {error}"
+            f"NSE download failed: {error}"
         )
 
-        return []
+        return load_fallback_symbols()
 
 
-def get_symbols():
+# ============================================================
+# FALLBACK CSV
+# ============================================================
 
-    live_symbols = fetch_nifty500_symbols()
+def load_fallback_symbols():
 
-    if live_symbols:
+    print("Using symbols.csv fallback")
 
-        print(
-            f"Using live NSE NIFTY 500 universe: "
-            f"{len(live_symbols)} symbols"
+    if not SYMBOLS_FILE.exists():
+
+        raise Exception(
+            "symbols.csv not found"
         )
 
-        return (
-            live_symbols,
-            "NSE live NIFTY 500"
+    df = pd.read_csv(
+        SYMBOLS_FILE
+    )
+
+    if "symbol" not in df.columns:
+
+        raise Exception(
+            "symbols.csv must contain symbol column"
         )
 
-    fallback = load_fallback_symbols()
+    symbols = []
 
-    if not fallback:
+    for value in df["symbol"].dropna():
 
-        raise RuntimeError(
-            "Could not obtain the NIFTY 500 universe "
-            "and symbols.csv is empty or missing."
-        )
+        symbol = str(
+            value
+        ).strip().upper()
+
+        if (
+            symbol
+            and symbol not in symbols
+        ):
+
+            symbols.append(symbol)
 
     print(
-        f"Using fallback symbols.csv universe: "
-        f"{len(fallback)} symbols"
+        f"Fallback contains {len(symbols)} stocks"
     )
 
-    return (
-        fallback,
-        "symbols.csv fallback"
+    return symbols
+
+
+# ============================================================
+# DOWNLOAD DATA IN BATCHES
+# ============================================================
+
+def download_batch(
+    symbols,
+    batch_number,
+    total_batches
+):
+
+    tickers = [
+        f"{symbol}.NS"
+        for symbol in symbols
+    ]
+
+    print("")
+    print(
+        f"Downloading batch "
+        f"{batch_number}/{total_batches}"
     )
 
+    print(
+        f"Stocks in batch: {len(tickers)}"
+    )
 
-def download_stock(symbol):
+    try:
+
+        data = yf.download(
+            tickers=tickers,
+            period="18mo",
+            interval="1d",
+            auto_adjust=False,
+            progress=False,
+            threads=True,
+            group_by="ticker"
+        )
+
+        return data
+
+    except Exception as error:
+
+        print(
+            f"Batch download failed: {error}"
+        )
+
+        return None
+
+
+# ============================================================
+# PROCESS ONE STOCK
+# ============================================================
+
+def process_stock(
+    symbol,
+    batch_data
+):
 
     ticker = f"{symbol}.NS"
 
     try:
 
-        df = yf.download(
-            ticker,
-            period="18mo",
-            interval="1d",
-            auto_adjust=False,
-            progress=False,
-            threads=False,
+        if batch_data is None:
+            return None
+
+        # ----------------------------------------------------
+        # Get this stock's dataframe
+        # ----------------------------------------------------
+
+        if isinstance(
+            batch_data.columns,
+            pd.MultiIndex
+        ):
+
+            if ticker not in batch_data.columns.levels[0]:
+
+                return None
+
+            df = batch_data[ticker].copy()
+
+        else:
+
+            df = batch_data.copy()
+
+        required = [
+            "Open",
+            "High",
+            "Low",
+            "Close"
+        ]
+
+        for column in required:
+
+            if column not in df.columns:
+
+                return None
+
+        df = df.dropna(
+            subset=required
+        ).copy()
+
+        if len(df) < 210:
+
+            return None
+
+        # ----------------------------------------------------
+        # SMA
+        # ----------------------------------------------------
+
+        df["sma44"] = (
+            df["Close"]
+            .rolling(44)
+            .mean()
         )
+
+        df["sma100"] = (
+            df["Close"]
+            .rolling(100)
+            .mean()
+        )
+
+        df["sma200"] = (
+            df["Close"]
+            .rolling(200)
+            .mean()
+        )
+
+        df["sma44_10d"] = (
+            df["sma44"]
+            .shift(10)
+        )
+
+        row = df.iloc[-1]
+
+        required_values = [
+            "Open",
+            "High",
+            "Low",
+            "Close",
+            "sma44",
+            "sma100",
+            "sma200",
+            "sma44_10d"
+        ]
+
+        for column in required_values:
+
+            if pd.isna(
+                row[column]
+            ):
+
+                return None
+
+        # ----------------------------------------------------
+        # VALUES
+        # ----------------------------------------------------
+
+        open_price = float(
+            row["Open"]
+        )
+
+        high_price = float(
+            row["High"]
+        )
+
+        low_price = float(
+            row["Low"]
+        )
+
+        close_price = float(
+            row["Close"]
+        )
+
+        sma44 = float(
+            row["sma44"]
+        )
+
+        sma100 = float(
+            row["sma100"]
+        )
+
+        sma200 = float(
+            row["sma200"]
+        )
+
+        sma44_10d = float(
+            row["sma44_10d"]
+        )
+
+        # ====================================================
+        # BUY STRATEGY
+        # ====================================================
+
+        buy_checks = {
+
+            "44 SMA rising":
+                sma44 > sma44_10d,
+
+            "Low touches 44 SMA":
+                low_price <= sma44,
+
+            "Close above 44 SMA":
+                close_price > sma44,
+
+            "44 SMA above 100 SMA":
+                sma44 > sma100,
+
+            "100 SMA above 200 SMA":
+                sma100 > sma200
+        }
+
+        buy = all(
+            buy_checks.values()
+        )
+
+        # ====================================================
+        # SELL STRATEGY
+        # ====================================================
+
+        sell_checks = {
+
+            "High touches 44 SMA":
+                high_price >= sma44,
+
+            "Close below 44 SMA":
+                close_price < sma44
+        }
+
+        sell = all(
+            sell_checks.values()
+        )
+
+        if buy:
+
+            signal = "BUY"
+
+        elif sell:
+
+            signal = "SELL"
+
+        else:
+
+            signal = "NONE"
+
+        # ----------------------------------------------------
+        # DISTANCE FROM 44 SMA
+        # ----------------------------------------------------
+
+        distance_from_44 = (
+            (
+                close_price
+                / sma44
+            ) - 1
+        ) * 100
+
+        return {
+
+            "symbol":
+                symbol,
+
+            "ticker":
+                ticker,
+
+            "date":
+                df.index[-1].strftime(
+                    "%Y-%m-%d"
+                ),
+
+            "signal":
+                signal,
+
+            "Open":
+                open_price,
+
+            "High":
+                high_price,
+
+            "Low":
+                low_price,
+
+            "Close":
+                close_price,
+
+            "sma44":
+                sma44,
+
+            "sma100":
+                sma100,
+
+            "sma200":
+                sma200,
+
+            "sma44_10d":
+                sma44_10d,
+
+            "distanceFrom44":
+                distance_from_44,
+
+            "buyChecks":
+                buy_checks,
+
+            "sellChecks":
+                sell_checks
+        }
 
     except Exception as error:
 
         print(
-            f"Download failed for {symbol}: {error}"
+            f"{symbol} processing error: "
+            f"{error}"
         )
 
         return None
 
-    if df is None or df.empty:
-        return None
 
-    if isinstance(
-        df.columns,
-        pd.MultiIndex
-    ):
-
-        df.columns = (
-            df.columns
-            .get_level_values(0)
-        )
-
-    required = [
-        "Open",
-        "High",
-        "Low",
-        "Close",
-    ]
-
-    for column in required:
-
-        if column not in df.columns:
-            return None
-
-    df = df.dropna(
-        subset=required
-    ).copy()
-
-    if len(df) < 210:
-        return None
-
-    return df
-
-
-def scan_symbol(symbol):
-
-    df = download_stock(symbol)
-
-    if df is None:
-        return None
-
-    # ==============================
-    # MOVING AVERAGES
-    # ==============================
-
-    df["sma44"] = (
-        df["Close"]
-        .rolling(44)
-        .mean()
-    )
-
-    df["sma100"] = (
-        df["Close"]
-        .rolling(100)
-        .mean()
-    )
-
-    df["sma200"] = (
-        df["Close"]
-        .rolling(200)
-        .mean()
-    )
-
-    # 44 SMA exactly 10 trading
-    # sessions before current candle.
-
-    df["sma44_10d"] = (
-        df["sma44"]
-        .shift(10)
-    )
-
-    row = df.iloc[-1]
-
-    needed = [
-        "Open",
-        "High",
-        "Low",
-        "Close",
-        "sma44",
-        "sma100",
-        "sma200",
-        "sma44_10d",
-    ]
-
-    if any(
-        pd.isna(row[column])
-        for column in needed
-    ):
-
-        return None
-
-    values = {
-
-        "Open": float(row["Open"]),
-
-        "High": float(row["High"]),
-
-        "Low": float(row["Low"]),
-
-        "Close": float(row["Close"]),
-
-        "sma44": float(row["sma44"]),
-
-        "sma100": float(row["sma100"]),
-
-        "sma200": float(row["sma200"]),
-
-        "sma44_10d": float(
-            row["sma44_10d"]
-        ),
-    }
-
-    # ==============================
-    # BUY CONDITIONS
-    # ==============================
-
-    buy_checks = {
-
-        "44 SMA rising":
-            values["sma44"]
-            > values["sma44_10d"],
-
-        "Low touches 44 SMA":
-            values["Low"]
-            <= values["sma44"],
-
-        "Close above 44 SMA":
-            values["Close"]
-            > values["sma44"],
-
-        "44 SMA above 100 SMA":
-            values["sma44"]
-            > values["sma100"],
-
-        "100 SMA above 200 SMA":
-            values["sma100"]
-            > values["sma200"],
-    }
-
-    buy = all(
-        buy_checks.values()
-    )
-
-    # ==============================
-    # SELL CONDITIONS
-    # ==============================
-
-    sell_checks = {
-
-        "High touches 44 SMA":
-            values["High"]
-            >= values["sma44"],
-
-        "Close below 44 SMA":
-            values["Close"]
-            < values["sma44"],
-    }
-
-    sell = all(
-        sell_checks.values()
-    )
-
-    if buy:
-
-        signal = "BUY"
-
-    elif sell:
-
-        signal = "SELL"
-
-    else:
-
-        signal = "NONE"
-
-    signal_date = (
-        df.index[-1]
-        .strftime("%Y-%m-%d")
-    )
-
-    distance_from_44 = (
-        (
-            values["Close"]
-            / values["sma44"]
-        ) - 1
-    ) * 100
-
-    return {
-
-        "symbol": symbol,
-
-        "ticker": f"{symbol}.NS",
-
-        "date": signal_date,
-
-        "signal": signal,
-
-        "Open": values["Open"],
-
-        "High": values["High"],
-
-        "Low": values["Low"],
-
-        "Close": values["Close"],
-
-        "sma44": values["sma44"],
-
-        "sma100": values["sma100"],
-
-        "sma200": values["sma200"],
-
-        "sma44_10d":
-            values["sma44_10d"],
-
-        "distanceFrom44":
-            distance_from_44,
-
-        "buyChecks":
-            buy_checks,
-
-        "sellChecks":
-            sell_checks,
-    }
-
+# ============================================================
+# MAIN SCANNER
+# ============================================================
 
 def main():
 
-    symbols, universe_source = (
-        get_symbols()
+    print("")
+    print("=" * 70)
+    print("44 SMA SCANNER PRO")
+    print("=" * 70)
+    print("")
+
+    symbols = get_nifty500_symbols()
+
+    print("")
+    print(
+        f"TOTAL STOCKS TO SCAN: {len(symbols)}"
     )
+
+    print("")
+
+    # --------------------------------------------------------
+    # Batch size
+    # --------------------------------------------------------
+
+    batch_size = 75
+
+    batches = [
+        symbols[i:i + batch_size]
+        for i in range(
+            0,
+            len(symbols),
+            batch_size
+        )
+    ]
 
     results = []
 
     skipped = []
 
-    print("=" * 60)
+    # --------------------------------------------------------
+    # DOWNLOAD + PROCESS
+    # --------------------------------------------------------
 
-    print("44 SMA SCANNER")
-
-    print("=" * 60)
-
-    print(
-        f"Universe : {universe_source}"
-    )
-
-    print(
-        f"Stocks   : {len(symbols)}"
-    )
-
-    print("=" * 60)
-
-    for index, symbol in enumerate(
-        symbols,
+    for batch_number, batch_symbols in enumerate(
+        batches,
         start=1
     ):
 
-        try:
+        batch_data = download_batch(
+            batch_symbols,
+            batch_number,
+            len(batches)
+        )
 
-            result = scan_symbol(
-                symbol
+        for symbol in batch_symbols:
+
+            result = process_stock(
+                symbol,
+                batch_data
             )
 
             if result is None:
@@ -444,38 +528,27 @@ def main():
                     symbol
                 )
 
-                print(
-                    f"[{index}/{len(symbols)}] "
-                    f"{symbol} - skipped"
-                )
-
                 continue
 
             results.append(
                 result
             )
 
-            print(
-                f"[{index}/{len(symbols)}] "
-                f"{symbol} - "
-                f"{result['signal']}"
-            )
+            if result["signal"] == "BUY":
 
-        except Exception as error:
+                print(
+                    f"🟢 BUY  {symbol}"
+                )
 
-            skipped.append(
-                symbol
-            )
+            elif result["signal"] == "SELL":
 
-            print(
-                f"[{index}/{len(symbols)}] "
-                f"{symbol} - ERROR: "
-                f"{error}"
-            )
+                print(
+                    f"🔴 SELL {symbol}"
+                )
 
-    # ==============================
-    # BUY / SELL RESULTS
-    # ==============================
+    # ========================================================
+    # SIGNALS
+    # ========================================================
 
     buys = [
         item
@@ -495,11 +568,7 @@ def main():
         ).isoformat()
     )
 
-    # ==============================
-    # CURRENT SIGNALS
-    # ==============================
-
-    payload = {
+    signals = {
 
         "scannedAt":
             scanned_at,
@@ -508,7 +577,7 @@ def main():
             "44 SMA Support / Breakdown",
 
         "universe":
-            universe_source,
+            "NSE NIFTY 500",
 
         "universeCount":
             len(symbols),
@@ -529,24 +598,28 @@ def main():
             buys,
 
         "sell":
-            sells,
+            sells
     }
+
+    # --------------------------------------------------------
+    # signals.json
+    # --------------------------------------------------------
 
     (
         DATA / "signals.json"
     ).write_text(
 
         json.dumps(
-            payload,
+            signals,
             indent=2
         ),
 
-        encoding="utf-8",
+        encoding="utf-8"
     )
 
-    # ==============================
+    # ========================================================
     # HISTORY
-    # ==============================
+    # ========================================================
 
     history_file = (
         DATA / "history.json"
@@ -570,27 +643,28 @@ def main():
 
         history = []
 
-    # Every qualifying BUY and SELL
-    # is added to history.
+    # --------------------------------------------------------
+    # Add every BUY and SELL
+    # --------------------------------------------------------
 
-    for item in buys + sells:
+    for item in (
+        buys + sells
+    ):
 
         history.insert(
-
             0,
-
             {
                 "scannedAt":
                     scanned_at,
 
                 "universe":
-                    universe_source,
+                    "NSE NIFTY 500",
 
-                **item,
-            },
+                **item
+            }
         )
 
-    # Keep maximum 10,000 records.
+    # Keep last 10,000 signals
 
     history = history[:10000]
 
@@ -601,26 +675,26 @@ def main():
             indent=2
         ),
 
-        encoding="utf-8",
+        encoding="utf-8"
     )
 
-    # ==============================
-    # SAVE UNIVERSE
-    # ==============================
+    # ========================================================
+    # UNIVERSE
+    # ========================================================
 
-    universe_payload = {
+    universe = {
 
         "updatedAt":
             scanned_at,
 
         "source":
-            universe_source,
+            "NSE NIFTY 500",
 
         "count":
             len(symbols),
 
         "symbols":
-            symbols,
+            symbols
     }
 
     (
@@ -628,18 +702,18 @@ def main():
     ).write_text(
 
         json.dumps(
-            universe_payload,
+            universe,
             indent=2
         ),
 
-        encoding="utf-8",
+        encoding="utf-8"
     )
 
-    # ==============================
-    # SAVE SKIPPED STOCKS
-    # ==============================
+    # ========================================================
+    # SKIPPED
+    # ========================================================
 
-    skipped_payload = {
+    skipped_data = {
 
         "scannedAt":
             scanned_at,
@@ -648,7 +722,7 @@ def main():
             len(skipped),
 
         "symbols":
-            skipped,
+            skipped
     }
 
     (
@@ -656,57 +730,46 @@ def main():
     ).write_text(
 
         json.dumps(
-            skipped_payload,
+            skipped_data,
             indent=2
         ),
 
-        encoding="utf-8",
+        encoding="utf-8"
     )
 
-    # ==============================
+    # ========================================================
     # FINAL REPORT
-    # ==============================
+    # ========================================================
 
     print("")
-
-    print("=" * 60)
-
+    print("=" * 70)
     print("44 SMA SCANNER COMPLETE")
-
-    print("=" * 60)
+    print("=" * 70)
 
     print(
-        f"Universe       : "
-        f"{universe_source}"
+        f"Universe       : {len(symbols)}"
     )
 
     print(
-        f"Universe count : "
-        f"{len(symbols)}"
+        f"Successfully scanned : {len(results)}"
     )
 
     print(
-        f"Successfully scanned: "
-        f"{len(results)}"
+        f"Skipped        : {len(skipped)}"
     )
 
     print(
-        f"Skipped        : "
-        f"{len(skipped)}"
+        f"BUY signals    : {len(buys)}"
     )
 
     print(
-        f"BUY triggers   : "
-        f"{len(buys)}"
+        f"SELL signals   : {len(sells)}"
     )
 
-    print(
-        f"SELL triggers  : "
-        f"{len(sells)}"
-    )
-
-    print("=" * 60)
+    print("=" * 70)
+    print("")
 
 
 if __name__ == "__main__":
+
     main()
