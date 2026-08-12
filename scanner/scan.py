@@ -1215,7 +1215,10 @@ def process_stock(
                 high_price >= sma44,
 
             "Close below 44 SMA":
-                close_price < sma44
+                close_price < sma44,
+
+            "Red candle":
+                close_price < open_price
         }
 
         sell = all(
