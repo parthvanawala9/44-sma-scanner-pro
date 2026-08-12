@@ -12,24 +12,55 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 
-# Full NIFTY 500 symbol list.
-# Used instead of the temporary 10-stock symbols.csv.
+
+# ============================================================
+# OFFICIAL NSE NIFTY 500 LIST
+# ============================================================
+
 NIFTY500_URL = (
-    "https://raw.githubusercontent.com/"
-    "ganeshbiyer/Nse_Historical_Data/main/"
-    "nifty500_symbols.csv"
+    "https://archives.nseindia.com/"
+    "content/indices/ind_nifty500list.csv"
 )
 
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/131.0.0.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,"
+        "application/xml;q=0.9,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.nseindia.com/",
+}
+
+
+# ============================================================
+# GET OFFICIAL NIFTY 500
+# ============================================================
 
 def get_nifty500_symbols():
 
     print("")
-    print("Downloading NIFTY 500 symbol list...")
-    print("")
+    print("=" * 70)
+    print("DOWNLOADING OFFICIAL NSE NIFTY 500 LIST")
+    print("=" * 70)
+
+    session = requests.Session()
+    session.headers.update(HEADERS)
 
     try:
 
-        response = requests.get(
+        # Open NSE first to establish session/cookies.
+        session.get(
+            "https://www.nseindia.com/",
+            timeout=20
+        )
+
+        response = session.get(
             NIFTY500_URL,
             timeout=30
         )
@@ -41,77 +72,81 @@ def get_nifty500_symbols():
         )
 
         print(
-            "CSV columns:",
+            "NSE columns:",
             list(df.columns)
         )
 
-        # Find the symbol column automatically.
-        symbol_column = None
+        if "Symbol" not in df.columns:
 
-        for column in df.columns:
-
-            name = str(column).strip().lower()
-
-            if name in [
-                "symbol",
-                "symbols",
-                "ticker",
-                "ticker symbol"
-            ]:
-
-                symbol_column = column
-                break
-
-        if symbol_column is None:
-
-            # If the file has only one column,
-            # use that column.
-            if len(df.columns) == 1:
-
-                symbol_column = df.columns[0]
-
-            else:
-
-                raise Exception(
-                    "Could not find symbol column"
-                )
+            raise Exception(
+                "Official NSE CSV does not contain "
+                "Symbol column"
+            )
 
         symbols = []
 
-        for value in df[
-            symbol_column
-        ].dropna():
+        for value in df["Symbol"].dropna():
 
             symbol = str(
                 value
             ).strip().upper()
 
-            # Remove .NS if present.
-            if symbol.endswith(".NS"):
+            # Clean accidental formatting.
+            symbol = symbol.replace(
+                ".NS",
+                ""
+            )
 
-                symbol = symbol[:-3]
+            symbol = symbol.lstrip(
+                "$"
+            )
 
-            if (
-                symbol
-                and symbol not in symbols
-                and symbol not in [
-                    "SYMBOL",
-                    "NIFTY 500",
-                    "NIFTY500"
-                ]
-            ):
+            symbol = symbol.strip()
+
+            if not symbol:
+                continue
+
+            if symbol in [
+                "NIFTY 500",
+                "NIFTY500",
+                "SYMBOL"
+            ]:
+                continue
+
+            if symbol not in symbols:
 
                 symbols.append(symbol)
 
-        if len(symbols) < 400:
+        # Safety check.
+        if len(symbols) < 450:
 
             raise Exception(
-                f"Only {len(symbols)} symbols found"
+                f"NSE returned only "
+                f"{len(symbols)} symbols"
             )
 
+        print("")
         print(
             f"SUCCESS: {len(symbols)} "
-            "NIFTY 500 symbols loaded"
+            "NIFTY 500 stocks loaded"
+        )
+
+        print("")
+        print(
+            "First 10 symbols:"
+        )
+
+        print(
+            symbols[:10]
+        )
+
+        print("")
+        print(
+            "Last 10 symbols:"
+        )
+
+        print(
+            symbols[-10:]
         )
 
         return symbols
@@ -120,18 +155,24 @@ def get_nifty500_symbols():
 
         print("")
         print(
-            "ERROR downloading NIFTY 500:",
-            error
+            "NSE NIFTY 500 DOWNLOAD FAILED"
         )
+
+        print(
+            str(error)
+        )
+
         print("")
 
         raise Exception(
-            "Could not download the NIFTY 500 "
-            "symbol list. Scanner stopped so "
-            "it does NOT accidentally scan only "
-            "the old 10-stock list."
+            "Could not load the official "
+            "NIFTY 500 list. Scanner stopped."
         )
 
+
+# ============================================================
+# DOWNLOAD MARKET DATA
+# ============================================================
 
 def download_batch(
     symbols,
@@ -145,18 +186,18 @@ def download_batch(
     ]
 
     print("")
-    print("=" * 60)
+    print("=" * 70)
 
     print(
-        f"DOWNLOAD BATCH "
+        f"DOWNLOADING BATCH "
         f"{batch_number}/{total_batches}"
     )
 
     print(
-        f"Stocks: {len(tickers)}"
+        f"Stocks in batch: {len(tickers)}"
     )
 
-    print("=" * 60)
+    print("=" * 70)
 
     try:
 
@@ -175,12 +216,19 @@ def download_batch(
     except Exception as error:
 
         print(
-            "Batch download error:",
-            error
+            "Batch download error:"
+        )
+
+        print(
+            str(error)
         )
 
         return None
 
+
+# ============================================================
+# PROCESS STOCK
+# ============================================================
 
 def process_stock(
     symbol,
@@ -192,51 +240,50 @@ def process_stock(
     try:
 
         if batch_data is None:
-
             return None
 
         if not isinstance(
             batch_data.columns,
             pd.MultiIndex
         ):
-
             return None
 
-        if ticker not in (
+        available_symbols = set(
             batch_data.columns
             .get_level_values(0)
-        ):
+        )
 
+        if ticker not in available_symbols:
             return None
 
         df = batch_data[
             ticker
         ].copy()
 
-        required = [
+        required_columns = [
             "Open",
             "High",
             "Low",
             "Close"
         ]
 
-        for column in required:
+        for column in required_columns:
 
             if column not in df.columns:
-
                 return None
 
         df = df.dropna(
-            subset=required
+            subset=required_columns
         ).copy()
 
+        # Need enough history for 200 SMA
+        # plus the 10-day comparison.
         if len(df) < 210:
-
             return None
 
-        # ==============================
+        # ====================================================
         # MOVING AVERAGES
-        # ==============================
+        # ====================================================
 
         df["sma44"] = (
             df["Close"]
@@ -276,10 +323,7 @@ def process_stock(
 
         for column in required_values:
 
-            if pd.isna(
-                row[column]
-            ):
-
+            if pd.isna(row[column]):
                 return None
 
         open_price = float(
@@ -314,9 +358,9 @@ def process_stock(
             row["sma44_10d"]
         )
 
-        # ==============================
-        # BUY
-        # ==============================
+        # ====================================================
+        # BUY STRATEGY
+        # ====================================================
 
         buy_checks = {
 
@@ -340,9 +384,9 @@ def process_stock(
             buy_checks.values()
         )
 
-        # ==============================
-        # SELL
-        # ==============================
+        # ====================================================
+        # SELL STRATEGY
+        # ====================================================
 
         sell_checks = {
 
@@ -358,21 +402,18 @@ def process_stock(
         )
 
         if buy:
-
             signal = "BUY"
 
         elif sell:
-
             signal = "SELL"
 
         else:
-
             signal = "NONE"
 
         distance_from_44 = (
             (
-                close_price
-                / sma44
+                close_price /
+                sma44
             ) - 1
         ) * 100
 
@@ -435,16 +476,21 @@ def process_stock(
         return None
 
 
+# ============================================================
+# MAIN
+# ============================================================
+
 def main():
 
     print("")
     print("=" * 70)
     print("44 SMA SCANNER PRO")
     print("=" * 70)
+    print("")
 
-    # IMPORTANT:
-    # This ALWAYS downloads the full universe.
-    # It does NOT use the old 10-stock symbols.csv.
+    # ========================================================
+    # LOAD OFFICIAL NIFTY 500
+    # ========================================================
 
     symbols = get_nifty500_symbols()
 
@@ -453,7 +499,11 @@ def main():
         f"TOTAL UNIVERSE: {len(symbols)}"
     )
 
-    batch_size = 75
+    # ========================================================
+    # BATCH SIZE
+    # ========================================================
+
+    batch_size = 50
 
     batches = [
         symbols[i:i + batch_size]
@@ -465,8 +515,11 @@ def main():
     ]
 
     results = []
-
     skipped = []
+
+    # ========================================================
+    # SCAN ALL BATCHES
+    # ========================================================
 
     for batch_number, batch_symbols in enumerate(
         batches,
@@ -501,18 +554,18 @@ def main():
             if result["signal"] == "BUY":
 
                 print(
-                    f"BUY  {symbol}"
+                    f"🟢 BUY  {symbol}"
                 )
 
             elif result["signal"] == "SELL":
 
                 print(
-                    f"SELL {symbol}"
+                    f"🔴 SELL {symbol}"
                 )
 
-    # ==============================
+    # ========================================================
     # SIGNALS
-    # ==============================
+    # ========================================================
 
     buys = [
         item
@@ -577,9 +630,9 @@ def main():
         encoding="utf-8"
     )
 
-    # ==============================
+    # ========================================================
     # HISTORY
-    # ==============================
+    # ========================================================
 
     history_file = (
         DATA / "history.json"
@@ -603,6 +656,7 @@ def main():
 
         history = []
 
+    # Add every BUY and SELL
     for item in (
         buys + sells
     ):
@@ -622,6 +676,7 @@ def main():
             }
         )
 
+    # Keep last 10,000 records.
     history = history[:10000]
 
     history_file.write_text(
@@ -634,9 +689,9 @@ def main():
         encoding="utf-8"
     )
 
-    # ==============================
-    # UNIVERSE
-    # ==============================
+    # ========================================================
+    # UNIVERSE FILE
+    # ========================================================
 
     universe = {
 
@@ -644,7 +699,7 @@ def main():
             scanned_at,
 
         "source":
-            "NIFTY 500",
+            "Official NSE NIFTY 500",
 
         "count":
             len(symbols),
@@ -665,9 +720,9 @@ def main():
         encoding="utf-8"
     )
 
-    # ==============================
-    # SKIPPED
-    # ==============================
+    # ========================================================
+    # SKIPPED FILE
+    # ========================================================
 
     skipped_data = {
 
@@ -693,9 +748,9 @@ def main():
         encoding="utf-8"
     )
 
-    # ==============================
-    # FINAL
-    # ==============================
+    # ========================================================
+    # FINAL REPORT
+    # ========================================================
 
     print("")
     print("=" * 70)
@@ -703,29 +758,28 @@ def main():
     print("=" * 70)
 
     print(
-        f"Universe: {len(symbols)}"
+        f"Universe              : {len(symbols)}"
     )
 
     print(
-        f"Scanned successfully: "
-        f"{len(results)}"
+        f"Successfully scanned  : {len(results)}"
     )
 
     print(
-        f"Skipped: {len(skipped)}"
+        f"Skipped               : {len(skipped)}"
     )
 
     print(
-        f"BUY: {len(buys)}"
+        f"BUY signals           : {len(buys)}"
     )
 
     print(
-        f"SELL: {len(sells)}"
+        f"SELL signals          : {len(sells)}"
     )
 
     print("=" * 70)
+    print("")
 
 
 if __name__ == "__main__":
-
     main()
