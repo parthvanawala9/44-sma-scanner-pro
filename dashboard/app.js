@@ -11,17 +11,14 @@ let signals = {
 };
 
 let history = [];
-
 let currentTab = "dashboard";
 
 
 // ============================================================
-// HELPERS
+// BASIC HELPERS
 // ============================================================
 
-const $ = (selector) => {
-    return document.querySelector(selector);
-};
+const $ = (selector) => document.querySelector(selector);
 
 
 function money(value) {
@@ -64,7 +61,7 @@ function escapeHtml(value) {
 
 
 // ============================================================
-// LOAD DATA
+// LOAD SCANNER DATA
 // ============================================================
 
 async function loadData() {
@@ -77,6 +74,7 @@ async function loadData() {
                 cache: "no-store"
             }
         );
+
 
         const historyResponse = await fetch(
             "./data/history.json?" + Date.now(),
@@ -94,12 +92,14 @@ async function loadData() {
         }
 
 
-        signals = await signalResponse.json();
+        signals =
+            await signalResponse.json();
 
 
         if (historyResponse.ok) {
 
-            history = await historyResponse.json();
+            history =
+                await historyResponse.json();
 
         } else {
 
@@ -108,13 +108,8 @@ async function loadData() {
 
 
         console.log(
-            "44 SMA scanner data:",
+            "Scanner:",
             signals
-        );
-
-        console.log(
-            "44 SMA history:",
-            history
         );
 
 
@@ -124,6 +119,7 @@ async function loadData() {
             "Dashboard data error:",
             error
         );
+
 
         signals = {
             buy: [],
@@ -136,6 +132,7 @@ async function loadData() {
             universe: "NIFTY 500",
             universeCount: 0
         };
+
 
         history = [];
     }
@@ -294,7 +291,7 @@ function stockRow(item) {
 
 
 // ============================================================
-// STOCK TABLE
+// TABLE
 // ============================================================
 
 function stockTable(items) {
@@ -323,19 +320,12 @@ function stockTable(items) {
                     <tr>
 
                         <th>Stock</th>
-
                         <th>Signal</th>
-
                         <th>Close</th>
-
                         <th>44 SMA</th>
-
                         <th>Vs 44</th>
-
                         <th>100 SMA</th>
-
                         <th>200 SMA</th>
-
                         <th>Date</th>
 
                     </tr>
@@ -367,7 +357,6 @@ function dashboardView() {
     return `
 
         <div class="kpi-grid">
-
 
             <div class="kpi">
 
@@ -440,9 +429,7 @@ function dashboardView() {
         </div>
 
 
-
         <div class="two-column">
-
 
             <div class="panel">
 
@@ -465,7 +452,6 @@ function dashboardView() {
                 )}
 
             </div>
-
 
 
             <div class="panel">
@@ -493,7 +479,6 @@ function dashboardView() {
         </div>
 
 
-
         <div class="panel">
 
             <div class="panel-header">
@@ -512,30 +497,25 @@ function dashboardView() {
                     44 SMA 10 days before
                 </div>
 
-
                 <div class="condition ok">
                     ✓ Stock Low touches
                     44 SMA
                 </div>
-
 
                 <div class="condition ok">
                     ✓ Stock Close is above
                     44 SMA
                 </div>
 
-
                 <div class="condition ok">
                     ✓ 44 SMA is above
                     100 SMA
                 </div>
 
-
                 <div class="condition ok">
                     ✓ 100 SMA is above
                     200 SMA
                 </div>
-
 
                 <div class="condition no">
                     SELL = High touches
@@ -556,12 +536,8 @@ function dashboardView() {
 
 function signalPage(type) {
 
-    const isBuy =
-        type === "buy";
-
-
     const items =
-        isBuy
+        type === "buy"
             ? signals.buy
             : signals.sell;
 
@@ -575,7 +551,7 @@ function signalPage(type) {
                 <h2 class="panel-title">
 
                     ${
-                        isBuy
+                        type === "buy"
                             ? "🟢 BUY TRIGGERS"
                             : "🔴 SELL TRIGGERS"
                     }
@@ -679,70 +655,52 @@ function render() {
     }
 
 
-    let title =
-        "Dashboard";
-
-
-    if (currentTab === "buy") {
-        title = "BUY";
-    }
-
-
-    if (currentTab === "sell") {
-        title = "SELL";
-    }
-
-
-    if (currentTab === "history") {
-        title = "History";
-    }
-
-
     const pageTitle =
         $("#pageTitle");
 
 
-    if (pageTitle) {
+    if (currentTab === "dashboard") {
 
-        pageTitle.textContent =
-            title;
-    }
-
-
-    if (
-        currentTab ===
-        "dashboard"
-    ) {
+        if (pageTitle) {
+            pageTitle.textContent =
+                "Dashboard";
+        }
 
         content.innerHTML =
             dashboardView();
     }
 
 
-    if (
-        currentTab ===
-        "buy"
-    ) {
+    if (currentTab === "buy") {
+
+        if (pageTitle) {
+            pageTitle.textContent =
+                "BUY";
+        }
 
         content.innerHTML =
             signalPage("buy");
     }
 
 
-    if (
-        currentTab ===
-        "sell"
-    ) {
+    if (currentTab === "sell") {
+
+        if (pageTitle) {
+            pageTitle.textContent =
+                "SELL";
+        }
 
         content.innerHTML =
             signalPage("sell");
     }
 
 
-    if (
-        currentTab ===
-        "history"
-    ) {
+    if (currentTab === "history") {
+
+        if (pageTitle) {
+            pageTitle.textContent =
+                "History";
+        }
 
         content.innerHTML =
             historyPage();
@@ -926,6 +884,33 @@ function findStock(symbol) {
 
 
 // ============================================================
+// LOAD CHART DATA
+// ============================================================
+
+async function loadChartData(symbol) {
+
+    const response =
+        await fetch(
+            `./data/charts/${encodeURIComponent(symbol)}.json?${Date.now()}`,
+            {
+                cache: "no-store"
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Chart data unavailable for ${symbol}`
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+// ============================================================
 // CREATE CHART MODAL
 // ============================================================
 
@@ -952,73 +937,71 @@ function createChartModal() {
         "stockChartModal";
 
 
-    modal.style.position =
-        "fixed";
-
-    modal.style.inset =
-        "0";
-
-    modal.style.zIndex =
-        "99999";
-
-    modal.style.background =
-        "rgba(0,0,0,0.78)";
-
-    modal.style.display =
-        "none";
-
-    modal.style.alignItems =
-        "center";
-
-    modal.style.justifyContent =
-        "center";
-
-    modal.style.padding =
-        "20px";
-
-    modal.style.boxSizing =
-        "border-box";
+    modal.style.cssText = `
+        position:fixed;
+        inset:0;
+        z-index:99999;
+        background:rgba(0,0,0,.82);
+        display:none;
+        align-items:center;
+        justify-content:center;
+        padding:16px;
+        box-sizing:border-box;
+    `;
 
 
     modal.innerHTML = `
 
         <div
-            id="chartModalBox"
             style="
-                width: min(1200px, 100%);
-                height: min(850px, 95vh);
-                background: #0b111b;
-                border: 1px solid #26364d;
-                border-radius: 16px;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                box-shadow: 0 25px 80px rgba(0,0,0,.6);
+                width:min(1250px,100%);
+                height:min(850px,96vh);
+                background:#0b111b;
+                border:1px solid #26364d;
+                border-radius:16px;
+                overflow:hidden;
+                display:flex;
+                flex-direction:column;
+                box-shadow:0 25px 80px rgba(0,0,0,.65);
             "
         >
 
             <div
                 style="
-                    min-height: 64px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 0 18px;
-                    border-bottom: 1px solid #26364d;
-                    background: #0e1724;
-                    box-sizing: border-box;
+                    min-height:64px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    padding:0 18px;
+                    border-bottom:1px solid #26364d;
+                    background:#0e1724;
                 "
             >
 
-                <div
-                    id="chartStockTitle"
-                    style="
-                        color: white;
-                        font-size: 20px;
-                        font-weight: 700;
-                    "
-                >
-                    Stock Chart
+                <div>
+
+                    <div
+                        id="chartStockTitle"
+                        style="
+                            color:#fff;
+                            font-size:20px;
+                            font-weight:700;
+                        "
+                    >
+                        Stock Chart
+                    </div>
+
+
+                    <div
+                        id="chartStockSubtitle"
+                        style="
+                            color:#91a4bd;
+                            font-size:12px;
+                            margin-top:3px;
+                        "
+                    >
+                    </div>
+
                 </div>
 
 
@@ -1026,14 +1009,14 @@ function createChartModal() {
                     id="chartCloseButton"
                     type="button"
                     style="
-                        border: 0;
-                        background: #1b2737;
-                        color: white;
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 10px;
-                        font-size: 22px;
-                        cursor: pointer;
+                        border:0;
+                        background:#1b2737;
+                        color:#fff;
+                        width:40px;
+                        height:40px;
+                        border-radius:10px;
+                        font-size:24px;
+                        cursor:pointer;
                     "
                 >
                     ×
@@ -1043,26 +1026,100 @@ function createChartModal() {
 
 
             <div
-                id="chartInfo"
+                id="chartStats"
                 style="
-                    padding: 12px 18px;
-                    color: #8fa3bd;
-                    font-size: 13px;
-                    border-bottom: 1px solid #1c2a3d;
-                    background: #0b111b;
+                    min-height:52px;
+                    display:flex;
+                    align-items:center;
+                    gap:22px;
+                    padding:8px 18px;
+                    box-sizing:border-box;
+                    border-bottom:1px solid #1c2a3d;
+                    background:#0b111b;
+                    color:#91a4bd;
+                    font-size:13px;
+                    flex-wrap:wrap;
                 "
             >
             </div>
 
 
             <div
-                id="chartFrameContainer"
                 style="
-                    flex: 1;
-                    min-height: 500px;
-                    background: #0b111b;
+                    flex:1;
+                    min-height:0;
+                    position:relative;
+                    background:#0b111b;
                 "
             >
+
+                <canvas
+                    id="stockChartCanvas"
+                    style="
+                        width:100%;
+                        height:100%;
+                        display:block;
+                    "
+                >
+                </canvas>
+
+
+                <div
+                    id="chartLoading"
+                    style="
+                        position:absolute;
+                        inset:0;
+                        display:none;
+                        align-items:center;
+                        justify-content:center;
+                        color:#91a4bd;
+                        background:rgba(11,17,27,.9);
+                        font-size:14px;
+                    "
+                >
+                    Loading chart...
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                    min-height:48px;
+                    display:flex;
+                    align-items:center;
+                    gap:18px;
+                    padding:0 18px;
+                    border-top:1px solid #26364d;
+                    background:#0e1724;
+                    color:#9badc5;
+                    font-size:12px;
+                "
+            >
+
+                <span>
+                    <b style="color:#f0b90b">●</b>
+                    44 SMA
+                </span>
+
+                <span>
+                    <b style="color:#5aa9ff">●</b>
+                    100 SMA
+                </span>
+
+                <span>
+                    <b style="color:#d88cff">●</b>
+                    200 SMA
+                </span>
+
+                <span>
+                    🟢 Bullish candle
+                </span>
+
+                <span>
+                    🔴 Bearish candle
+                </span>
+
             </div>
 
         </div>
@@ -1074,16 +1131,14 @@ function createChartModal() {
     );
 
 
-    const closeButton =
-        document.getElementById(
+    document
+        .getElementById(
             "chartCloseButton"
+        )
+        .addEventListener(
+            "click",
+            closeChart
         );
-
-
-    closeButton.addEventListener(
-        "click",
-        closeChart
-    );
 
 
     modal.addEventListener(
@@ -1091,11 +1146,32 @@ function createChartModal() {
         event => {
 
             if (
-                event.target ===
-                modal
+                event.target === modal
             ) {
 
                 closeChart();
+            }
+        }
+    );
+
+
+    window.addEventListener(
+        "resize",
+        () => {
+
+            if (
+                modal.style.display ===
+                "flex"
+            ) {
+
+                if (
+                    window.currentChartRows
+                ) {
+
+                    drawStockChart(
+                        window.currentChartRows
+                    );
+                }
             }
         }
     );
@@ -1106,10 +1182,10 @@ function createChartModal() {
 
 
 // ============================================================
-// OPEN STOCK CHART
+// OPEN CHART
 // ============================================================
 
-function openStockChart(item) {
+async function openStockChart(item) {
 
     const modal =
         createChartModal();
@@ -1121,145 +1197,70 @@ function openStockChart(item) {
         );
 
 
-    const info =
+    const subtitle =
         document.getElementById(
-            "chartInfo"
+            "chartStockSubtitle"
         );
 
 
-    const container =
+    const stats =
         document.getElementById(
-            "chartFrameContainer"
+            "chartStats"
         );
 
 
-    const symbol =
-        String(
-            item.symbol || ""
-        )
-        .trim()
-        .toUpperCase();
+    const loading =
+        document.getElementById(
+            "chartLoading"
+        );
 
 
     title.textContent =
-        `${symbol} — ${item.signal || "STOCK"}`;
+        `${item.symbol} — ${item.signal}`;
 
 
-    info.innerHTML = `
+    subtitle.textContent =
+        "Daily candlestick chart";
 
-        Close:
-        <strong style="color:white">
-            ₹${money(item.Close)}
-        </strong>
 
-        &nbsp;&nbsp; |
+    stats.innerHTML = `
 
-        &nbsp;&nbsp;
+        <span>
+            Close:
+            <strong style="color:#fff">
+                ₹${money(item.Close)}
+            </strong>
+        </span>
 
-        44 SMA:
-        <strong style="color:white">
-            ₹${money(item.sma44)}
-        </strong>
+        <span>
+            44 SMA:
+            <strong style="color:#f0b90b">
+                ₹${money(item.sma44)}
+            </strong>
+        </span>
 
-        &nbsp;&nbsp; |
+        <span>
+            100 SMA:
+            <strong style="color:#5aa9ff">
+                ₹${money(item.sma100)}
+            </strong>
+        </span>
 
-        &nbsp;&nbsp;
+        <span>
+            200 SMA:
+            <strong style="color:#d88cff">
+                ₹${money(item.sma200)}
+            </strong>
+        </span>
 
-        100 SMA:
-        <strong style="color:white">
-            ₹${money(item.sma100)}
-        </strong>
-
-        &nbsp;&nbsp; |
-
-        &nbsp;&nbsp;
-
-        200 SMA:
-        <strong style="color:white">
-            ₹${money(item.sma200)}
-        </strong>
+        <span>
+            Date:
+            <strong style="color:#fff">
+                ${escapeHtml(item.date || "—")}
+            </strong>
+        </span>
 
     `;
-
-
-    container.innerHTML = "";
-
-
-    // ========================================================
-    // TRADINGVIEW CHART
-    // ========================================================
-
-    const iframe =
-        document.createElement(
-            "iframe"
-        );
-
-
-    const tradingViewSymbol =
-        encodeURIComponent(
-            `NSE:${symbol}`
-        );
-
-
-    iframe.src =
-        "https://www.tradingview.com/widgetembed/" +
-        "?symbol=" +
-        tradingViewSymbol +
-        "&interval=D" +
-        "&range=6M" +
-        "&theme=dark" +
-        "&style=1" +
-        "&locale=en" +
-        "&timezone=Asia%2FKolkata" +
-        "&hide_top_toolbar=0" +
-        "&hide_side_toolbar=0" +
-        "&hide_legend=0" +
-        "&allow_symbol_change=0" +
-        "&save_image=0" +
-        "&withdateranges=1" +
-        "&details=1" +
-        "&calendar=0";
-
-
-    iframe.title =
-        `${symbol} stock chart`;
-
-
-    iframe.style.width =
-        "100%";
-
-
-    iframe.style.height =
-        "100%";
-
-
-    iframe.style.minHeight =
-        "500px";
-
-
-    iframe.style.border =
-        "0";
-
-
-    iframe.style.display =
-        "block";
-
-
-    iframe.setAttribute(
-        "allowfullscreen",
-        ""
-    );
-
-
-    iframe.setAttribute(
-        "loading",
-        "eager"
-    );
-
-
-    container.appendChild(
-        iframe
-    );
 
 
     modal.style.display =
@@ -1268,6 +1269,69 @@ function openStockChart(item) {
 
     document.body.style.overflow =
         "hidden";
+
+
+    loading.style.display =
+        "flex";
+
+
+    try {
+
+        const chart =
+            await loadChartData(
+                item.symbol
+            );
+
+
+        const rows =
+            chart.data || [];
+
+
+        if (!rows.length) {
+
+            throw new Error(
+                "No chart data available"
+            );
+        }
+
+
+        // Keep approximately last 6 months.
+        const visibleRows =
+            rows.slice(
+                Math.max(
+                    0,
+                    rows.length - 130
+                )
+            );
+
+
+        window.currentChartRows =
+            visibleRows;
+
+
+        loading.style.display =
+            "none";
+
+
+        drawStockChart(
+            visibleRows
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        loading.textContent =
+            "Chart data is not available for this stock yet.";
+
+
+        loading.style.display =
+            "flex";
+    }
 }
 
 
@@ -1290,60 +1354,693 @@ function closeChart() {
     }
 
 
-    const container =
+    document.body.style.overflow =
+        "";
+
+
+    window.currentChartRows =
+        null;
+}
+
+
+// ============================================================
+// DRAW CHART
+// ============================================================
+
+function drawStockChart(rows) {
+
+    const canvas =
         document.getElementById(
-            "chartFrameContainer"
+            "stockChartCanvas"
         );
 
 
-    if (container) {
-
-        container.innerHTML =
-            "";
+    if (!canvas || !rows.length) {
+        return;
     }
 
 
-    document.body.style.overflow =
-        "";
-}
+    const rect =
+        canvas.getBoundingClientRect();
 
 
-// ============================================================
-// CONDITIONS
-// ============================================================
-
-function formatConditionName(name) {
-
-    const names = {
-
-        "44 SMA rising":
-            "44 SMA is greater than 44 SMA 10 trading days ago",
-
-        "Low touches 44 SMA":
-            "Stock Low is at or below 44 SMA",
-
-        "Close above 44 SMA":
-            "Stock Close is above 44 SMA",
-
-        "44 SMA above 100 SMA":
-            "44 SMA is above 100 SMA",
-
-        "100 SMA above 200 SMA":
-            "100 SMA is above 200 SMA",
-
-        "High touches 44 SMA":
-            "Stock High is at or above 44 SMA",
-
-        "Close below 44 SMA":
-            "Stock Close is below 44 SMA"
-    };
+    const dpr =
+        window.devicePixelRatio || 1;
 
 
-    return (
-        names[name] ||
-        name
+    const width =
+        Math.max(
+            300,
+            rect.width
+        );
+
+
+    const height =
+        Math.max(
+            350,
+            rect.height
+        );
+
+
+    canvas.width =
+        width * dpr;
+
+
+    canvas.height =
+        height * dpr;
+
+
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+
+
+    ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+
+    // ========================================================
+    // BACKGROUND
+    // ========================================================
+
+    ctx.fillStyle =
+        "#0b111b";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    // ========================================================
+    // CHART AREA
+    // ========================================================
+
+    const left =
+        62;
+
+    const right =
+        20;
+
+    const top =
+        20;
+
+    const bottom =
+        42;
+
+
+    const chartWidth =
+        width -
+        left -
+        right;
+
+
+    const chartHeight =
+        height -
+        top -
+        bottom;
+
+
+    // ========================================================
+    // FIND PRICE RANGE
+    // ========================================================
+
+    const prices = [];
+
+
+    rows.forEach(
+        row => {
+
+            if (
+                Number.isFinite(
+                    Number(row.high)
+                )
+            ) {
+
+                prices.push(
+                    Number(row.high)
+                );
+            }
+
+
+            if (
+                Number.isFinite(
+                    Number(row.low)
+                )
+            ) {
+
+                prices.push(
+                    Number(row.low)
+                );
+            }
+
+
+            [
+                row.sma44,
+                row.sma100,
+                row.sma200
+            ].forEach(
+                value => {
+
+                    if (
+                        Number.isFinite(
+                            Number(value)
+                        )
+                    ) {
+
+                        prices.push(
+                            Number(value)
+                        );
+                    }
+                }
+            );
+        }
+    );
+
+
+    if (!prices.length) {
+        return;
+    }
+
+
+    let minPrice =
+        Math.min(
+            ...prices
+        );
+
+
+    let maxPrice =
+        Math.max(
+            ...prices
+        );
+
+
+    const padding =
+        (maxPrice - minPrice) *
+        0.08;
+
+
+    minPrice -=
+        padding;
+
+
+    maxPrice +=
+        padding;
+
+
+    const priceRange =
+        maxPrice -
+        minPrice;
+
+
+    // ========================================================
+    // PRICE -> Y
+    // ========================================================
+
+    function priceY(price) {
+
+        return (
+            top +
+            (
+                (
+                    maxPrice -
+                    price
+                ) /
+                priceRange
+            ) *
+            chartHeight
+        );
+    }
+
+
+    // ========================================================
+    // X
+    // ========================================================
+
+    const step =
+        chartWidth /
+        rows.length;
+
+
+    function xPosition(index) {
+
+        return (
+            left +
+            (
+                index +
+                0.5
+            ) *
+            step
+        );
+    }
+
+
+    // ========================================================
+    // GRID
+    // ========================================================
+
+    ctx.lineWidth =
+        1;
+
+
+    ctx.strokeStyle =
+        "#182536";
+
+
+    const gridLines =
+        6;
+
+
+    for (
+        let i = 0;
+        i <= gridLines;
+        i++
+    ) {
+
+        const y =
+            top +
+            (
+                i /
+                gridLines
+            ) *
+            chartHeight;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            left,
+            y
+        );
+
+        ctx.lineTo(
+            width - right,
+            y
+        );
+
+        ctx.stroke();
+
+
+        const price =
+            maxPrice -
+            (
+                i /
+                gridLines
+            ) *
+            priceRange;
+
+
+        ctx.fillStyle =
+            "#7d8fa8";
+
+        ctx.font =
+            "11px Arial";
+
+        ctx.textAlign =
+            "right";
+
+        ctx.fillText(
+            "₹" +
+            price.toFixed(0),
+            left - 8,
+            y + 4
+        );
+    }
+
+
+    // ========================================================
+    // CANDLESTICKS
+    // ========================================================
+
+    const candleWidth =
+        Math.max(
+            2,
+            Math.min(
+                12,
+                step * 0.65
+            )
+        );
+
+
+    rows.forEach(
+        (row, index) => {
+
+            const open =
+                Number(row.open);
+
+            const high =
+                Number(row.high);
+
+            const low =
+                Number(row.low);
+
+            const close =
+                Number(row.close);
+
+
+            if (
+                ![
+                    open,
+                    high,
+                    low,
+                    close
+                ].every(
+                    Number.isFinite
+                )
+            ) {
+
+                return;
+            }
+
+
+            const x =
+                xPosition(
+                    index
+                );
+
+
+            const yHigh =
+                priceY(high);
+
+
+            const yLow =
+                priceY(low);
+
+
+            const yOpen =
+                priceY(open);
+
+
+            const yClose =
+                priceY(close);
+
+
+            const bullish =
+                close >= open;
+
+
+            ctx.strokeStyle =
+                bullish
+                    ? "#36d98b"
+                    : "#ff5d6c";
+
+
+            ctx.fillStyle =
+                bullish
+                    ? "#36d98b"
+                    : "#ff5d6c";
+
+
+            // Wick
+
+            ctx.lineWidth =
+                1;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x,
+                yHigh
+            );
+
+            ctx.lineTo(
+                x,
+                yLow
+            );
+
+            ctx.stroke();
+
+
+            // Body
+
+            const bodyTop =
+                Math.min(
+                    yOpen,
+                    yClose
+                );
+
+
+            const bodyBottom =
+                Math.max(
+                    yOpen,
+                    yClose
+                );
+
+
+            const bodyHeight =
+                Math.max(
+                    1,
+                    bodyBottom -
+                    bodyTop
+                );
+
+
+            ctx.fillRect(
+
+                x -
+                candleWidth / 2,
+
+                bodyTop,
+
+                candleWidth,
+
+                bodyHeight
+            );
+
+        }
+    );
+
+
+    // ========================================================
+    // SMA LINES
+    // ========================================================
+
+    drawLine(
+        ctx,
+        rows,
+        "sma44",
+        "#f0b90b",
+        priceY,
+        xPosition
+    );
+
+
+    drawLine(
+        ctx,
+        rows,
+        "sma100",
+        "#5aa9ff",
+        priceY,
+        xPosition
+    );
+
+
+    drawLine(
+        ctx,
+        rows,
+        "sma200",
+        "#d88cff",
+        priceY,
+        xPosition
+    );
+
+
+    // ========================================================
+    // DATE LABELS
+    // ========================================================
+
+    ctx.fillStyle =
+        "#7d8fa8";
+
+    ctx.font =
+        "10px Arial";
+
+    ctx.textAlign =
+        "center";
+
+
+    const labelCount =
+        Math.min(
+            7,
+            rows.length
+        );
+
+
+    for (
+        let i = 0;
+        i < labelCount;
+        i++
+    ) {
+
+        const index =
+            Math.floor(
+                (
+                    i /
+                    Math.max(
+                        1,
+                        labelCount - 1
+                    )
+                ) *
+                (
+                    rows.length - 1
+                )
+            );
+
+
+        const row =
+            rows[index];
+
+
+        const x =
+            xPosition(
+                index
+            );
+
+
+        const date =
+            String(
+                row.date || ""
+            );
+
+
+        ctx.fillText(
+            date.slice(5),
+            x,
+            height - 15
+        );
+    }
+
+
+    // ========================================================
+    // BORDER
+    // ========================================================
+
+    ctx.strokeStyle =
+        "#26364d";
+
+    ctx.lineWidth =
+        1;
+
+    ctx.strokeRect(
+        left,
+        top,
+        chartWidth,
+        chartHeight
     );
 }
+
+
+// ============================================================
+// DRAW SMA
+// ============================================================
+
+function drawLine(
+    ctx,
+    rows,
+    key,
+    lineColor,
+    priceY,
+    xPosition
+) {
+
+    ctx.strokeStyle =
+        lineColor;
+
+    ctx.lineWidth =
+        1.5;
+
+    ctx.beginPath();
+
+
+    let started =
+        false;
+
+
+    rows.forEach(
+        (row, index) => {
+
+            const value =
+                Number(
+                    row[key]
+                );
+
+
+            if (
+                !Number.isFinite(
+                    value
+                )
+            ) {
+
+                return;
+            }
+
+
+            const x =
+                xPosition(
+                    index
+                );
+
+
+            const y =
+                priceY(
+                    value
+                );
+
+
+            if (!started) {
+
+                ctx.moveTo(
+                    x,
+                    y
+                );
+
+                started = true;
+
+            } else {
+
+                ctx.lineTo(
+                    x,
+                    y
+                );
+            }
+        }
+    );
+
+
+    if (started) {
+
+        ctx.stroke();
+    }
+}
+
+
+// ============================================================
+// KEYBOARD ESC
+// ============================================================
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            closeChart();
+        }
+    }
+);
 
 
 // ============================================================
@@ -1370,11 +2067,13 @@ document
                             ".nav-item"
                         )
                         .forEach(
-                            item =>
+                            item => {
+
                                 item.classList
                                     .remove(
                                         "active"
-                                    )
+                                    );
+                            }
                         );
 
 
