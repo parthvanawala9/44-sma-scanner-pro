@@ -1,9 +1,12 @@
 {
-  "scannedAt": "2026-08-12T04:32:01.749082+00:00",
+  "scannedAt": "2026-08-12T05:03:03.602706+00:00",
   "strategy": "44 SMA Support / Breakdown",
+  "universe": "symbols.csv fallback",
+  "universeCount": 10,
   "scanned": 10,
+  "skipped": 0,
   "buyCount": 0,
-  "sellCount": 1,
+  "sellCount": 2,
   "buy": [],
   "sell": [
     {
@@ -13,22 +16,49 @@
       "signal": "SELL",
       "Open": 4038.0,
       "High": 4044.10009765625,
-      "Low": 3996.39990234375,
-      "Close": 4000.39990234375,
-      "sma44": 4006.40907981179,
-      "sma100": 3950.6369970703126,
-      "sma200": 3977.944998779297,
-      "sma44_10d": 3994.8999966708097,
+      "Low": 3993.699951171875,
+      "Close": 4000.0,
+      "sma44": 4005.3863525390625,
+      "sma100": 3954.4619970703125,
+      "sma200": 3977.505499267578,
+      "sma44_10d": 3989.6704489968038,
+      "distanceFrom44": -0.13447772736450148,
       "buyChecks": {
-        "sma44Rising10d": true,
-        "lowTouches44": true,
-        "closeAbove44": false,
-        "sma44Above100": true,
-        "sma100Above200": false
+        "44 SMA rising": true,
+        "Low touches 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": false
       },
       "sellChecks": {
-        "highTouches44": true,
-        "closeBelow44": true
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true
+      }
+    },
+    {
+      "symbol": "BHARTIARTL",
+      "ticker": "BHARTIARTL.NS",
+      "date": "2026-08-12",
+      "signal": "SELL",
+      "Open": 1908.5999755859375,
+      "High": 1913.800048828125,
+      "Low": 1901.300048828125,
+      "Close": 1908.199951171875,
+      "sma44": 1910.1909096457741,
+      "sma100": 1868.92,
+      "sma200": 1948.9945037841796,
+      "sma44_10d": 1877.0863619717684,
+      "distanceFrom44": -0.10422824566097555,
+      "buyChecks": {
+        "44 SMA rising": true,
+        "Low touches 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true
       }
     }
   ]
