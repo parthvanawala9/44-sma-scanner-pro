@@ -1913,6 +1913,8 @@ function portfolioPage() {
 
                                         <th>Stock</th>
                                         <th>Qty</th>
+                                        <th>Buy Date</th>
+                                        <th>Sell Date</th>
                                         <th>Buy</th>
                                         <th>Sell</th>
                                         <th>Invested</th>
@@ -2204,6 +2206,24 @@ function closedTradeRow(trade) {
 
                 ${money(
                     trade.quantity
+                )}
+
+            </td>
+
+
+            <td class="muted">
+
+                ${escapeHtml(
+                    trade.buyDate || "—"
+                )}
+
+            </td>
+
+
+            <td class="muted">
+
+                ${escapeHtml(
+                    trade.sellDate || "—"
                 )}
 
             </td>
