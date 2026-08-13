@@ -2,7 +2,7 @@
   "version": 1,
   "allocationPerStock": 5000,
   "createdAt": "2026-08-12T10:15:35.585004+00:00",
-  "updatedAt": "2026-08-13T13:04:19.643489+00:00",
+  "updatedAt": "2026-08-13T13:56:00.029441+00:00",
   "openPositions": [
     {
       "symbol": "BHEL",
@@ -17,7 +17,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "DATAPATTNS",
@@ -32,7 +32,7 @@
       "unrealizedPnL": 38.3,
       "unrealizedPnLPercent": 0.85,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "NAM-INDIA",
@@ -47,7 +47,7 @@
       "unrealizedPnL": -21.2,
       "unrealizedPnLPercent": -0.45,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "IKS",
@@ -62,7 +62,7 @@
       "unrealizedPnL": -8.2,
       "unrealizedPnLPercent": -0.23,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "OBEROIRLTY",
@@ -77,7 +77,7 @@
       "unrealizedPnL": 92.2,
       "unrealizedPnLPercent": 2.56,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "GODREJIND",
@@ -92,7 +92,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "KIMS",
@@ -107,7 +107,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     },
     {
       "symbol": "STARHEALTH",
@@ -122,7 +122,7 @@
       "unrealizedPnL": 0.0,
       "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-08-13T13:04:19.643489+00:00"
+      "lastUpdated": "2026-08-13T13:56:00.029441+00:00"
     }
   ],
   "closedTrades": [
