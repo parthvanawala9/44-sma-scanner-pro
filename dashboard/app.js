@@ -59,6 +59,8 @@ let currentTab = "dashboard";
 
 let currentChartRows = null;
 
+let portfolioSort = "buyDateDesc";
+
 let isLoadingData = false;
 
 
@@ -1258,13 +1260,97 @@ function signalPage(type) {
 
 
 // ============================================================
+// PORTFOLIO SORTING
+// ============================================================
+
+function sortPortfolioPositions(positions) {
+
+    const sorted = [...(positions || [])];
+
+    if (portfolioSort === "buyDateAsc") {
+
+        sorted.sort((a, b) =>
+            String(a.buyDate || "").localeCompare(
+                String(b.buyDate || "")
+            )
+        );
+
+    }
+
+    else if (portfolioSort === "buyDateDesc") {
+
+        sorted.sort((a, b) =>
+            String(b.buyDate || "").localeCompare(
+                String(a.buyDate || "")
+            )
+        );
+
+    }
+
+    else if (portfolioSort === "returnAsc") {
+
+        sorted.sort((a, b) =>
+            Number(a.unrealizedPnLPercent || 0) -
+            Number(b.unrealizedPnLPercent || 0)
+        );
+
+    }
+
+    else if (portfolioSort === "returnDesc") {
+
+        sorted.sort((a, b) =>
+            Number(b.unrealizedPnLPercent || 0) -
+            Number(a.unrealizedPnLPercent || 0)
+        );
+
+    }
+
+    return sorted;
+
+}
+
+
+function setupPortfolioSort() {
+
+    const select =
+        document.getElementById("portfolioSort");
+
+    if (!select) {
+        return;
+    }
+
+    select.value = portfolioSort;
+
+    if (select.dataset.bound === "true") {
+        return;
+    }
+
+    select.dataset.bound = "true";
+
+    select.addEventListener(
+        "change",
+        () => {
+
+            portfolioSort = select.value;
+
+            render();
+
+        }
+    );
+
+}
+
+
+// ============================================================
 // PORTFOLIO PAGE
 // ============================================================
 
 function portfolioPage() {
 
     const positions =
-        portfolio.openPositions || [];
+        sortPortfolioPositions(
+            portfolio.openPositions || []
+        );
 
 
     const trades =
@@ -1541,12 +1627,49 @@ function portfolioPage() {
                     📈 Open Positions
                 </h2>
 
-                <span class="panel-count">
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    flex-wrap:wrap;
+                ">
 
-                    ${positions.length}
-                    stocks
+                    <select
+                        id="portfolioSort"
+                        class="search"
+                        style="
+                            min-width:190px;
+                            width:auto;
+                            cursor:pointer;
+                        "
+                    >
 
-                </span>
+                        <option value="buyDateDesc">
+                            Buy Date — Newest First
+                        </option>
+
+                        <option value="buyDateAsc">
+                            Buy Date — Oldest First
+                        </option>
+
+                        <option value="returnDesc">
+                            Return — Highest First
+                        </option>
+
+                        <option value="returnAsc">
+                            Return — Lowest First
+                        </option>
+
+                    </select>
+
+                    <span class="panel-count">
+
+                        ${positions.length}
+                        stocks
+
+                    </span>
+
+                </div>
 
             </div>
 
@@ -2218,6 +2341,8 @@ function render() {
     setupSearch();
 
     setupStockButtons();
+
+    setupPortfolioSort();
 
     setupRefreshButton();
 
