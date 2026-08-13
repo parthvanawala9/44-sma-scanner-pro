@@ -61,6 +61,8 @@ let currentChartRows = null;
 
 let portfolioSort = "buyDateDesc";
 
+let closedTradeSort = "sellDateDesc";
+
 let isLoadingData = false;
 
 
@@ -1310,36 +1312,121 @@ function sortPortfolioPositions(positions) {
 }
 
 
+function sortClosedTrades(trades) {
+
+    const sorted = [...(trades || [])];
+
+    if (closedTradeSort === "sellDateAsc") {
+
+        sorted.sort((a, b) =>
+            String(a.sellDate || "").localeCompare(
+                String(b.sellDate || "")
+            )
+        );
+
+    }
+
+    else if (closedTradeSort === "sellDateDesc") {
+
+        sorted.sort((a, b) =>
+            String(b.sellDate || "").localeCompare(
+                String(a.sellDate || "")
+            )
+        );
+
+    }
+
+    else if (closedTradeSort === "returnAsc") {
+
+        sorted.sort((a, b) =>
+            Number(a.pnlPercent || 0) -
+            Number(b.pnlPercent || 0)
+        );
+
+    }
+
+    else if (closedTradeSort === "returnDesc") {
+
+        sorted.sort((a, b) =>
+            Number(b.pnlPercent || 0) -
+            Number(a.pnlPercent || 0)
+        );
+
+    }
+
+    return sorted;
+
+}
+
+
 function setupPortfolioSort() {
 
     const select =
         document.getElementById("portfolioSort");
 
-    if (!select) {
-        return;
-    }
+    if (select) {
 
-    select.value = portfolioSort;
+        select.value =
+            portfolioSort;
 
-    if (select.dataset.bound === "true") {
-        return;
-    }
+        if (
+            select.dataset.bound !== "true"
+        ) {
 
-    select.dataset.bound = "true";
+            select.dataset.bound =
+                "true";
 
-    select.addEventListener(
-        "change",
-        () => {
+            select.addEventListener(
+                "change",
+                () => {
 
-            portfolioSort = select.value;
+                    portfolioSort =
+                        select.value;
 
-            render();
+                    render();
+
+                }
+            );
 
         }
-    );
+
+    }
+
+
+    const closedSelect =
+        document.getElementById(
+            "closedTradeSort"
+        );
+
+    if (closedSelect) {
+
+        closedSelect.value =
+            closedTradeSort;
+
+        if (
+            closedSelect.dataset.bound !== "true"
+        ) {
+
+            closedSelect.dataset.bound =
+                "true";
+
+            closedSelect.addEventListener(
+                "change",
+                () => {
+
+                    closedTradeSort =
+                        closedSelect.value;
+
+                    render();
+
+                }
+            );
+
+        }
+
+    }
 
 }
-
 
 // ============================================================
 // PORTFOLIO PAGE
@@ -1354,7 +1441,9 @@ function portfolioPage() {
 
 
     const trades =
-        portfolio.closedTrades || [];
+        sortClosedTrades(
+            portfolio.closedTrades || []
+        );
 
 
     const totalPnL =
@@ -1749,12 +1838,49 @@ function portfolioPage() {
                     📕 Closed Trades
                 </h2>
 
-                <span class="panel-count">
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    flex-wrap:wrap;
+                ">
 
-                    ${trades.length}
-                    trades
+                    <select
+                        id="closedTradeSort"
+                        class="search"
+                        style="
+                            min-width:190px;
+                            width:auto;
+                            cursor:pointer;
+                        "
+                    >
 
-                </span>
+                        <option value="sellDateDesc">
+                            Sell Date — Newest First
+                        </option>
+
+                        <option value="sellDateAsc">
+                            Sell Date — Oldest First
+                        </option>
+
+                        <option value="returnDesc">
+                            Return — Highest First
+                        </option>
+
+                        <option value="returnAsc">
+                            Return — Lowest First
+                        </option>
+
+                    </select>
+
+                    <span class="panel-count">
+
+                        ${trades.length}
+                        trades
+
+                    </span>
+
+                </div>
 
             </div>
 
