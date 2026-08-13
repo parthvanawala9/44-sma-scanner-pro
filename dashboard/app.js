@@ -2199,6 +2199,19 @@ function closedTradeRow(trade) {
 
                 </button>
 
+                <div style="
+                    margin-top:4px;
+                    font-size:11px;
+                    line-height:1.35;
+                    color:#7d8fa8;
+                ">
+
+                    Buy: ${escapeHtml(trade.buyDate || "—")}
+                    <br>
+                    Sell: ${escapeHtml(trade.sellDate || "—")}
+
+                </div>
+
             </td>
 
 
@@ -2211,7 +2224,7 @@ function closedTradeRow(trade) {
             </td>
 
 
-            <td class="muted">
+            <td style="white-space:nowrap;">
 
                 ${escapeHtml(
                     trade.buyDate || "—"
@@ -2220,7 +2233,7 @@ function closedTradeRow(trade) {
             </td>
 
 
-            <td class="muted">
+            <td style="white-space:nowrap;">
 
                 ${escapeHtml(
                     trade.sellDate || "—"
