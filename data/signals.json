@@ -1,11 +1,11 @@
 {
-  "scannedAt": "2026-08-14T11:53:03.997186+00:00",
+  "scannedAt": "2026-08-14T14:29:14.403895+00:00",
   "strategy": "44 SMA Support / Breakdown",
   "portfolioAllocation": 5000,
   "universe": "NIFTY 500",
   "universeCount": 500,
-  "scanned": 488,
-  "skipped": 12,
+  "scanned": 489,
+  "skipped": 11,
   "buyCount": 8,
   "sellCount": 31,
   "buy": [
