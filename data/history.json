@@ -1,5 +1,875 @@
 [
   {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "WOCKPHARMA",
+    "ticker": "WOCKPHARMA.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1928.5,
+    "High": 1937.0,
+    "Low": 1884.199951171875,
+    "Close": 1898.800048828125,
+    "sma44": 1925.0318104137075,
+    "sma100": 1732.104990234375,
+    "sma200": 1542.8999938964844,
+    "sma44_10d": 1923.0477156205611,
+    "distanceFrom44": -1.3626663956241347,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "VOLTAS",
+    "ticker": "VOLTAS.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1329.0,
+    "High": 1350.0,
+    "Low": 1256.0999755859375,
+    "Close": 1267.0,
+    "sma44": 1312.627274946733,
+    "sma100": 1321.5310034179688,
+    "sma200": 1363.760503540039,
+    "sma44_10d": 1312.7181868119674,
+    "distanceFrom44": -3.476026730328652,
+    "buyChecks": {
+      "44 SMA rising": false,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": false,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "IDEA",
+    "ticker": "IDEA.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 14.109999656677246,
+    "High": 14.140000343322754,
+    "Low": 13.65999984741211,
+    "Close": 13.710000038146973,
+    "sma44": 13.735681858929722,
+    "sma100": 12.585200023651122,
+    "sma200": 11.59715003490448,
+    "sma44_10d": 14.0559091351249,
+    "distanceFrom44": -0.1869715755396073,
+    "buyChecks": {
+      "44 SMA rising": false,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "UBL",
+    "ticker": "UBL.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1377.0,
+    "High": 1380.800048828125,
+    "Low": 1361.5,
+    "Close": 1367.9000244140625,
+    "sma44": 1370.9272710626776,
+    "sma100": 1398.7219958496094,
+    "sma200": 1513.7044970703125,
+    "sma44_10d": 1356.3795443448153,
+    "distanceFrom44": -0.22081745053248447,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": false,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "TATAPOWER",
+    "ticker": "TATAPOWER.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 382.04998779296875,
+    "High": 383.04998779296875,
+    "Low": 378.04998779296875,
+    "Close": 381.5,
+    "sma44": 382.3840921575373,
+    "sma100": 401.04450073242185,
+    "sma200": 390.4955006408691,
+    "sma44_10d": 387.14659257368606,
+    "distanceFrom44": -0.23120526603210845,
+    "buyChecks": {
+      "44 SMA rising": false,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": false,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "SPLPETRO",
+    "ticker": "SPLPETRO.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 733.5999755859375,
+    "High": 733.5999755859375,
+    "Low": 711.25,
+    "Close": 723.4500122070312,
+    "sma44": 724.3681862571023,
+    "sma100": 723.5270025634766,
+    "sma200": 679.3890008544922,
+    "sma44_10d": 719.8806845925071,
+    "distanceFrom44": -0.12675515952947913,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "SUNPHARMA",
+    "ticker": "SUNPHARMA.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1945.0,
+    "High": 1949.800048828125,
+    "Low": 1880.4000244140625,
+    "Close": 1882.0,
+    "sma44": 1920.379549893466,
+    "sma100": 1841.9670007324219,
+    "sma200": 1790.334002685547,
+    "sma44_10d": 1887.1795460094106,
+    "distanceFrom44": -1.9985398144650723,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "SHYAMMETL",
+    "ticker": "SHYAMMETL.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1004.0,
+    "High": 1004.7999877929688,
+    "Low": 981.5999755859375,
+    "Close": 986.9000244140625,
+    "sma44": 994.9363555908203,
+    "sma100": 937.95349609375,
+    "sma200": 883.7949984741211,
+    "sma44_10d": 989.8886274857955,
+    "distanceFrom44": -0.8077231404400309,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "NSLNISP",
+    "ticker": "NSLNISP.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 43.0,
+    "High": 43.779998779296875,
+    "Low": 40.47999954223633,
+    "Close": 41.7599983215332,
+    "sma44": 43.718863834034316,
+    "sma100": 43.52270008087158,
+    "sma200": 42.30110010147095,
+    "sma44_10d": 44.73159113797274,
+    "distanceFrom44": -4.480595653028319,
+    "buyChecks": {
+      "44 SMA rising": false,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "MARUTI",
+    "ticker": "MARUTI.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 13834.0,
+    "High": 13920.0,
+    "Low": 13760.0,
+    "Close": 13760.0,
+    "sma44": 13831.386363636364,
+    "sma100": 13455.68,
+    "sma200": 14459.31,
+    "sma44_10d": 13640.886363636364,
+    "distanceFrom44": -0.516118643204444,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "MGL",
+    "ticker": "MGL.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1139.0,
+    "High": 1152.9000244140625,
+    "Low": 1121.0999755859375,
+    "Close": 1129.0999755859375,
+    "sma44": 1134.3113597523081,
+    "sma100": 1099.4944995117187,
+    "sma200": 1117.7102493286134,
+    "sma44_10d": 1124.781815962358,
+    "distanceFrom44": -0.4594315415750283,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "KIMS",
+    "ticker": "KIMS.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 811.0,
+    "High": 818.75,
+    "Low": 799.0,
+    "Close": 800.4000244140625,
+    "sma44": 805.3329564874822,
+    "sma100": 752.1405017089844,
+    "sma200": 707.5009994506836,
+    "sma44_10d": 796.9852308793502,
+    "distanceFrom44": -0.6125332427639685,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "GODREJIND",
+    "ticker": "GODREJIND.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1225.800048828125,
+    "High": 1263.4000244140625,
+    "Low": 1199.0,
+    "Close": 1223.0,
+    "sma44": 1254.6840875799005,
+    "sma100": 1115.0019995117189,
+    "sma200": 1059.0722476196288,
+    "sma44_10d": 1201.099996393377,
+    "distanceFrom44": -2.5252641596032688,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "CIPLA",
+    "ticker": "CIPLA.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1445.4000244140625,
+    "High": 1449.0,
+    "Low": 1423.699951171875,
+    "Close": 1431.5,
+    "sma44": 1439.3568198464134,
+    "sma100": 1375.2790026855469,
+    "sma200": 1398.7955035400391,
+    "sma44_10d": 1422.3159096457741,
+    "distanceFrom44": -0.545856297624081,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "CHOLAHLDNG",
+    "ticker": "CHOLAHLDNG.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1610.0,
+    "High": 1610.0,
+    "Low": 1540.699951171875,
+    "Close": 1576.4000244140625,
+    "sma44": 1599.6045393510299,
+    "sma100": 1580.373994140625,
+    "sma200": 1677.007496948242,
+    "sma44_10d": 1569.7272699529474,
+    "distanceFrom44": -1.4506407281378197,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "BELRISE",
+    "ticker": "BELRISE.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 247.77000427246094,
+    "High": 247.77000427246094,
+    "Low": 232.30999755859375,
+    "Close": 236.08999633789062,
+    "sma44": 238.2381827614524,
+    "sma100": 223.94450057983397,
+    "sma200": 198.05590057373047,
+    "sma44_10d": 232.89568155462092,
+    "distanceFrom44": -0.9016969482649073,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "ASIANPAINT",
+    "ticker": "ASIANPAINT.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 2694.5,
+    "High": 2714.60009765625,
+    "Low": 2687.5,
+    "Close": 2687.5,
+    "sma44": 2707.34316184304,
+    "sma100": 2596.353994140625,
+    "sma200": 2606.1924938964844,
+    "sma44_10d": 2696.9249766956677,
+    "distanceFrom44": -0.7329385547686362,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "ADANIENSOL",
+    "ticker": "ADANIENSOL.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 1621.0,
+    "High": 1627.9000244140625,
+    "Low": 1585.4000244140625,
+    "Close": 1589.0999755859375,
+    "sma44": 1614.7886463512075,
+    "sma100": 1455.269005126953,
+    "sma200": 1219.7242514038087,
+    "sma44_10d": 1592.9113714044745,
+    "distanceFrom44": -1.590837960330993,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "ABBOTINDIA",
+    "ticker": "ABBOTINDIA.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 27145.0,
+    "High": 27150.0,
+    "Low": 26650.0,
+    "Close": 26905.0,
+    "sma44": 27070.340909090908,
+    "sma100": 26679.25,
+    "sma200": 27336.425,
+    "sma44_10d": 26724.886363636364,
+    "distanceFrom44": -0.6107825152485646,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": false,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "ACMESOLAR",
+    "ticker": "ACMESOLAR.NS",
+    "date": "2026-08-17",
+    "signal": "SELL",
+    "Open": 373.54998779296875,
+    "High": 373.54998779296875,
+    "Low": 363.79998779296875,
+    "Close": 364.8999938964844,
+    "sma44": 368.91931707208806,
+    "sma100": 329.327399597168,
+    "sma200": 281.5893501281738,
+    "sma44_10d": 361.948862249201,
+    "distanceFrom44": -1.0894856922925245,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": false,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": false
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": true,
+      "Red candle": true
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "TORNTPHARM",
+    "ticker": "TORNTPHARM.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 4828.0,
+    "High": 4939.0,
+    "Low": 4814.0,
+    "Close": 4900.0,
+    "sma44": 4827.7409113103695,
+    "sma100": 4536.415012207031,
+    "sma200": 4254.781501464844,
+    "sma44_10d": 4721.6022838245735,
+    "distanceFrom44": 1.4967474439306239,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "NIACL",
+    "ticker": "NIACL.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 179.0,
+    "High": 184.60000610351562,
+    "Low": 177.0,
+    "Close": 183.63999938964844,
+    "sma44": 179.92204596779564,
+    "sma100": 166.03559997558594,
+    "sma200": 161.01254970550536,
+    "sma44_10d": 173.7381820678711,
+    "distanceFrom44": 2.066424601751282,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "RAINBOW",
+    "ticker": "RAINBOW.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 1423.800048828125,
+    "High": 1485.199951171875,
+    "Low": 1423.800048828125,
+    "Close": 1478.5,
+    "sma44": 1475.2840881347656,
+    "sma100": 1370.8679992675782,
+    "sma200": 1318.670498046875,
+    "sma44_10d": 1436.5204523259943,
+    "distanceFrom44": 0.2179859385117,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "NAM-INDIA",
+    "ticker": "NAM-INDIA.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 1167.0999755859375,
+    "High": 1203.300048828125,
+    "Low": 1155.0999755859375,
+    "Close": 1202.699951171875,
+    "sma44": 1175.2250033291903,
+    "sma100": 1088.4165008544921,
+    "sma200": 983.2624996948242,
+    "sma44_10d": 1152.8159096457741,
+    "distanceFrom44": 2.3378457542048148,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "MOTILALOFS",
+    "ticker": "MOTILALOFS.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 903.6500244140625,
+    "High": 964.0,
+    "Low": 897.0999755859375,
+    "Close": 955.0,
+    "sma44": 923.9681854248047,
+    "sma100": 864.567001953125,
+    "sma200": 848.4427520751954,
+    "sma44_10d": 919.1977303244851,
+    "distanceFrom44": 3.3585371298177513,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "KPRMILL",
+    "ticker": "KPRMILL.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 1109.800048828125,
+    "High": 1140.0,
+    "Low": 1098.0,
+    "Close": 1135.5999755859375,
+    "sma44": 1114.0590986772017,
+    "sma100": 1016.2250036621094,
+    "sma200": 981.4557492065429,
+    "sma44_10d": 1106.4170559969816,
+    "distanceFrom44": 1.9335488516105448,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "JSWSTEEL",
+    "ticker": "JSWSTEEL.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 1263.5999755859375,
+    "High": 1297.0,
+    "Low": 1250.4000244140625,
+    "Close": 1277.800048828125,
+    "sma44": 1258.204551003196,
+    "sma100": 1256.1470068359374,
+    "sma200": 1216.6630053710937,
+    "sma44_10d": 1256.5272771661932,
+    "distanceFrom44": 1.5574174969646304,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "DATAPATTNS",
+    "ticker": "DATAPATTNS.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 4469.0,
+    "High": 4560.0,
+    "Low": 4460.60009765625,
+    "Close": 4528.7001953125,
+    "sma44": 4468.1113836115055,
+    "sma100": 4132.802014160156,
+    "sma200": 3476.346505126953,
+    "sma44_10d": 4434.0613569779825,
+    "distanceFrom44": 1.356027334574228,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
+    "scannedAt": "2026-08-17T11:46:06.678322+00:00",
+    "universe": "NIFTY 500",
+    "symbol": "AEGISLOG",
+    "ticker": "AEGISLOG.NS",
+    "date": "2026-08-17",
+    "signal": "BUY",
+    "Open": 1266.0,
+    "High": 1298.9000244140625,
+    "Low": 1261.0,
+    "Close": 1287.199951171875,
+    "sma44": 1261.8999994451349,
+    "sma100": 954.9085015869141,
+    "sma200": 835.2915005493164,
+    "sma44_10d": 1153.8568198464134,
+    "distanceFrom44": 2.0049094015266444,
+    "buyChecks": {
+      "44 SMA rising": true,
+      "Low touches 44 SMA": true,
+      "Close above 44 SMA": true,
+      "44 SMA above 100 SMA": true,
+      "100 SMA above 200 SMA": true,
+      "Green candle": true
+    },
+    "sellChecks": {
+      "High touches 44 SMA": true,
+      "Close below 44 SMA": false,
+      "Red candle": false
+    }
+  },
+  {
     "scannedAt": "2026-08-14T14:29:14.403895+00:00",
     "universe": "NIFTY 500",
     "symbol": "ULTRACEMCO",
