@@ -1180,13 +1180,24 @@ def process_stock(
         # BUY STRATEGY
         # ====================================================
 
+        # BUY PROXIMITY TO 44 SMA
+        # Allow the day's Low to be up to 1% ABOVE the 44 SMA.
+        # This replaces the old exact-touch requirement.
+
+        buy_distance_from_44 = (
+            (
+                low_price /
+                sma44
+            ) - 1
+        ) * 100
+
         buy_checks = {
 
             "44 SMA rising":
                 sma44 > sma44_10d,
 
-            "Low touches 44 SMA":
-                low_price <= sma44,
+            "Low within 1% of 44 SMA":
+                buy_distance_from_44 <= 1.0,
 
             "Close above 44 SMA":
                 close_price > sma44,
@@ -1286,6 +1297,9 @@ def process_stock(
 
             "distanceFrom44":
                 distance_from_44,
+
+            "buyDistanceFrom44":
+                buy_distance_from_44,
 
             "buyChecks":
                 buy_checks,
