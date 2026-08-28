@@ -3,16 +3,6 @@
   "ticker": "SAGILITY.NS",
   "data": [
     {
-      "date": "2025-02-27",
-      "open": 44.5,
-      "high": 45.6,
-      "low": 43.0,
-      "close": 43.07,
-      "sma44": null,
-      "sma100": null,
-      "sma200": null
-    },
-    {
       "date": "2025-02-28",
       "open": 42.5,
       "high": 44.7,
@@ -438,7 +428,7 @@
       "high": 41.43,
       "low": 38.75,
       "close": 41.1,
-      "sma44": 42.03,
+      "sma44": null,
       "sma100": null,
       "sma200": null
     },
@@ -999,7 +989,7 @@
       "low": 44.15,
       "close": 44.35,
       "sma44": 41.7,
-      "sma100": 42.13,
+      "sma100": null,
       "sma200": null
     },
     {
@@ -2000,7 +1990,7 @@
       "close": 50.94,
       "sma44": 49.84,
       "sma100": 46.89,
-      "sma200": 44.51
+      "sma200": null
     },
     {
       "date": "2025-12-19",

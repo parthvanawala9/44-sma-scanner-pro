@@ -3,16 +3,6 @@
   "ticker": "IDEA.NS",
   "data": [
     {
-      "date": "2025-02-27",
-      "open": 7.99,
-      "high": 8.03,
-      "low": 7.74,
-      "close": 7.8,
-      "sma44": null,
-      "sma100": null,
-      "sma200": null
-    },
-    {
       "date": "2025-02-28",
       "open": 7.75,
       "high": 7.77,
@@ -438,7 +428,7 @@
       "high": 6.98,
       "low": 6.75,
       "close": 6.92,
-      "sma44": 7.41,
+      "sma44": null,
       "sma100": null,
       "sma200": null
     },
@@ -999,7 +989,7 @@
       "low": 7.35,
       "close": 7.37,
       "sma44": 7.14,
-      "sma100": 7.22,
+      "sma100": null,
       "sma200": null
     },
     {
@@ -2000,7 +1990,7 @@
       "close": 11.3,
       "sma44": 10.11,
       "sma100": 8.64,
-      "sma200": 7.93
+      "sma200": null
     },
     {
       "date": "2025-12-19",

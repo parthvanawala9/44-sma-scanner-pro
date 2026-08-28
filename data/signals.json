@@ -1,13 +1,13 @@
 {
-  "scannedAt": "2026-08-28T02:53:29.399518+00:00",
+  "scannedAt": "2026-08-28T21:50:11.718847+00:00",
   "strategy": "44 SMA Support / Breakdown",
   "portfolioAllocation": 5000,
   "universe": "NIFTY 500",
   "universeCount": 500,
   "scanned": 490,
   "skipped": 10,
-  "buyCount": 7,
-  "sellCount": 31,
+  "buyCount": 6,
+  "sellCount": 33,
   "buy": [
     {
       "symbol": "GODREJPROP",
@@ -39,20 +39,49 @@
       }
     },
     {
-      "symbol": "PCBL",
-      "ticker": "PCBL.NS",
-      "date": "2026-08-26",
+      "symbol": "HOMEFIRST",
+      "ticker": "HOMEFIRST.NS",
+      "date": "2026-08-27",
       "signal": "BUY",
-      "Open": 322.0,
-      "High": 329.8500061035156,
-      "Low": 322.0,
-      "Close": 325.6499938964844,
-      "sma44": 321.1318151300604,
-      "sma100": 304.2890985107422,
-      "sma200": 299.06314979553224,
-      "sma44_10d": 318.39772380482066,
-      "distanceFrom44": 1.4069545755203805,
-      "buyDistanceFrom44": 0.2703515594018713,
+      "Open": 1184.0,
+      "High": 1204.300048828125,
+      "Low": 1183.0,
+      "Close": 1200.199951171875,
+      "sma44": 1197.7386308149858,
+      "sma100": 1152.36849609375,
+      "sma200": 1128.5954974365234,
+      "sma44_10d": 1189.7704467773438,
+      "distanceFrom44": 0.20549728409564594,
+      "buyDistanceFrom44": -1.2305381521306558,
+      "buyChecks": {
+        "44 SMA rising": true,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": true,
+        "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": true,
+        "Green candle": true
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": false,
+        "Red candle": false
+      }
+    },
+    {
+      "symbol": "PIDILITIND",
+      "ticker": "PIDILITIND.NS",
+      "date": "2026-08-27",
+      "signal": "BUY",
+      "Open": 1650.0,
+      "High": 1668.5,
+      "Low": 1640.0,
+      "Close": 1656.0,
+      "sma44": 1624.1727322665129,
+      "sma100": 1531.7559985351563,
+      "sma200": 1488.304501953125,
+      "sma44_10d": 1605.5636374733665,
+      "distanceFrom44": 1.959598699152676,
+      "buyDistanceFrom44": 0.9744818035086977,
       "buyChecks": {
         "44 SMA rising": true,
         "Low within 1% of 44 SMA": true,
@@ -82,64 +111,6 @@
       "sma44_10d": 1676.2636441317472,
       "distanceFrom44": 0.1552399704049634,
       "buyDistanceFrom44": -1.6167420912414743,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": true,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": true,
-        "Green candle": true
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": false,
-        "Red candle": false
-      }
-    },
-    {
-      "symbol": "SHYAMMETL",
-      "ticker": "SHYAMMETL.NS",
-      "date": "2026-08-26",
-      "signal": "BUY",
-      "Open": 1006.2000122070312,
-      "High": 1049.0,
-      "Low": 1005.0999755859375,
-      "Close": 1040.5,
-      "sma44": 1001.5193120783025,
-      "sma100": 952.6324963378906,
-      "sma200": 888.2282489013672,
-      "sma44_10d": 993.8795360218395,
-      "distanceFrom44": 3.8921553934698316,
-      "buyDistanceFrom44": 0.357523161505946,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": true,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": true,
-        "Green candle": true
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": false,
-        "Red candle": false
-      }
-    },
-    {
-      "symbol": "SUMICHEM",
-      "ticker": "SUMICHEM.NS",
-      "date": "2026-08-26",
-      "signal": "BUY",
-      "Open": 524.0,
-      "High": 532.9000244140625,
-      "Low": 520.2999877929688,
-      "Close": 530.4500122070312,
-      "sma44": 516.3306829279119,
-      "sma100": 482.68449951171874,
-      "sma200": 455.49699966430666,
-      "sma44_10d": 495.557954268022,
-      "distanceFrom44": 2.7345516634909472,
-      "buyDistanceFrom44": 0.768752467420386,
       "buyChecks": {
         "44 SMA rising": true,
         "Low within 1% of 44 SMA": true,
@@ -215,35 +186,6 @@
   ],
   "sell": [
     {
-      "symbol": "ABREL",
-      "ticker": "ABREL.NS",
-      "date": "2026-08-26",
-      "signal": "SELL",
-      "Open": 1413.800048828125,
-      "High": 1431.5,
-      "Low": 1385.5999755859375,
-      "Close": 1392.300048828125,
-      "sma44": 1404.1204528808594,
-      "sma100": 1366.5469995117187,
-      "sma200": 1418.2845013427734,
-      "sma44_10d": 1378.0227189497514,
-      "distanceFrom44": -0.8418368971466972,
-      "buyDistanceFrom44": -1.3190091531622539,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": false,
-        "Green candle": false
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": true,
-        "Red candle": true
-      }
-    },
-    {
       "symbol": "AEGISLOG",
       "ticker": "AEGISLOG.NS",
       "date": "2026-08-27",
@@ -302,6 +244,35 @@
       }
     },
     {
+      "symbol": "BHARTIHEXA",
+      "ticker": "BHARTIHEXA.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 1579.0999755859375,
+      "High": 1598.199951171875,
+      "Low": 1547.699951171875,
+      "Close": 1551.0999755859375,
+      "sma44": 1572.9750033291903,
+      "sma100": 1538.5919982910157,
+      "sma200": 1606.8259985351563,
+      "sma44_10d": 1545.0477294921875,
+      "distanceFrom44": -1.3906786628493428,
+      "buyDistanceFrom44": -1.6068311386907452,
+      "buyChecks": {
+        "44 SMA rising": true,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
       "symbol": "BIKAJI",
       "ticker": "BIKAJI.NS",
       "date": "2026-08-27",
@@ -318,6 +289,35 @@
       "buyDistanceFrom44": -3.888241321748953,
       "buyChecks": {
         "44 SMA rising": false,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": false,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
+      "symbol": "BLUEDART",
+      "ticker": "BLUEDART.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 5032.0,
+      "High": 5050.0,
+      "Low": 4969.0,
+      "Close": 5005.5,
+      "sma44": 5012.0636208274145,
+      "sma100": 5046.070991210938,
+      "sma200": 5267.480493164063,
+      "sma44_10d": 4983.024968927557,
+      "distanceFrom44": -0.13095645474530127,
+      "buyDistanceFrom44": -0.8591994053799623,
+      "buyChecks": {
+        "44 SMA rising": true,
         "Low within 1% of 44 SMA": true,
         "Close above 44 SMA": false,
         "44 SMA above 100 SMA": false,
@@ -379,6 +379,64 @@
         "Low within 1% of 44 SMA": true,
         "Close above 44 SMA": false,
         "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
+      "symbol": "CONCOR",
+      "ticker": "CONCOR.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 517.0,
+      "High": 518.0,
+      "Low": 493.04998779296875,
+      "Close": 493.04998779296875,
+      "sma44": 499.52045371315694,
+      "sma100": 493.6414993286133,
+      "sma200": 495.4769996643066,
+      "sma44_10d": 488.9397721724077,
+      "distanceFrom44": -1.2953355307255832,
+      "buyDistanceFrom44": -1.2953355307255832,
+      "buyChecks": {
+        "44 SMA rising": true,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
+      "symbol": "DCMSHRIRAM",
+      "ticker": "DCMSHRIRAM.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 1069.0,
+      "High": 1079.0,
+      "Low": 1021.0,
+      "Close": 1028.4000244140625,
+      "sma44": 1030.8204567649148,
+      "sma100": 1080.3379998779296,
+      "sma200": 1117.5764971923827,
+      "sma44_10d": 1029.8159096457741,
+      "distanceFrom44": -0.23480639474777742,
+      "buyDistanceFrom44": -0.9526835347966278,
+      "buyChecks": {
+        "44 SMA rising": true,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": false,
         "100 SMA above 200 SMA": false,
         "Green candle": false
       },
@@ -563,6 +621,35 @@
       }
     },
     {
+      "symbol": "GODFRYPHLP",
+      "ticker": "GODFRYPHLP.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 2153.0,
+      "High": 2161.0,
+      "Low": 2110.0,
+      "Close": 2115.0,
+      "sma44": 2149.438643022017,
+      "sma100": 2204.9000048828125,
+      "sma200": 2278.8160052490234,
+      "sma44_10d": 2180.0818148526278,
+      "distanceFrom44": -1.6022156823977896,
+      "buyDistanceFrom44": -1.8348345578531156,
+      "buyChecks": {
+        "44 SMA rising": false,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": false,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
       "symbol": "GMDCLTD",
       "ticker": "GMDCLTD.NS",
       "date": "2026-08-27",
@@ -650,54 +737,25 @@
       }
     },
     {
-      "symbol": "HOMEFIRST",
-      "ticker": "HOMEFIRST.NS",
-      "date": "2026-08-26",
+      "symbol": "IGIL",
+      "ticker": "IGIL.NS",
+      "date": "2026-08-27",
       "signal": "SELL",
-      "Open": 1191.0,
-      "High": 1206.0,
-      "Low": 1179.199951171875,
-      "Close": 1183.699951171875,
-      "sma44": 1197.545448996804,
-      "sma100": 1150.3714965820313,
-      "sma200": 1128.4734979248046,
-      "sma44_10d": 1188.2704467773438,
-      "distanceFrom44": -1.156156356030369,
-      "buyDistanceFrom44": -1.5319249753984021,
+      "Open": 349.20001220703125,
+      "High": 349.20001220703125,
+      "Low": 339.3999938964844,
+      "Close": 343.54998779296875,
+      "sma44": 348.1568201238459,
+      "sma100": 352.4470007324219,
+      "sma200": 338.1965002441406,
+      "sma44_10d": 351.5261389992454,
+      "distanceFrom44": -1.3232061141983054,
+      "buyDistanceFrom44": -2.5151959465411378,
       "buyChecks": {
-        "44 SMA rising": true,
+        "44 SMA rising": false,
         "Low within 1% of 44 SMA": true,
         "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": true,
-        "Green candle": false
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": true,
-        "Red candle": true
-      }
-    },
-    {
-      "symbol": "INDUSINDBK",
-      "ticker": "INDUSINDBK.NS",
-      "date": "2026-08-26",
-      "signal": "SELL",
-      "Open": 1010.5,
-      "High": 1018.5999755859375,
-      "Low": 989.4000244140625,
-      "Close": 1004.0,
-      "sma44": 1005.5193190141158,
-      "sma100": 945.907001953125,
-      "sma200": 909.8915014648437,
-      "sma44_10d": 985.8193206787109,
-      "distanceFrom44": -0.15109794365815166,
-      "buyDistanceFrom44": -1.6030815415717603,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": true,
+        "44 SMA above 100 SMA": false,
         "100 SMA above 200 SMA": true,
         "Green candle": false
       },
@@ -737,35 +795,6 @@
       }
     },
     {
-      "symbol": "KAJARIACER",
-      "ticker": "KAJARIACER.NS",
-      "date": "2026-08-26",
-      "signal": "SELL",
-      "Open": 1228.699951171875,
-      "High": 1231.9000244140625,
-      "Low": 1206.0,
-      "Close": 1209.5,
-      "sma44": 1215.5045471191406,
-      "sma100": 1163.1269982910155,
-      "sma200": 1077.9304983520508,
-      "sma44_10d": 1200.1045448996804,
-      "distanceFrom44": -0.49399626956327936,
-      "buyDistanceFrom44": -0.781942539142888,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": true,
-        "Green candle": false
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": true,
-        "Red candle": true
-      }
-    },
-    {
       "symbol": "MMTC",
       "ticker": "MMTC.NS",
       "date": "2026-08-27",
@@ -785,6 +814,35 @@
         "Low within 1% of 44 SMA": true,
         "Close above 44 SMA": false,
         "44 SMA above 100 SMA": false,
+        "100 SMA above 200 SMA": true,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
+      "symbol": "MGL",
+      "ticker": "MGL.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 1113.199951171875,
+      "High": 1118.0,
+      "Low": 1089.199951171875,
+      "Close": 1092.800048828125,
+      "sma44": 1116.6795460094106,
+      "sma100": 1115.4845001220704,
+      "sma200": 1111.277749938965,
+      "sma44_10d": 1134.122725053267,
+      "distanceFrom44": -2.138437769960222,
+      "buyDistanceFrom44": -2.460830856599572,
+      "buyChecks": {
+        "44 SMA rising": false,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": true,
         "100 SMA above 200 SMA": true,
         "Green candle": false
       },
@@ -853,49 +911,20 @@
       }
     },
     {
-      "symbol": "POONAWALLA",
-      "ticker": "POONAWALLA.NS",
-      "date": "2026-08-26",
-      "signal": "SELL",
-      "Open": 478.6000061035156,
-      "High": 480.70001220703125,
-      "Low": 471.0,
-      "Close": 472.6499938964844,
-      "sma44": 473.0772732821378,
-      "sma100": 438.55800048828127,
-      "sma200": 442.54175048828125,
-      "sma44_10d": 456.10681915283203,
-      "distanceFrom44": -0.0903191528709546,
-      "buyDistanceFrom44": -0.4390980923107968,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": false,
-        "Green candle": false
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": true,
-        "Red candle": true
-      }
-    },
-    {
       "symbol": "PRESTIGE",
       "ticker": "PRESTIGE.NS",
-      "date": "2026-08-26",
+      "date": "2026-08-27",
       "signal": "SELL",
-      "Open": 1620.9000244140625,
-      "High": 1647.300048828125,
-      "Low": 1614.0,
-      "Close": 1615.0999755859375,
-      "sma44": 1631.9136435768821,
-      "sma100": 1504.3700036621094,
-      "sma200": 1504.2679998779297,
-      "sma44_10d": 1608.8340953480113,
-      "distanceFrom44": -1.0303037821346894,
-      "buyDistanceFrom44": -1.0977078136082286,
+      "Open": 1623.5999755859375,
+      "High": 1635.9000244140625,
+      "Low": 1609.5999755859375,
+      "Close": 1623.0,
+      "sma44": 1633.4295515580611,
+      "sma100": 1507.392003173828,
+      "sma200": 1503.59,
+      "sma44_10d": 1614.0977311567826,
+      "distanceFrom44": -0.6385063590965911,
+      "buyDistanceFrom44": -1.4588676903386277,
       "buyChecks": {
         "44 SMA rising": true,
         "Low within 1% of 44 SMA": true,
@@ -931,35 +960,6 @@
         "Close above 44 SMA": false,
         "44 SMA above 100 SMA": false,
         "100 SMA above 200 SMA": false,
-        "Green candle": false
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": true,
-        "Red candle": true
-      }
-    },
-    {
-      "symbol": "SAREGAMA",
-      "ticker": "SAREGAMA.NS",
-      "date": "2026-08-26",
-      "signal": "SELL",
-      "Open": 509.79998779296875,
-      "High": 512.0,
-      "Low": 487.25,
-      "Close": 497.54998779296875,
-      "sma44": 505.7170458706942,
-      "sma100": 444.44049896240233,
-      "sma200": 398.3044985961914,
-      "sma44_10d": 494.74090853604406,
-      "distanceFrom44": -1.6149461728473535,
-      "buyDistanceFrom44": -3.651655806637777,
-      "buyChecks": {
-        "44 SMA rising": true,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": true,
-        "100 SMA above 200 SMA": true,
         "Green candle": false
       },
       "sellChecks": {
@@ -1056,6 +1056,64 @@
       }
     },
     {
+      "symbol": "TEGA",
+      "ticker": "TEGA.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 1662.0,
+      "High": 1668.300048828125,
+      "Low": 1615.9000244140625,
+      "Close": 1621.4000244140625,
+      "sma44": 1634.8727278275924,
+      "sma100": 1671.6659985351562,
+      "sma200": 1744.7374963378907,
+      "sma44_10d": 1650.1409052068536,
+      "distanceFrom44": -0.8240827059016631,
+      "buyDistanceFrom44": -1.1605003307346595,
+      "buyChecks": {
+        "44 SMA rising": false,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": false,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
+      "symbol": "RAMCOCEM",
+      "ticker": "RAMCOCEM.NS",
+      "date": "2026-08-27",
+      "signal": "SELL",
+      "Open": 943.0,
+      "High": 943.0,
+      "Low": 890.3499755859375,
+      "Close": 892.5499877929688,
+      "sma44": 923.6431801535866,
+      "sma100": 922.2429986572265,
+      "sma200": 985.3680010986328,
+      "sma44_10d": 920.9909043745561,
+      "distanceFrom44": -3.366364092619356,
+      "buyDistanceFrom44": -3.6045526327724287,
+      "buyChecks": {
+        "44 SMA rising": true,
+        "Low within 1% of 44 SMA": true,
+        "Close above 44 SMA": false,
+        "44 SMA above 100 SMA": true,
+        "100 SMA above 200 SMA": false,
+        "Green candle": false
+      },
+      "sellChecks": {
+        "High touches 44 SMA": true,
+        "Close below 44 SMA": true,
+        "Red candle": true
+      }
+    },
+    {
       "symbol": "UPL",
       "ticker": "UPL.NS",
       "date": "2026-08-27",
@@ -1072,35 +1130,6 @@
       "buyDistanceFrom44": -1.7209047369448394,
       "buyChecks": {
         "44 SMA rising": false,
-        "Low within 1% of 44 SMA": true,
-        "Close above 44 SMA": false,
-        "44 SMA above 100 SMA": false,
-        "100 SMA above 200 SMA": false,
-        "Green candle": false
-      },
-      "sellChecks": {
-        "High touches 44 SMA": true,
-        "Close below 44 SMA": true,
-        "Red candle": true
-      }
-    },
-    {
-      "symbol": "UBL",
-      "ticker": "UBL.NS",
-      "date": "2026-08-26",
-      "signal": "SELL",
-      "Open": 1370.5999755859375,
-      "High": 1386.800048828125,
-      "Low": 1345.0,
-      "Close": 1353.699951171875,
-      "sma44": 1374.6204528808594,
-      "sma100": 1384.302996826172,
-      "sma200": 1495.9214965820313,
-      "sma44_10d": 1370.6386385830965,
-      "distanceFrom44": -1.521911133006948,
-      "buyDistanceFrom44": -2.154809556251136,
-      "buyChecks": {
-        "44 SMA rising": true,
         "Low within 1% of 44 SMA": true,
         "Close above 44 SMA": false,
         "44 SMA above 100 SMA": false,
