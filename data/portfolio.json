@@ -2,7 +2,7 @@
   "version": 1,
   "allocationPerStock": 5000,
   "createdAt": "2026-08-12T10:15:35.585004+00:00",
-  "updatedAt": "2026-09-01T12:17:20.983396+00:00",
+  "updatedAt": "2026-09-01T15:02:13.954533+00:00",
   "openPositions": [
     {
       "symbol": "BHEL",
@@ -17,7 +17,7 @@
       "unrealizedPnL": 72.05,
       "unrealizedPnLPercent": 1.56,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "OBEROIRLTY",
@@ -32,7 +32,7 @@
       "unrealizedPnL": 161.6,
       "unrealizedPnLPercent": 4.49,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "DATAPATTNS",
@@ -47,7 +47,7 @@
       "unrealizedPnL": -13.5,
       "unrealizedPnLPercent": -0.3,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "JSWSTEEL",
@@ -62,7 +62,7 @@
       "unrealizedPnL": 107.1,
       "unrealizedPnLPercent": 2.79,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "MOTILALOFS",
@@ -77,7 +77,7 @@
       "unrealizedPnL": 305.0,
       "unrealizedPnLPercent": 6.39,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "NIACL",
@@ -92,7 +92,7 @@
       "unrealizedPnL": 57.51,
       "unrealizedPnLPercent": 1.16,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "ACMESOLAR",
@@ -107,7 +107,7 @@
       "unrealizedPnL": 415.35,
       "unrealizedPnLPercent": 8.59,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "TATACAP",
@@ -122,7 +122,7 @@
       "unrealizedPnL": 61.1,
       "unrealizedPnLPercent": 1.29,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "NYKAA",
@@ -137,7 +137,7 @@
       "unrealizedPnL": 176.25,
       "unrealizedPnLPercent": 3.6,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "JSWINFRA",
@@ -152,7 +152,7 @@
       "unrealizedPnL": 64.5,
       "unrealizedPnLPercent": 1.3,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "PCBL",
@@ -167,7 +167,7 @@
       "unrealizedPnL": -55.5,
       "unrealizedPnLPercent": -1.15,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "SHYAMMETL",
@@ -182,7 +182,7 @@
       "unrealizedPnL": 308.0,
       "unrealizedPnLPercent": 7.69,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "AUROPHARMA",
@@ -197,7 +197,7 @@
       "unrealizedPnL": 196.5,
       "unrealizedPnLPercent": 4.05,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "CGCL",
@@ -212,7 +212,7 @@
       "unrealizedPnL": 224.6,
       "unrealizedPnLPercent": 4.69,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "KPRMILL",
@@ -227,7 +227,7 @@
       "unrealizedPnL": 154.0,
       "unrealizedPnLPercent": 3.44,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "ZYDUSLIFE",
@@ -242,7 +242,7 @@
       "unrealizedPnL": 71.2,
       "unrealizedPnLPercent": 1.55,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "GODREJPROP",
@@ -257,7 +257,7 @@
       "unrealizedPnL": -182.8,
       "unrealizedPnLPercent": -4.42,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "POLYMED",
@@ -272,7 +272,7 @@
       "unrealizedPnL": 87.6,
       "unrealizedPnLPercent": 2.56,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "TORNTPHARM",
@@ -287,7 +287,7 @@
       "unrealizedPnL": -33.5,
       "unrealizedPnLPercent": -0.67,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "HOMEFIRST",
@@ -302,7 +302,7 @@
       "unrealizedPnL": -69.6,
       "unrealizedPnLPercent": -1.45,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "PIDILITIND",
@@ -317,7 +317,7 @@
       "unrealizedPnL": -37.5,
       "unrealizedPnLPercent": -0.75,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "AUBANK",
@@ -332,7 +332,7 @@
       "unrealizedPnL": -28.0,
       "unrealizedPnLPercent": -0.64,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "AJANTPHARM",
@@ -347,7 +347,7 @@
       "unrealizedPnL": -97.1,
       "unrealizedPnLPercent": -2.7,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "CANHLIFE",
@@ -362,7 +362,7 @@
       "unrealizedPnL": -62.72,
       "unrealizedPnLPercent": -1.26,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "CUB",
@@ -377,7 +377,7 @@
       "unrealizedPnL": 121.8,
       "unrealizedPnLPercent": 2.53,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "COHANCE",
@@ -392,7 +392,7 @@
       "unrealizedPnL": 40.5,
       "unrealizedPnLPercent": 0.89,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "FEDERALBNK",
@@ -407,7 +407,7 @@
       "unrealizedPnL": -104.3,
       "unrealizedPnLPercent": -2.09,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "GABRIEL",
@@ -422,7 +422,7 @@
       "unrealizedPnL": -34.8,
       "unrealizedPnLPercent": -0.81,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "HONASA",
@@ -437,7 +437,7 @@
       "unrealizedPnL": -74.0,
       "unrealizedPnLPercent": -1.54,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "ICICIBANK",
@@ -452,7 +452,7 @@
       "unrealizedPnL": -48.0,
       "unrealizedPnLPercent": -1.1,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "INDHOTEL",
@@ -467,7 +467,7 @@
       "unrealizedPnL": -119.4,
       "unrealizedPnLPercent": -2.7,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "INDUSINDBK",
@@ -482,7 +482,7 @@
       "unrealizedPnL": -96.0,
       "unrealizedPnLPercent": -2.36,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "KAJARIACER",
@@ -497,7 +497,7 @@
       "unrealizedPnL": -63.2,
       "unrealizedPnLPercent": -1.27,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "MINDACORP",
@@ -512,7 +512,7 @@
       "unrealizedPnL": -1.05,
       "unrealizedPnLPercent": -0.02,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "RBLBANK",
@@ -527,7 +527,7 @@
       "unrealizedPnL": 1.95,
       "unrealizedPnLPercent": 0.04,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "CAPLIPOINT",
@@ -539,10 +539,10 @@
       "invested": 2711.2,
       "currentPrice": 2711.2,
       "currentValue": 2711.2,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     },
     {
       "symbol": "SYRMA",
@@ -554,10 +554,10 @@
       "invested": 4343.7,
       "currentPrice": 1447.9,
       "currentValue": 4343.7,
-      "unrealizedPnL": 0,
-      "unrealizedPnLPercent": 0,
+      "unrealizedPnL": 0.0,
+      "unrealizedPnLPercent": 0.0,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T12:17:20.983396+00:00"
+      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
     }
   ],
   "closedTrades": [
