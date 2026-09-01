@@ -722,3 +722,745 @@ select.search {
         height: 360px;
     }
 }
+/* ============================================================
+   PROFESSIONAL TRADING DASHBOARD
+   VISUAL ONLY — DO NOT CHANGE APP.JS
+   ============================================================ */
+
+:root {
+    --pro-bg: #070b12;
+    --pro-card: #0d141f;
+    --pro-card-2: #101925;
+    --pro-border: #202d3e;
+    --pro-text: #f2f5f8;
+    --pro-muted: #7f8da0;
+    --pro-green: #27d889;
+    --pro-red: #ff5d70;
+    --pro-blue: #5da5ff;
+}
+
+/* Main page */
+
+.main {
+    width: calc(100vw - 225px);
+    max-width: none;
+    padding: 24px 28px 40px;
+    overflow-x: hidden;
+}
+
+/* ============================================================
+   TOP KPI CARDS
+   ============================================================ */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.kpi {
+    position: relative;
+    min-height: 118px;
+    padding: 18px 19px;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #111a27 0%,
+            #0b121c 100%
+        );
+
+    border: 1px solid var(--pro-border);
+    border-radius: 14px;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,.18);
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease;
+}
+
+.kpi:hover {
+    transform: translateY(-2px);
+    border-color: #304158;
+}
+
+.kpi::after {
+    content: "";
+    position: absolute;
+    right: -30px;
+    bottom: -45px;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.025);
+}
+
+.kpi-label {
+    position: relative;
+    z-index: 1;
+
+    color: #74849a;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.kpi-value {
+    position: relative;
+    z-index: 1;
+
+    margin-top: 13px;
+
+    color: var(--pro-text);
+    font-size: 29px;
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -.8px;
+}
+
+.kpi-sub {
+    position: relative;
+    z-index: 1;
+
+    margin-top: 9px;
+
+    color: #66758a;
+    font-size: 10px;
+}
+
+/* ============================================================
+   ALL PANELS
+   ============================================================ */
+
+.panel {
+    margin-top: 15px;
+    padding: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(14,21,32,.98),
+            rgba(10,16,25,.98)
+        );
+
+    border: 1px solid var(--pro-border);
+    border-radius: 14px;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,.14);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.panel-title {
+    margin: 0;
+
+    color: #f4f7fa;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -.2px;
+}
+
+.panel-count {
+    color: #718096;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   DASHBOARD PORTFOLIO SUMMARY
+   ============================================================ */
+
+.portfolio-summary-panel {
+    padding: 18px;
+}
+
+.portfolio-summary-panel .panel-header {
+    margin-bottom: 17px;
+}
+
+.portfolio-summary-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 11px;
+
+    width: 100%;
+}
+
+.portfolio-stat {
+    position: relative;
+
+    min-width: 0;
+    min-height: 94px;
+
+    padding: 15px 16px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #111a27,
+            #0c131e
+        );
+
+    border: 1px solid #202c3c;
+    border-radius: 11px;
+
+    overflow: hidden;
+}
+
+.portfolio-stat::before {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 3px;
+
+    background: #2a3749;
+}
+
+.portfolio-stat:nth-child(3)::before,
+.portfolio-stat:nth-child(4)::before {
+    background: var(--pro-green);
+}
+
+.portfolio-stat-label {
+    color: #77869a;
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .9px;
+}
+
+.portfolio-stat-value {
+    margin-top: 12px;
+
+    color: #f2f5f8;
+
+    font-size: 21px;
+    line-height: 1.1;
+    font-weight: 800;
+
+    letter-spacing: -.5px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.portfolio-stat-value.green {
+    color: var(--pro-green);
+}
+
+.portfolio-stat-value.red {
+    color: var(--pro-red);
+}
+
+/* ============================================================
+   VIEW PORTFOLIO BUTTON
+   ============================================================ */
+
+.portfolio-open-button {
+    margin-top: 14px;
+
+    min-width: 145px;
+
+    padding: 10px 15px;
+
+    border: 1px solid #2b3a4e;
+    border-radius: 9px;
+
+    background: #121d2b;
+
+    color: #dbe4ed;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
+}
+
+.portfolio-open-button:hover {
+    background: #192637;
+    border-color: #40536b;
+    transform: translateY(-1px);
+}
+
+/* ============================================================
+   BUY / SELL DASHBOARD
+   ============================================================ */
+
+.two-column {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 15px;
+
+    margin-top: 15px;
+}
+
+.two-column .panel {
+    margin-top: 0;
+    min-width: 0;
+}
+
+.two-column .panel:first-child {
+    border-top: 2px solid var(--pro-green);
+}
+
+.two-column .panel:last-child {
+    border-top: 2px solid var(--pro-red);
+}
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+
+.table-wrap {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.table {
+    width: 100%;
+    min-width: 0;
+
+    border-collapse: separate;
+    border-spacing: 0;
+
+    table-layout: fixed;
+}
+
+.table thead th {
+    padding: 9px 7px;
+
+    border-bottom: 1px solid #263345;
+
+    color: #718097;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: .7px;
+    text-transform: uppercase;
+
+    text-align: left;
+
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 10px 7px;
+
+    border-bottom: 1px solid #192536;
+
+    color: #d6dde6;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.table tbody tr {
+    transition: background .15s ease;
+}
+
+.table tbody tr:hover {
+    background: #111c2a;
+}
+
+.stock-button {
+    max-width: 100%;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #f2f5f8;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stock-button:hover {
+    color: var(--pro-blue);
+}
+
+/* ============================================================
+   SIGNAL BADGES
+   ============================================================ */
+
+.signal-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 42px;
+
+    padding: 4px 7px;
+
+    border-radius: 999px;
+
+    font-size: 8px;
+    font-weight: 900;
+
+    letter-spacing: .4px;
+}
+
+.signal-buy {
+    color: var(--pro-green);
+    background: rgba(39,216,137,.12);
+    border: 1px solid rgba(39,216,137,.16);
+}
+
+.signal-sell {
+    color: var(--pro-red);
+    background: rgba(255,93,112,.12);
+    border: 1px solid rgba(255,93,112,.16);
+}
+
+/* ============================================================
+   STRATEGY SECTION
+   ============================================================ */
+
+.conditions {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+}
+
+.condition {
+    min-width: 0;
+
+    padding: 11px 13px;
+
+    border: 1px solid #202c3c;
+    border-radius: 9px;
+
+    background: #0d151f;
+
+    color: #aeb9c7;
+
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.condition.ok {
+    color: #8fdab5;
+    background: rgba(39,216,137,.045);
+    border-color: rgba(39,216,137,.12);
+}
+
+.condition.no {
+    color: #ff9aa7;
+    background: rgba(255,93,112,.045);
+    border-color: rgba(255,93,112,.12);
+}
+
+/* ============================================================
+   PORTFOLIO PAGE — PROFESSIONAL CARDS
+   ============================================================ */
+
+#content > .panel:first-child .portfolio-summary-grid {
+    margin-top: 3px;
+}
+
+#content > .panel:first-child
+.portfolio-summary-grid
+.portfolio-stat {
+    min-height: 108px;
+}
+
+#content > .panel:first-child
+.portfolio-summary-grid
+.portfolio-stat-value {
+    font-size: 24px;
+}
+
+/* P&L breakdown */
+
+.portfolio-summary-grid
+.portfolio-stat:nth-child(1)::before {
+    background: #5da5ff;
+}
+
+.portfolio-summary-grid
+.portfolio-stat:nth-child(2)::before {
+    background: var(--pro-green);
+}
+
+.portfolio-summary-grid
+.portfolio-stat:nth-child(3)::before {
+    background: var(--pro-green);
+}
+
+.portfolio-summary-grid
+.portfolio-stat:nth-child(4)::before {
+    background: var(--pro-red);
+}
+
+/* ============================================================
+   PORTFOLIO TABLE
+   ============================================================ */
+
+.portfolio-table {
+    table-layout: fixed;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.portfolio-table th:nth-child(1),
+.portfolio-table td:nth-child(1) {
+    width: 13%;
+}
+
+.portfolio-table th:nth-child(2),
+.portfolio-table td:nth-child(2) {
+    width: 7%;
+}
+
+.portfolio-table th:nth-child(3),
+.portfolio-table td:nth-child(3) {
+    width: 10%;
+}
+
+.portfolio-table th:nth-child(4),
+.portfolio-table td:nth-child(4) {
+    width: 10%;
+}
+
+.portfolio-table th:nth-child(5),
+.portfolio-table td:nth-child(5) {
+    width: 12%;
+}
+
+.portfolio-table th:nth-child(6),
+.portfolio-table td:nth-child(6) {
+    width: 12%;
+}
+
+.portfolio-table th:nth-child(7),
+.portfolio-table td:nth-child(7) {
+    width: 9%;
+}
+
+.portfolio-table th:nth-child(8),
+.portfolio-table td:nth-child(8) {
+    width: 9%;
+}
+
+.portfolio-table th:nth-child(9),
+.portfolio-table td:nth-child(9) {
+    width: 10%;
+}
+
+.portfolio-table th:nth-child(10),
+.portfolio-table td:nth-child(10) {
+    width: 8%;
+}
+
+/* ============================================================
+   SEARCH / SORT
+   ============================================================ */
+
+.search {
+    height: 35px;
+
+    padding: 0 11px;
+
+    border: 1px solid #29384c;
+    border-radius: 8px;
+
+    background: #0b131e;
+
+    color: #e8edf3;
+
+    outline: none;
+
+    font-size: 10px;
+}
+
+.search:focus {
+    border-color: #46617f;
+    box-shadow: 0 0 0 2px rgba(93,165,255,.08);
+}
+
+select.search {
+    cursor: pointer;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.empty {
+    padding: 38px 15px;
+
+    color: #718096;
+
+    text-align: center;
+
+    font-size: 11px;
+}
+
+/* ============================================================
+   DESKTOP — FIT EVERYTHING
+   ============================================================ */
+
+@media (min-width: 1001px) {
+
+    .main {
+        width: calc(100vw - 225px);
+        max-width: none;
+    }
+
+    .portfolio-summary-grid {
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+    }
+
+    .two-column {
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+    }
+}
+
+/* ============================================================
+   1366 / 1440 / 1600 PC
+   ============================================================ */
+
+@media (min-width: 1001px) and (max-width: 1450px) {
+
+    .main {
+        padding: 20px 20px 30px;
+    }
+
+    .kpi {
+        min-height: 108px;
+        padding: 15px;
+    }
+
+    .kpi-value {
+        font-size: 25px;
+    }
+
+    .portfolio-stat {
+        min-height: 88px;
+        padding: 13px;
+    }
+
+    .portfolio-stat-value {
+        font-size: 18px;
+    }
+
+    .table thead th {
+        padding: 7px 5px;
+        font-size: 7.5px;
+    }
+
+    .table tbody td {
+        padding: 8px 5px;
+        font-size: 9px;
+    }
+
+    .panel {
+        padding: 14px;
+    }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 1000px) {
+
+    .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .portfolio-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .two-column {
+        grid-template-columns: 1fr;
+    }
+
+    .conditions {
+        grid-template-columns: 1fr;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    .table {
+        min-width: 700px;
+        table-layout: auto;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .portfolio-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .portfolio-stat-value {
+        font-size: 20px;
+    }
+}
