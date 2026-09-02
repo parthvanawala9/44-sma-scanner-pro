@@ -2,7 +2,7 @@
   "version": 1,
   "allocationPerStock": 5000,
   "createdAt": "2026-08-12T10:15:35.585004+00:00",
-  "updatedAt": "2026-09-01T15:02:13.954533+00:00",
+  "updatedAt": "2026-09-02T14:36:54.639517+00:00",
   "openPositions": [
     {
       "symbol": "BHEL",
@@ -12,12 +12,12 @@
       "buyPrice": 420.0,
       "quantity": 11,
       "invested": 4620.0,
-      "currentPrice": 426.55,
-      "currentValue": 4692.05,
-      "unrealizedPnL": 72.05,
-      "unrealizedPnLPercent": 1.56,
+      "currentPrice": 427.5,
+      "currentValue": 4702.5,
+      "unrealizedPnL": 82.5,
+      "unrealizedPnLPercent": 1.79,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "OBEROIRLTY",
@@ -27,12 +27,12 @@
       "buyPrice": 1799.9,
       "quantity": 2,
       "invested": 3599.8,
-      "currentPrice": 1880.7,
-      "currentValue": 3761.4,
-      "unrealizedPnL": 161.6,
-      "unrealizedPnLPercent": 4.49,
+      "currentPrice": 1866.0,
+      "currentValue": 3732.0,
+      "unrealizedPnL": 132.2,
+      "unrealizedPnLPercent": 3.67,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "DATAPATTNS",
@@ -42,12 +42,12 @@
       "buyPrice": 4528.7,
       "quantity": 1,
       "invested": 4528.7,
-      "currentPrice": 4515.2,
-      "currentValue": 4515.2,
-      "unrealizedPnL": -13.5,
-      "unrealizedPnLPercent": -0.3,
+      "currentPrice": 4516.7,
+      "currentValue": 4516.7,
+      "unrealizedPnL": -12.0,
+      "unrealizedPnLPercent": -0.26,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "JSWSTEEL",
@@ -57,12 +57,12 @@
       "buyPrice": 1277.8,
       "quantity": 3,
       "invested": 3833.4,
-      "currentPrice": 1313.5,
-      "currentValue": 3940.5,
-      "unrealizedPnL": 107.1,
-      "unrealizedPnLPercent": 2.79,
+      "currentPrice": 1306.0,
+      "currentValue": 3918.0,
+      "unrealizedPnL": 84.6,
+      "unrealizedPnLPercent": 2.21,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "MOTILALOFS",
@@ -72,12 +72,12 @@
       "buyPrice": 955.0,
       "quantity": 5,
       "invested": 4775.0,
-      "currentPrice": 1016.0,
-      "currentValue": 5080.0,
-      "unrealizedPnL": 305.0,
-      "unrealizedPnLPercent": 6.39,
+      "currentPrice": 1017.6,
+      "currentValue": 5088.0,
+      "unrealizedPnL": 313.0,
+      "unrealizedPnLPercent": 6.55,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "NIACL",
@@ -87,12 +87,12 @@
       "buyPrice": 183.64,
       "quantity": 27,
       "invested": 4958.28,
-      "currentPrice": 185.77,
-      "currentValue": 5015.79,
-      "unrealizedPnL": 57.51,
-      "unrealizedPnLPercent": 1.16,
+      "currentPrice": 199.11,
+      "currentValue": 5375.97,
+      "unrealizedPnL": 417.69,
+      "unrealizedPnLPercent": 8.42,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "ACMESOLAR",
@@ -102,12 +102,12 @@
       "buyPrice": 371.75,
       "quantity": 13,
       "invested": 4832.75,
-      "currentPrice": 403.7,
-      "currentValue": 5248.1,
-      "unrealizedPnL": 415.35,
-      "unrealizedPnLPercent": 8.59,
+      "currentPrice": 398.25,
+      "currentValue": 5177.25,
+      "unrealizedPnL": 344.5,
+      "unrealizedPnLPercent": 7.13,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "TATACAP",
@@ -117,12 +117,12 @@
       "buyPrice": 363.15,
       "quantity": 13,
       "invested": 4720.95,
-      "currentPrice": 367.85,
-      "currentValue": 4782.05,
-      "unrealizedPnL": 61.1,
-      "unrealizedPnLPercent": 1.29,
+      "currentPrice": 364.75,
+      "currentValue": 4741.75,
+      "unrealizedPnL": 20.8,
+      "unrealizedPnLPercent": 0.44,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "NYKAA",
@@ -132,27 +132,12 @@
       "buyPrice": 326.75,
       "quantity": 15,
       "invested": 4901.25,
-      "currentPrice": 338.5,
-      "currentValue": 5077.5,
-      "unrealizedPnL": 176.25,
-      "unrealizedPnLPercent": 3.6,
+      "currentPrice": 337.4,
+      "currentValue": 5061.0,
+      "unrealizedPnL": 159.75,
+      "unrealizedPnLPercent": 3.26,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
-    },
-    {
-      "symbol": "JSWINFRA",
-      "ticker": "JSWINFRA.NS",
-      "buyDate": "2026-08-19",
-      "buyTimestamp": "2026-08-19T09:38:03.315766+00:00",
-      "buyPrice": 330.5,
-      "quantity": 15,
-      "invested": 4957.5,
-      "currentPrice": 334.8,
-      "currentValue": 5022.0,
-      "unrealizedPnL": 64.5,
-      "unrealizedPnLPercent": 1.3,
-      "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "PCBL",
@@ -162,12 +147,12 @@
       "buyPrice": 321.2,
       "quantity": 15,
       "invested": 4818.0,
-      "currentPrice": 317.5,
-      "currentValue": 4762.5,
-      "unrealizedPnL": -55.5,
-      "unrealizedPnLPercent": -1.15,
+      "currentPrice": 315.3,
+      "currentValue": 4729.5,
+      "unrealizedPnL": -88.5,
+      "unrealizedPnLPercent": -1.84,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "SHYAMMETL",
@@ -177,12 +162,12 @@
       "buyPrice": 1001.0,
       "quantity": 4,
       "invested": 4004.0,
-      "currentPrice": 1078.0,
-      "currentValue": 4312.0,
-      "unrealizedPnL": 308.0,
-      "unrealizedPnLPercent": 7.69,
+      "currentPrice": 1072.6,
+      "currentValue": 4290.4,
+      "unrealizedPnL": 286.4,
+      "unrealizedPnLPercent": 7.15,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "AUROPHARMA",
@@ -192,12 +177,12 @@
       "buyPrice": 1617.8,
       "quantity": 3,
       "invested": 4853.4,
-      "currentPrice": 1683.3,
-      "currentValue": 5049.9,
-      "unrealizedPnL": 196.5,
-      "unrealizedPnLPercent": 4.05,
+      "currentPrice": 1648.2,
+      "currentValue": 4944.6,
+      "unrealizedPnL": 91.2,
+      "unrealizedPnLPercent": 1.88,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "CGCL",
@@ -207,12 +192,12 @@
       "buyPrice": 239.67,
       "quantity": 20,
       "invested": 4793.4,
-      "currentPrice": 250.9,
-      "currentValue": 5018.0,
-      "unrealizedPnL": 224.6,
-      "unrealizedPnLPercent": 4.69,
+      "currentPrice": 256.6,
+      "currentValue": 5132.0,
+      "unrealizedPnL": 338.6,
+      "unrealizedPnLPercent": 7.06,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "KPRMILL",
@@ -222,12 +207,12 @@
       "buyPrice": 1120.0,
       "quantity": 4,
       "invested": 4480.0,
-      "currentPrice": 1158.5,
-      "currentValue": 4634.0,
-      "unrealizedPnL": 154.0,
-      "unrealizedPnLPercent": 3.44,
+      "currentPrice": 1167.4,
+      "currentValue": 4669.6,
+      "unrealizedPnL": 189.6,
+      "unrealizedPnLPercent": 4.23,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "ZYDUSLIFE",
@@ -237,12 +222,12 @@
       "buyPrice": 1150.0,
       "quantity": 4,
       "invested": 4600.0,
-      "currentPrice": 1167.8,
-      "currentValue": 4671.2,
-      "unrealizedPnL": 71.2,
-      "unrealizedPnLPercent": 1.55,
+      "currentPrice": 1154.2,
+      "currentValue": 4616.8,
+      "unrealizedPnL": 16.8,
+      "unrealizedPnLPercent": 0.37,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "GODREJPROP",
@@ -252,12 +237,12 @@
       "buyPrice": 2069.4,
       "quantity": 2,
       "invested": 4138.8,
-      "currentPrice": 1978.0,
-      "currentValue": 3956.0,
-      "unrealizedPnL": -182.8,
-      "unrealizedPnLPercent": -4.42,
+      "currentPrice": 1970.7,
+      "currentValue": 3941.4,
+      "unrealizedPnL": -197.4,
+      "unrealizedPnLPercent": -4.77,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "POLYMED",
@@ -267,12 +252,12 @@
       "buyPrice": 1712.6,
       "quantity": 2,
       "invested": 3425.2,
-      "currentPrice": 1756.4,
-      "currentValue": 3512.8,
-      "unrealizedPnL": 87.6,
-      "unrealizedPnLPercent": 2.56,
+      "currentPrice": 1783.8,
+      "currentValue": 3567.6,
+      "unrealizedPnL": 142.4,
+      "unrealizedPnLPercent": 4.16,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "TORNTPHARM",
@@ -282,12 +267,12 @@
       "buyPrice": 4999.0,
       "quantity": 1,
       "invested": 4999.0,
-      "currentPrice": 4965.5,
-      "currentValue": 4965.5,
-      "unrealizedPnL": -33.5,
-      "unrealizedPnLPercent": -0.67,
+      "currentPrice": 5012.0,
+      "currentValue": 5012.0,
+      "unrealizedPnL": 13.0,
+      "unrealizedPnLPercent": 0.26,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "HOMEFIRST",
@@ -297,12 +282,12 @@
       "buyPrice": 1200.2,
       "quantity": 4,
       "invested": 4800.8,
-      "currentPrice": 1182.8,
-      "currentValue": 4731.2,
-      "unrealizedPnL": -69.6,
-      "unrealizedPnLPercent": -1.45,
+      "currentPrice": 1196.7,
+      "currentValue": 4786.8,
+      "unrealizedPnL": -14.0,
+      "unrealizedPnLPercent": -0.29,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "PIDILITIND",
@@ -312,12 +297,12 @@
       "buyPrice": 1656.0,
       "quantity": 3,
       "invested": 4968.0,
-      "currentPrice": 1643.5,
-      "currentValue": 4930.5,
-      "unrealizedPnL": -37.5,
-      "unrealizedPnLPercent": -0.75,
+      "currentPrice": 1637.0,
+      "currentValue": 4911.0,
+      "unrealizedPnL": -57.0,
+      "unrealizedPnLPercent": -1.15,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "AUBANK",
@@ -327,27 +312,12 @@
       "buyPrice": 1086.2,
       "quantity": 4,
       "invested": 4344.8,
-      "currentPrice": 1079.2,
-      "currentValue": 4316.8,
-      "unrealizedPnL": -28.0,
-      "unrealizedPnLPercent": -0.64,
+      "currentPrice": 1077.9,
+      "currentValue": 4311.6,
+      "unrealizedPnL": -33.2,
+      "unrealizedPnLPercent": -0.76,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
-    },
-    {
-      "symbol": "AJANTPHARM",
-      "ticker": "AJANTPHARM.NS",
-      "buyDate": "2026-08-31",
-      "buyTimestamp": "2026-08-31T10:33:58.476159+00:00",
-      "buyPrice": 3601.9,
-      "quantity": 1,
-      "invested": 3601.9,
-      "currentPrice": 3504.8,
-      "currentValue": 3504.8,
-      "unrealizedPnL": -97.1,
-      "unrealizedPnLPercent": -2.7,
-      "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "CANHLIFE",
@@ -357,12 +327,12 @@
       "buyPrice": 156.14,
       "quantity": 32,
       "invested": 4996.48,
-      "currentPrice": 154.18,
-      "currentValue": 4933.76,
-      "unrealizedPnL": -62.72,
-      "unrealizedPnLPercent": -1.26,
+      "currentPrice": 152.81,
+      "currentValue": 4889.92,
+      "unrealizedPnL": -106.56,
+      "unrealizedPnLPercent": -2.13,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "CUB",
@@ -372,12 +342,12 @@
       "buyPrice": 229.19,
       "quantity": 21,
       "invested": 4812.99,
-      "currentPrice": 234.99,
-      "currentValue": 4934.79,
-      "unrealizedPnL": 121.8,
-      "unrealizedPnLPercent": 2.53,
+      "currentPrice": 230.61,
+      "currentValue": 4842.81,
+      "unrealizedPnL": 29.82,
+      "unrealizedPnLPercent": 0.62,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "COHANCE",
@@ -387,12 +357,12 @@
       "buyPrice": 455.95,
       "quantity": 10,
       "invested": 4559.5,
-      "currentPrice": 460.0,
-      "currentValue": 4600.0,
-      "unrealizedPnL": 40.5,
-      "unrealizedPnLPercent": 0.89,
+      "currentPrice": 458.3,
+      "currentValue": 4583.0,
+      "unrealizedPnL": 23.5,
+      "unrealizedPnLPercent": 0.52,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "FEDERALBNK",
@@ -402,27 +372,12 @@
       "buyPrice": 356.7,
       "quantity": 14,
       "invested": 4993.8,
-      "currentPrice": 349.25,
-      "currentValue": 4889.5,
-      "unrealizedPnL": -104.3,
-      "unrealizedPnLPercent": -2.09,
+      "currentPrice": 353.35,
+      "currentValue": 4946.9,
+      "unrealizedPnL": -46.9,
+      "unrealizedPnLPercent": -0.94,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
-    },
-    {
-      "symbol": "GABRIEL",
-      "ticker": "GABRIEL.NS",
-      "buyDate": "2026-08-31",
-      "buyTimestamp": "2026-08-31T10:33:58.476159+00:00",
-      "buyPrice": 1437.9,
-      "quantity": 3,
-      "invested": 4313.7,
-      "currentPrice": 1426.3,
-      "currentValue": 4278.9,
-      "unrealizedPnL": -34.8,
-      "unrealizedPnLPercent": -0.81,
-      "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "HONASA",
@@ -432,12 +387,12 @@
       "buyPrice": 480.9,
       "quantity": 10,
       "invested": 4809.0,
-      "currentPrice": 473.5,
-      "currentValue": 4735.0,
-      "unrealizedPnL": -74.0,
-      "unrealizedPnLPercent": -1.54,
+      "currentPrice": 469.95,
+      "currentValue": 4699.5,
+      "unrealizedPnL": -109.5,
+      "unrealizedPnLPercent": -2.28,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "ICICIBANK",
@@ -447,12 +402,12 @@
       "buyPrice": 1454.0,
       "quantity": 3,
       "invested": 4362.0,
-      "currentPrice": 1438.0,
-      "currentValue": 4314.0,
-      "unrealizedPnL": -48.0,
-      "unrealizedPnLPercent": -1.1,
+      "currentPrice": 1426.5,
+      "currentValue": 4279.5,
+      "unrealizedPnL": -82.5,
+      "unrealizedPnLPercent": -1.89,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "INDHOTEL",
@@ -462,12 +417,12 @@
       "buyPrice": 737.9,
       "quantity": 6,
       "invested": 4427.4,
-      "currentPrice": 718.0,
-      "currentValue": 4308.0,
-      "unrealizedPnL": -119.4,
-      "unrealizedPnLPercent": -2.7,
+      "currentPrice": 727.7,
+      "currentValue": 4366.2,
+      "unrealizedPnL": -61.2,
+      "unrealizedPnLPercent": -1.38,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "INDUSINDBK",
@@ -477,12 +432,12 @@
       "buyPrice": 1016.6,
       "quantity": 4,
       "invested": 4066.4,
-      "currentPrice": 992.6,
-      "currentValue": 3970.4,
-      "unrealizedPnL": -96.0,
-      "unrealizedPnLPercent": -2.36,
+      "currentPrice": 978.0,
+      "currentValue": 3912.0,
+      "unrealizedPnL": -154.4,
+      "unrealizedPnLPercent": -3.8,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "KAJARIACER",
@@ -492,12 +447,12 @@
       "buyPrice": 1244.8,
       "quantity": 4,
       "invested": 4979.2,
-      "currentPrice": 1229.0,
-      "currentValue": 4916.0,
-      "unrealizedPnL": -63.2,
-      "unrealizedPnLPercent": -1.27,
+      "currentPrice": 1261.1,
+      "currentValue": 5044.4,
+      "unrealizedPnL": 65.2,
+      "unrealizedPnLPercent": 1.31,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "MINDACORP",
@@ -507,12 +462,12 @@
       "buyPrice": 712.55,
       "quantity": 7,
       "invested": 4987.85,
-      "currentPrice": 712.4,
-      "currentValue": 4986.8,
-      "unrealizedPnL": -1.05,
-      "unrealizedPnLPercent": -0.02,
+      "currentPrice": 707.85,
+      "currentValue": 4954.95,
+      "unrealizedPnL": -32.9,
+      "unrealizedPnLPercent": -0.66,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "RBLBANK",
@@ -522,12 +477,12 @@
       "buyPrice": 380.35,
       "quantity": 13,
       "invested": 4944.55,
-      "currentPrice": 380.5,
-      "currentValue": 4946.5,
-      "unrealizedPnL": 1.95,
-      "unrealizedPnLPercent": 0.04,
+      "currentPrice": 389.4,
+      "currentValue": 5062.2,
+      "unrealizedPnL": 117.65,
+      "unrealizedPnLPercent": 2.38,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "CAPLIPOINT",
@@ -537,12 +492,12 @@
       "buyPrice": 2711.2,
       "quantity": 1,
       "invested": 2711.2,
-      "currentPrice": 2711.2,
-      "currentValue": 2711.2,
-      "unrealizedPnL": 0.0,
-      "unrealizedPnLPercent": 0.0,
+      "currentPrice": 2720.5,
+      "currentValue": 2720.5,
+      "unrealizedPnL": 9.3,
+      "unrealizedPnLPercent": 0.34,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     },
     {
       "symbol": "SYRMA",
@@ -552,15 +507,213 @@
       "buyPrice": 1447.9,
       "quantity": 3,
       "invested": 4343.7,
-      "currentPrice": 1447.9,
-      "currentValue": 4343.7,
-      "unrealizedPnL": 0.0,
-      "unrealizedPnLPercent": 0.0,
+      "currentPrice": 1434.0,
+      "currentValue": 4302.0,
+      "unrealizedPnL": -41.7,
+      "unrealizedPnLPercent": -0.96,
       "signal": "BUY",
-      "lastUpdated": "2026-09-01T15:02:13.954533+00:00"
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "360ONE",
+      "ticker": "360ONE.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 1181.3,
+      "quantity": 4,
+      "invested": 4725.2,
+      "currentPrice": 1181.3,
+      "currentValue": 4725.2,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "ACE",
+      "ticker": "ACE.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 1090.9,
+      "quantity": 4,
+      "invested": 4363.6,
+      "currentPrice": 1090.9,
+      "currentValue": 4363.6,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "AEGISVOPAK",
+      "ticker": "AEGISVOPAK.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 286.3,
+      "quantity": 17,
+      "invested": 4867.1,
+      "currentPrice": 286.3,
+      "currentValue": 4867.1,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "GRASIM",
+      "ticker": "GRASIM.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 3294.9,
+      "quantity": 1,
+      "invested": 3294.9,
+      "currentPrice": 3294.9,
+      "currentValue": 3294.9,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "KALYANKJIL",
+      "ticker": "KALYANKJIL.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 590.0,
+      "quantity": 8,
+      "invested": 4720.0,
+      "currentPrice": 590.0,
+      "currentValue": 4720.0,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "NUVAMA",
+      "ticker": "NUVAMA.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 1841.0,
+      "quantity": 2,
+      "invested": 3682.0,
+      "currentPrice": 1841.0,
+      "currentValue": 3682.0,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "RADICO",
+      "ticker": "RADICO.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 4476.2,
+      "quantity": 1,
+      "invested": 4476.2,
+      "currentPrice": 4476.2,
+      "currentValue": 4476.2,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "TVSMOTOR",
+      "ticker": "TVSMOTOR.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 4200.0,
+      "quantity": 1,
+      "invested": 4200.0,
+      "currentPrice": 4200.0,
+      "currentValue": 4200.0,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "USHAMART",
+      "ticker": "USHAMART.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 501.6,
+      "quantity": 9,
+      "invested": 4514.4,
+      "currentPrice": 501.6,
+      "currentValue": 4514.4,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
+    },
+    {
+      "symbol": "ZENTEC",
+      "ticker": "ZENTEC.NS",
+      "buyDate": "2026-09-02",
+      "buyTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "buyPrice": 1829.1,
+      "quantity": 2,
+      "invested": 3658.2,
+      "currentPrice": 1829.1,
+      "currentValue": 3658.2,
+      "unrealizedPnL": 0,
+      "unrealizedPnLPercent": 0,
+      "signal": "BUY",
+      "lastUpdated": "2026-09-02T14:36:54.639517+00:00"
     }
   ],
   "closedTrades": [
+    {
+      "symbol": "JSWINFRA",
+      "ticker": "JSWINFRA.NS",
+      "buyDate": "2026-08-19",
+      "buyTimestamp": "2026-08-19T09:38:03.315766+00:00",
+      "buyPrice": 330.5,
+      "quantity": 15,
+      "invested": 4957.5,
+      "sellDate": "2026-09-02",
+      "sellTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "sellPrice": 332.1,
+      "sellValue": 4981.5,
+      "pnl": 24.0,
+      "pnlPercent": 0.48,
+      "result": "WIN"
+    },
+    {
+      "symbol": "GABRIEL",
+      "ticker": "GABRIEL.NS",
+      "buyDate": "2026-08-31",
+      "buyTimestamp": "2026-08-31T10:33:58.476159+00:00",
+      "buyPrice": 1437.9,
+      "quantity": 3,
+      "invested": 4313.7,
+      "sellDate": "2026-09-02",
+      "sellTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "sellPrice": 1384.9,
+      "sellValue": 4154.7,
+      "pnl": -159.0,
+      "pnlPercent": -3.69,
+      "result": "LOSS"
+    },
+    {
+      "symbol": "AJANTPHARM",
+      "ticker": "AJANTPHARM.NS",
+      "buyDate": "2026-08-31",
+      "buyTimestamp": "2026-08-31T10:33:58.476159+00:00",
+      "buyPrice": 3601.9,
+      "quantity": 1,
+      "invested": 3601.9,
+      "sellDate": "2026-09-02",
+      "sellTimestamp": "2026-09-02T14:36:54.639517+00:00",
+      "sellPrice": 3481.7,
+      "sellValue": 3481.7,
+      "pnl": -120.2,
+      "pnlPercent": -3.34,
+      "result": "LOSS"
+    },
     {
       "symbol": "SUNPHARMA",
       "ticker": "SUNPHARMA.NS",
@@ -1314,14 +1467,14 @@
       "result": "LOSS"
     }
   ],
-  "realizedPnL": -3889.08,
-  "unrealizedPnL": 1505.64,
-  "totalInvested": 166862.7,
-  "totalCurrentValue": 168368.34,
-  "totalPnL": -2383.44,
-  "totalPnLPercent": -1.43,
-  "openPositionsCount": 37,
-  "totalTrades": 47,
-  "winningTrades": 4,
-  "losingTrades": 43
+  "realizedPnL": -4144.28,
+  "unrealizedPnL": 1840.75,
+  "totalInvested": 196491.2,
+  "totalCurrentValue": 198331.95,
+  "totalPnL": -2303.53,
+  "totalPnLPercent": -1.17,
+  "openPositionsCount": 44,
+  "totalTrades": 50,
+  "winningTrades": 5,
+  "losingTrades": 45
 }
