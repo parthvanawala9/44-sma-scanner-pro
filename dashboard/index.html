@@ -1,142 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0b0e14">
-    <title>44 SMA Scanner Pro — Terminal</title>
-
-    <!-- Google Fonts -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>44 SMA Scanner Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="mobile.css?v=20260903-2" media="screen and (max-width: 768px)">
+    <link rel="stylesheet" href="style.css?v=20260903-5">
 </head>
+<body>
 
-<body class="dark-theme">
-
-<div class="app-layout">
+<div class="app-container">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="brand-header">
-            <div class="brand-icon">📈</div>
-            <div class="brand-text">
-                <span class="brand-name">44 SMA</span>
-                <span class="brand-badge">SCANNER PRO</span>
-            </div>
+        <div class="logo-area">
+            <h2>44 SMA</h2>
+            <span>SCANNER PRO</span>
         </div>
 
-        <nav class="nav-menu">
-            <button class="nav-item active" data-tab="dashboard" type="button">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Dashboard</span>
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" data-tab="dashboard">
+                <span class="icon">📊</span>
+                <span>Dashboard</span>
             </button>
-
-            <button class="nav-item" data-tab="buy" type="button">
-                <span class="status-indicator green"></span>
-                <span class="nav-label">BUY Signals</span>
+            <button class="nav-btn" data-tab="buy">
+                <span class="dot green-dot"></span>
+                <span>BUY Signals</span>
             </button>
-
-            <button class="nav-item" data-tab="sell" type="button">
-                <span class="status-indicator red"></span>
-                <span class="nav-label">SELL Signals</span>
+            <button class="nav-btn" data-tab="sell">
+                <span class="dot red-dot"></span>
+                <span>SELL Signals</span>
             </button>
-
-            <button class="nav-item" data-tab="portfolio" type="button">
-                <span class="nav-icon">💼</span>
-                <span class="nav-label">Portfolio</span>
+            <button class="nav-btn" data-tab="portfolio">
+                <span class="icon">💼</span>
+                <span>Portfolio</span>
             </button>
-
-            <button class="nav-item" data-tab="history" type="button">
-                <span class="nav-icon">📜</span>
-                <span class="nav-label">Scan History</span>
+            <button class="nav-btn" data-tab="history">
+                <span class="icon">📜</span>
+                <span>History</span>
             </button>
         </nav>
 
-        <div class="strategy-card">
-            <div class="strategy-header">
-                <span class="pulse-dot"></span>
-                <span>Active Strategy</span>
-            </div>
-            <div class="strategy-title">44 / 100 / 200 SMA</div>
-            <div class="strategy-meta">Capital: ₹5,000 / trade</div>
+        <div class="strategy-box">
+            <div class="strategy-title">STRATEGY</div>
+            <div class="strategy-item">44 / 100 / 200 SMA</div>
+            <div class="strategy-item">₹5,000 / Trade</div>
         </div>
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="main-content">
+    <main class="main-body">
+
+        <!-- TOPBAR -->
         <header class="topbar">
-            <div class="page-title-box">
-                <span class="eyebrow">NSE Market Analytics</span>
+            <div>
+                <span class="sub-heading">NSE DAILY SCANNER</span>
                 <h1 id="pageTitle">Dashboard</h1>
             </div>
-
-            <div class="topbar-actions">
-                <div class="scan-badge">
-                    <span class="clock-icon">🕒</span>
-                    <span id="lastScan">Last scan: Loading...</span>
-                </div>
-
-                <button id="refreshButton" class="btn btn-primary" type="button" data-action="refresh">
-                    <span class="refresh-icon">↻</span>
-                    <span>Refresh Data</span>
+            <div class="topbar-right">
+                <span id="lastScan" class="last-scan-badge">Last scan: —</span>
+                <button id="refreshButton" class="refresh-btn" data-action="refresh">
+                    ↻ Refresh Data
                 </button>
             </div>
         </header>
 
-        <!-- DYNAMIC CONTENT SECTIONS -->
-        <section id="content" class="content-container">
-            
-            <!-- PAGE: DASHBOARD -->
-            <div data-page="dashboard" class="page-view">
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-title">BUY Signals</div>
-                        <div class="metric-value text-green" id="dashBuyCount">0</div>
-                        <div class="metric-sub">Today's Breakouts</div>
+        <!-- VIEW PANELS -->
+        <div class="content-area">
+
+            <!-- PAGE 1: DASHBOARD -->
+            <div data-page="dashboard" class="page-panel">
+                <div class="kpi-grid">
+                    <div class="kpi-card green-border">
+                        <span class="kpi-label">BUY SIGNALS</span>
+                        <h2 id="dashBuyCount" class="text-green">0</h2>
+                        <span class="kpi-sub">Today's Breakouts</span>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-title">SELL Signals</div>
-                        <div class="metric-value text-red" id="dashSellCount">0</div>
-                        <div class="metric-sub">Stoploss / Exit Triggers</div>
+                    <div class="kpi-card red-border">
+                        <span class="kpi-label">SELL SIGNALS</span>
+                        <h2 id="dashSellCount" class="text-red">0</h2>
+                        <span class="kpi-sub">Exit Triggers</span>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-title">Total Scanned</div>
-                        <div class="metric-value" id="dashScannedCount">0</div>
-                        <div class="metric-sub">NSE Equities</div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">TOTAL SCANNED</span>
+                        <h2 id="dashScannedCount">0</h2>
+                        <span class="kpi-sub">Nifty 500 Equities</span>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-title">Portfolio Allocation</div>
-                        <div class="metric-value">₹5,000</div>
-                        <div class="metric-sub">Per Position</div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">CAPITAL / TRADE</span>
+                        <h2>₹5,000</h2>
+                        <span class="kpi-sub">Fixed Position Allocation</span>
                     </div>
                 </div>
 
-                <div class="dashboard-widgets">
-                    <div class="widget-card">
-                        <h3>Quick Action Signals</h3>
-                        <div id="signalSummary" class="summary-pills-grid"></div>
-                    </div>
+                <div class="panel-card mt-20">
+                    <h3>Top Active Signals Summary</h3>
+                    <div id="signalSummary" class="summary-wrapper"></div>
                 </div>
             </div>
 
-            <!-- PAGE: BUY -->
-            <div data-page="buy" class="page-view" style="display:none;">
+            <!-- PAGE 2: BUY -->
+            <div data-page="buy" class="page-panel" style="display:none;">
                 <div class="panel-header">
                     <h2>BUY Signals Today</h2>
-                    <p class="panel-sub">Stocks crossing above 44 SMA with bullish momentum.</p>
+                    <p>Stocks crossing above 44 SMA with bullish momentum.</p>
                 </div>
-                <div class="table-card">
-                    <table class="pro-table">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Symbol</th><th>Close</th><th>44 SMA</th><th>100 SMA</th>
-                                <th>200 SMA</th><th>Distance</th><th>Candle</th><th>Signal</th><th>Action</th>
+                                <th>Symbol</th>
+                                <th>Close</th>
+                                <th>44 SMA</th>
+                                <th>100 SMA</th>
+                                <th>200 SMA</th>
+                                <th>Distance</th>
+                                <th>Candle</th>
+                                <th>Signal</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="buyTableBody"></tbody>
@@ -144,18 +127,25 @@
                 </div>
             </div>
 
-            <!-- PAGE: SELL -->
-            <div data-page="sell" class="page-view" style="display:none;">
+            <!-- PAGE 3: SELL -->
+            <div data-page="sell" class="page-panel" style="display:none;">
                 <div class="panel-header">
                     <h2>SELL Signals Today</h2>
-                    <p class="panel-sub">Stocks crossing below 44 SMA or target exit triggers.</p>
+                    <p>Stocks crossing below 44 SMA or target exit triggers.</p>
                 </div>
-                <div class="table-card">
-                    <table class="pro-table">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Symbol</th><th>Close</th><th>44 SMA</th><th>100 SMA</th>
-                                <th>200 SMA</th><th>Distance</th><th>Candle</th><th>Signal</th><th>Action</th>
+                                <th>Symbol</th>
+                                <th>Close</th>
+                                <th>44 SMA</th>
+                                <th>100 SMA</th>
+                                <th>200 SMA</th>
+                                <th>Distance</th>
+                                <th>Candle</th>
+                                <th>Signal</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="sellTableBody"></tbody>
@@ -163,35 +153,31 @@
                 </div>
             </div>
 
-            <!-- PAGE: PORTFOLIO -->
-            <div data-page="portfolio" class="page-view" style="display:none;">
+            <!-- PAGE 4: PORTFOLIO -->
+            <div data-page="portfolio" class="page-panel" style="display:none;">
                 <div id="portfolioExitStrategy" class="strategy-banner"></div>
-
-                <div class="panel-header">
-                    <h2>Active Open Positions</h2>
-                </div>
-                <div class="table-card">
-                    <table class="pro-table">
+                
+                <h3 class="mt-20">Open Positions</h3>
+                <div class="table-container mt-10">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Symbol</th><th>Qty</th><th>Buy Price</th><th>LTP</th>
+                                <th>Symbol</th><th>Qty</th><th>Buy Price</th><th>Current Price</th>
                                 <th>Invested</th><th>Current Value</th><th>PnL</th><th>Return</th>
-                                <th>44 SMA</th><th>SL (-5%)</th><th>Target (+20%)</th><th>Status</th><th>Entry Date</th>
+                                <th>44 SMA</th><th>SL (-5%)</th><th>Target (+20%)</th><th>Status</th><th>Buy Date</th>
                             </tr>
                         </thead>
                         <tbody id="portfolioTableBody"></tbody>
                     </table>
                 </div>
 
-                <div class="panel-header mt-8">
-                    <h2>Closed Trades History</h2>
-                </div>
-                <div class="table-card">
-                    <table class="pro-table">
+                <h3 class="mt-30">Closed Trades History</h3>
+                <div class="table-container mt-10">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Symbol</th><th>Qty</th><th>Buy</th><th>Sell</th>
-                                <th>Invested</th><th>Proceeds</th><th>Net PnL</th><th>Return %</th>
+                                <th>Symbol</th><th>Qty</th><th>Buy Price</th><th>Sell Price</th>
+                                <th>Invested</th><th>Proceeds</th><th>PnL</th><th>Return</th>
                                 <th>Buy Date</th><th>Result</th>
                             </tr>
                         </thead>
@@ -200,13 +186,13 @@
                 </div>
             </div>
 
-            <!-- PAGE: HISTORY -->
-            <div data-page="history" class="page-view" style="display:none;">
+            <!-- PAGE 5: HISTORY -->
+            <div data-page="history" class="page-panel" style="display:none;">
                 <div class="panel-header">
-                    <h2>Historical Scan Logs</h2>
+                    <h2>Scan History Logs</h2>
                 </div>
-                <div class="table-card">
-                    <table class="pro-table">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Date</th><th>Symbol</th><th>Signal</th><th>Close</th>
@@ -218,25 +204,11 @@
                 </div>
             </div>
 
-        </section>
+        </div>
     </main>
+
 </div>
 
-<!-- STOCK CHART MODAL -->
-<div id="stockChartModal" class="modal-backdrop" style="display:none;">
-    <div class="modal-dialog">
-        <div class="modal-header">
-            <h3 id="stockChartTitle">Technical Chart Analysis</h3>
-            <button id="closeModal" class="btn-close" type="button" onclick="closeChart()">×</button>
-        </div>
-        <div class="modal-body">
-            <div id="stockChartLoading" class="chart-loader" style="display:none;">Loading Chart Data...</div>
-            <div id="stockChartMessage" class="chart-alert" style="display:none;"></div>
-            <canvas id="stockChartCanvas"></canvas>
-        </div>
-    </div>
-</div>
-
-<script src="app.js?v=20260903-3"></script>
+<script src="app.js?v=20260903-5"></script>
 </body>
 </html>
