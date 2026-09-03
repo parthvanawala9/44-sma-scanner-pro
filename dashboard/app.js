@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT
+// 44 SMA SCANNER PRO - SCRIPT WITH PORTFOLIO SUMMARY
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -67,7 +67,7 @@ function render() {
     renderDashboardView();
     renderBuyTable();
     renderSellTable();
-    renderPortfolioTable();
+    renderPortfolioSummaryAndTable();
     renderClosedTable();
     renderHistoryTable();
     renderCurrentPage();
@@ -83,7 +83,7 @@ function renderNavigation() {
             dashboard: "Dashboard Intelligence",
             buy: "BUY Signals Today",
             sell: "SELL Signals Today",
-            portfolio: "Portfolio Monitor",
+            portfolio: "Portfolio Tracker",
             history: "Historical Scan Logs"
         };
         titleElem.textContent = titleMap[currentTab] || "Dashboard";
@@ -185,31 +185,78 @@ function closeChart() {
     if (modal) modal.style.display = "none";
 }
 
-function renderPortfolioTable() {
+function renderPortfolioSummaryAndTable() {
     const container = document.getElementById("portfolioTableBody");
-    if (!container) return;
     const rows = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
+
+    let totalInvested = 0;
+    let totalCurrentValue = 0;
+
+    rows.forEach(pos => {
+        const qty = Number(pos.quantity) || 0;
+        const buyPrice = Number(pos.buyPrice) || 0;
+        const currentPrice = Number(pos.currentPrice ?? pos.buyPrice) || 0;
+
+        totalInvested += qty * buyPrice;
+        totalCurrentValue += qty * currentPrice;
+    });
+
+    const totalPnL = totalCurrentValue - totalInvested;
+    const totalReturnPercent = totalInvested ? (totalPnL / totalInvested) * 100 : 0;
+
+    // Update Summary KPI UI
+    const invElem = document.getElementById("portInvested");
+    const currElem = document.getElementById("portCurrentVal");
+    const pnlElem = document.getElementById("portTotalPnl");
+    const retElem = document.getElementById("portTotalReturn");
+
+    if (invElem) invElem.textContent = money(totalInvested);
+    if (currElem) currElem.textContent = money(totalCurrentValue);
+    
+    if (pnlElem) {
+        pnlElem.textContent = money(totalPnL);
+        pnlElem.className = totalPnL >= 0 ? "text-green" : "text-red";
+    }
+
+    if (retElem) {
+        retElem.textContent = percentage(totalReturnPercent);
+        retElem.className = totalReturnPercent >= 0 ? "text-green" : "text-red";
+    }
+
+    if (!container) return;
+
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
         return;
     }
-    container.innerHTML = rows.map(pos => `
-        <tr>
-            <td><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
-            <td>${pos.quantity || 0}</td>
-            <td>${money(pos.buyPrice)}</td>
-            <td>${money(pos.currentPrice || pos.buyPrice)}</td>
-            <td>${money((pos.quantity || 0) * (pos.buyPrice || 0))}</td>
-            <td>${money((pos.quantity || 0) * (pos.currentPrice || pos.buyPrice || 0))}</td>
-            <td class="${(pos.currentPrice - pos.buyPrice) >= 0 ? 'text-green' : 'text-red'}">${money((pos.currentPrice - pos.buyPrice) * pos.quantity)}</td>
-            <td class="${(pos.currentPrice - pos.buyPrice) >= 0 ? 'text-green' : 'text-red'}">${percentage(((pos.currentPrice - pos.buyPrice) / pos.buyPrice) * 100)}</td>
-            <td>${money(pos.currentSMA44)}</td>
-            <td>${money(pos.stopLossPrice)}</td>
-            <td>${money(pos.targetPrice)}</td>
-            <td><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
-            <td>${formatDate(pos.buyDate)}</td>
-        </tr>
-    `).join("");
+
+    container.innerHTML = rows.map(pos => {
+        const qty = Number(pos.quantity) || 0;
+        const buyP = Number(pos.buyPrice) || 0;
+        const currP = Number(pos.currentPrice ?? buyP) || 0;
+        const invested = qty * buyP;
+        const currVal = qty * currP;
+        const pnl = currVal - invested;
+        const pnlPct = buyP ? ((currP - buyP) / buyP) * 100 : 0;
+
+        return `
+            <tr>
+                <td><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
+                <td>${qty}</td>
+                <td>${money(buyP)}</td>
+                <td>${money(currP)}</td>
+                <td>${money(invested)}</td>
+                <td>${money(currVal)}</td>
+                <td class="${pnl >= 0 ? 'text-green' : 'text-red'}">${money(pnl)}</td>
+                <td class="${pnlPct >= 0 ? 'text-green' : 'text-red'}">${percentage(pnlPct)}</td>
+                <td>${money(pos.currentSMA44)}</td>
+                <td>${money(pos.stopLossPrice)}</td>
+                <td>${money(pos.targetPrice)}</td>
+                <td><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
+                <td>${formatDate(pos.buyDate)}</td>
+            </tr>
+        `;
+    }).join("");
 }
 
 function renderClosedTable() {
