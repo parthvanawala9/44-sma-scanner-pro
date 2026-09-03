@@ -2,232 +2,170 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
-
-    <meta
-        name="theme-color"
-        content="#070b12"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#070b12">
     <title>44 SMA Scanner Pro</title>
 
     <!-- DESKTOP / EXISTING CSS -->
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 
     <!-- MOBILE ONLY CSS -->
-    <link
-        rel="stylesheet"
-        href="mobile.css?v=20260903-1"
-        media="screen and (max-width: 650px)"
-    >
-
+    <link rel="stylesheet" href="mobile.css?v=20260903-1" media="screen and (max-width: 650px)">
 </head>
-
 
 <body>
 
-
 <div class="app">
 
-
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo">
-
-            <div class="logo-main">
-                44 SMA
-            </div>
-
-            <div class="logo-sub">
-                SCANNER PRO
-            </div>
-
+            <div class="logo-main">44 SMA</div>
+            <div class="logo-sub">SCANNER PRO</div>
         </div>
 
-
         <nav>
-
-            <button
-                class="nav-item active"
-                data-tab="dashboard"
-                type="button"
-            >
+            <button class="nav-item active" data-tab="dashboard" type="button">
                 <span>⌂</span>
                 <span class="nav-label">Dashboard</span>
             </button>
 
-
-            <button
-                class="nav-item"
-                data-tab="buy"
-                type="button"
-            >
+            <button class="nav-item" data-tab="buy" type="button">
                 <span class="green-dot"></span>
                 <span class="nav-label">BUY</span>
             </button>
 
-
-            <button
-                class="nav-item"
-                data-tab="sell"
-                type="button"
-            >
+            <button class="nav-item" data-tab="sell" type="button">
                 <span class="red-dot"></span>
                 <span class="nav-label">SELL</span>
             </button>
 
-
-            <button
-                class="nav-item"
-                data-tab="portfolio"
-                type="button"
-            >
+            <button class="nav-item" data-tab="portfolio" type="button">
                 <span>▣</span>
                 <span class="nav-label">Portfolio</span>
             </button>
 
-
-            <button
-                class="nav-item"
-                data-tab="history"
-                type="button"
-            >
+            <button class="nav-item" data-tab="history" type="button">
                 <span>◷</span>
                 <span class="nav-label">History</span>
             </button>
-
         </nav>
 
-
         <div class="strategy-box">
-
-            <div class="strategy-title">
-                STRATEGY
-            </div>
-
-            <div class="strategy-line">
-                44 SMA
-            </div>
-
-            <div class="strategy-line">
-                100 SMA
-            </div>
-
-            <div class="strategy-line">
-                200 SMA
-            </div>
-
-            <div class="strategy-line">
-                ₹5,000 / BUY
-            </div>
-
+            <div class="strategy-title">STRATEGY</div>
+            <div class="strategy-line">44 SMA</div>
+            <div class="strategy-line">100 SMA</div>
+            <div class="strategy-line">200 SMA</div>
+            <div class="strategy-line">₹5,000 / BUY</div>
         </div>
-
     </aside>
 
-
-
-    <!-- =====================================================
-         MAIN
-    ====================================================== -->
-
+    <!-- MAIN -->
     <main class="main">
-
-
         <header class="topbar">
-
             <div class="page-heading">
-
-                <div class="eyebrow">
-                    NSE DAILY SCANNER
-                </div>
-
-                <h1 id="pageTitle">
-                    Dashboard
-                </h1>
-
+                <div class="eyebrow">NSE DAILY SCANNER</div>
+                <h1 id="pageTitle">Dashboard</h1>
             </div>
 
-
             <div class="top-actions">
+                <div id="lastScan" class="last-scan">Last scan: —</div>
 
-                <div
-                    id="lastScan"
-                    class="last-scan"
-                >
-                    Last scan: —
-                </div>
-
-
-                <button
-                    id="refreshButton"
-                    class="refresh-button"
-                    type="button"
-                >
+                <button id="refreshButton" class="refresh-button" type="button" data-action="refresh">
                     <span class="refresh-icon">↻</span>
                     <span>Refresh Data</span>
                 </button>
-
             </div>
-
         </header>
 
+        <!-- DYNAMIC CONTENT CONTAINER -->
+        <section id="content">
+            <div data-page="dashboard">
+                <div id="signalSummary" class="summary-grid"></div>
+            </div>
 
-        <section id="content"></section>
+            <div data-page="buy" style="display:none;">
+                <h2>BUY Signals</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th><th>Close</th><th>44 SMA</th><th>100 SMA</th>
+                            <th>200 SMA</th><th>Dist %</th><th>Candle</th><th>Signal</th><th>Chart</th>
+                        </tr>
+                    </thead>
+                    <tbody id="buyTableBody"></tbody>
+                </table>
+            </div>
 
+            <div data-page="sell" style="display:none;">
+                <h2>SELL Signals</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th><th>Close</th><th>44 SMA</th><th>100 SMA</th>
+                            <th>200 SMA</th><th>Dist %</th><th>Candle</th><th>Signal</th><th>Chart</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sellTableBody"></tbody>
+                </table>
+            </div>
 
+            <div data-page="portfolio" style="display:none;">
+                <div id="portfolioExitStrategy"></div>
+                <h2>Open Positions</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th><th>Qty</th><th>Buy Price</th><th>Current</th>
+                            <th>Invested</th><th>Value</th><th>PnL</th><th>Return</th>
+                            <th>44 SMA</th><th>SL</th><th>Target</th><th>Status</th><th>Buy Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioTableBody"></tbody>
+                </table>
+
+                <h2>Closed Trades</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th><th>Qty</th><th>Buy Price</th><th>Sell Price</th>
+                            <th>Invested</th><th>Proceeds</th><th>PnL</th><th>Return</th>
+                            <th>Buy Date</th><th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="closedTradesBody"></tbody>
+                </table>
+            </div>
+
+            <div data-page="history" style="display:none;">
+                <h2>Scan History</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Symbol</th><th>Signal</th><th>Close</th>
+                            <th>44 SMA</th><th>100 SMA</th><th>200 SMA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </section>
     </main>
-
 </div>
 
-
-
-<!-- =========================================================
-     STOCK MODAL
-========================================================== -->
-
-<div
-    id="stockModal"
-    class="modal hidden"
->
-
-    <div class="modal-overlay"></div>
-
+<!-- STOCK CHART MODAL -->
+<div id="stockChartModal" class="modal hidden" style="display:none;">
+    <div class="modal-overlay" onclick="closeChart()"></div>
     <div class="modal-card">
-
-        <button
-            id="closeModal"
-            class="modal-close"
-            type="button"
-            aria-label="Close"
-        >
-            ×
-        </button>
-
-        <div id="modalContent"></div>
-
+        <button id="closeModal" class="modal-close" type="button" onclick="closeChart()">×</button>
+        <h3 id="stockChartTitle">Stock Chart</h3>
+        <div id="stockChartLoading" style="display:none;">Loading Chart...</div>
+        <div id="stockChartMessage" style="display:none;"></div>
+        <canvas id="stockChartCanvas"></canvas>
     </div>
-
 </div>
 
-
-
-<script src="app.js?v=20260813-1930"></script>
-
-
+<script src="app.js?v=20260903-2"></script>
 </body>
-
 </html>
