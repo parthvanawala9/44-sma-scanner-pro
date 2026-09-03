@@ -1,156 +1,96 @@
 // ============================================================
-// 44 SMA SCANNER PRO — TERMINAL LOGIC
+// 44 SMA SCANNER PRO - JS LOGIC
 // ============================================================
 
-let signals = {
-    buy: [],
-    sell: [],
-    scanned: 0,
-    skipped: 0,
-    scannedAt: null,
-    buyCount: 0,
-    sellCount: 0,
-    universe: "NIFTY 500",
-    universeCount: 0
-};
-
+let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
 let history = [];
-let portfolio = {
-    allocationPerStock: 5000,
-    openPositions: [],
-    closedTrades: [],
-    realizedPnL: 0,
-    unrealizedPnL: 0,
-    totalInvested: 0,
-    totalCurrentValue: 0,
-    totalPnL: 0,
-    totalPnLPercent: 0
-};
-
+let portfolio = { openPositions: [], closedTrades: [] };
 let currentTab = "dashboard";
 let isLoadingData = false;
 
-function money(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) return "—";
-    return "₹" + number.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+function money(val) {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return "—";
+    return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
-function percentage(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) return "—";
-    const sign = number >= 0 ? "+" : "";
-    return sign + number.toFixed(2) + "%";
+function percentage(val) {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return "—";
+    return (num >= 0 ? "+" : "") + num.toFixed(2) + "%";
 }
 
-function pnlClass(value) {
-    const number = Number(value);
-    if (number > 0) return "text-green";
-    if (number < 0) return "text-red";
-    return "";
-}
-
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+function escapeHtml(val) {
+    return String(val ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 async function loadData() {
     if (isLoadingData) return;
     isLoadingData = true;
 
-    const refreshButton = document.querySelector('[data-action="refresh"]');
-    if (refreshButton) {
-        refreshButton.disabled = true;
-        refreshButton.classList.add("loading");
-    }
-
     try {
-        const timestamp = Date.now();
-
-        const signalResponse = await fetch("./data/signals.json?" + timestamp, { cache: "no-store" });
-        if (signalResponse.ok) {
-            const signalData = await signalResponse.json();
-            if (signalData && typeof signalData === "object") {
-                signals = signalData;
-            }
-        }
+        const ts = Date.now();
+        const signalRes = await fetch("./data/signals.json?" + ts, { cache: "no-store" });
+        if (signalRes.ok) signals = await signalRes.json();
 
         try {
-            const historyResponse = await fetch("./data/history.json?" + timestamp, { cache: "no-store" });
-            if (historyResponse.ok) {
-                history = await historyResponse.json();
-            }
+            const histRes = await fetch("./data/history.json?" + ts, { cache: "no-store" });
+            if (histRes.ok) history = await histRes.json();
         } catch (e) { history = []; }
 
         try {
-            const portfolioResponse = await fetch("./data/portfolio.json?" + timestamp, { cache: "no-store" });
-            if (portfolioResponse.ok) {
-                portfolio = await portfolioResponse.json();
-            }
-        } catch (e) { portfolio = createEmptyPortfolio(); }
+            const portRes = await fetch("./data/portfolio.json?" + ts, { cache: "no-store" });
+            if (portRes.ok) portfolio = await portRes.json();
+        } catch (e) { portfolio = { openPositions: [], closedTrades: [] }; }
 
         updateLastScan();
         render();
 
-    } catch (error) {
-        console.error("Dashboard error:", error);
+    } catch (err) {
+        console.error("Data Load Error:", err);
     } finally {
         isLoadingData = false;
-        if (refreshButton) {
-            refreshButton.disabled = false;
-            refreshButton.classList.remove("loading");
-        }
     }
-}
-
-function createEmptyPortfolio() {
-    return { allocationPerStock: 5000, openPositions: [], closedTrades: [] };
 }
 
 function updateLastScan() {
-    const element = document.getElementById("lastScan");
-    if (!element) return;
-    const value = signals.scannedAt || signals.scanDate || signals.date;
-    if (!value) {
-        element.textContent = "Last scan: —";
-        return;
-    }
-    const date = new Date(value);
-    element.textContent = Number.isNaN(date.getTime()) 
-        ? "Last scan: " + String(value) 
-        : "Last scan: " + date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+    const elem = document.getElementById("lastScan");
+    if (!elem) return;
+    const val = signals.scannedAt || signals.scanDate || signals.date;
+    if (!val) { elem.textContent = "Last scan: —"; return; }
+    const dt = new Date(val);
+    elem.textContent = Number.isNaN(dt.getTime()) ? "Last scan: " + val : "Last scan: " + dt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function render() {
     renderNavigation();
-    renderMetrics();
-    renderTables();
-    renderCurrentView();
+    renderDashboardView();
+    renderBuyTable();
+    renderSellTable();
+    renderPortfolioTable();
+    renderClosedTable();
+    renderHistoryTable();
+    renderCurrentPage();
 }
 
 function renderNavigation() {
-    document.querySelectorAll("[data-tab]").forEach(element => {
-        element.classList.toggle("active", element.dataset.tab === currentTab);
+    document.querySelectorAll("[data-tab]").forEach(el => {
+        el.classList.toggle("active", el.dataset.tab === currentTab);
     });
-    const pageTitle = document.getElementById("pageTitle");
-    if (pageTitle) {
+    const titleElem = document.getElementById("pageTitle");
+    if (titleElem) {
         const titleMap = {
             dashboard: "Dashboard Overview",
-            buy: "BUY Signals",
-            sell: "SELL Signals",
-            portfolio: "Portfolio Manager",
-            history: "Scan History"
+            buy: "BUY Signals Today",
+            sell: "SELL Signals Today",
+            portfolio: "Portfolio Tracker",
+            history: "Scan History Logs"
         };
-        pageTitle.textContent = titleMap[currentTab] || "Dashboard";
+        titleElem.textContent = titleMap[currentTab] || "Dashboard";
     }
 }
 
-function renderCurrentView() {
+function renderCurrentPage() {
     document.querySelectorAll("[data-page]").forEach(page => {
         page.style.display = page.dataset.page === currentTab ? "block" : "none";
     });
@@ -159,40 +99,32 @@ function renderCurrentView() {
 function getBuySignals() { return Array.isArray(signals.buy) ? signals.buy : []; }
 function getSellSignals() { return Array.isArray(signals.sell) ? signals.sell : []; }
 
-function renderMetrics() {
-    const buySignals = getBuySignals();
-    const sellSignals = getSellSignals();
+function renderDashboardView() {
+    const buys = getBuySignals();
+    const sells = getSellSignals();
     const scanned = Number(signals.scanned || signals.universeCount || 0);
 
-    const buyElem = document.getElementById("dashBuyCount");
-    const sellElem = document.getElementById("dashSellCount");
-    const scanElem = document.getElementById("dashScannedCount");
+    const bElem = document.getElementById("dashBuyCount");
+    const sElem = document.getElementById("dashSellCount");
+    const scElem = document.getElementById("dashScannedCount");
 
-    if (buyElem) buyElem.textContent = buySignals.length;
-    if (sellElem) sellElem.textContent = sellSignals.length;
-    if (scanElem) scanElem.textContent = scanned;
+    if (bElem) bElem.textContent = buys.length;
+    if (sElem) sElem.textContent = sells.length;
+    if (scElem) scElem.textContent = scanned;
 
-    const summaryContainer = document.getElementById("signalSummary");
-    if (summaryContainer) {
-        summaryContainer.innerHTML = `
-            <div class="summary-pill buy">
-                <span>BUY OPPORTUNITIES</span>
-                <strong>${buySignals.length} Stocks</strong>
+    const summaryWrapper = document.getElementById("signalSummary");
+    if (summaryWrapper) {
+        summaryWrapper.innerHTML = `
+            <div style="flex:1; padding:15px; background:rgba(46,204,113,0.1); border-radius:8px; border:1px solid #2ecc71;">
+                <strong style="color:#2ecc71;">BUY OPPORTUNITIES</strong>
+                <p style="font-size:20px; font-weight:700; margin-top:5px;">${buys.length} Stocks</p>
             </div>
-            <div class="summary-pill sell">
-                <span>SELL / EXIT TRIGGERS</span>
-                <strong>${sellSignals.length} Stocks</strong>
+            <div style="flex:1; padding:15px; background:rgba(231,76,60,0.1); border-radius:8px; border:1px solid #e74c3c;">
+                <strong style="color:#e74c3c;">SELL / EXIT TRIGGERS</strong>
+                <p style="font-size:20px; font-weight:700; margin-top:5px;">${sells.length} Stocks</p>
             </div>
         `;
     }
-}
-
-function renderTables() {
-    renderBuyTable();
-    renderSellTable();
-    renderPortfolioTable();
-    renderClosedTable();
-    renderHistoryTable();
 }
 
 function renderBuyTable() {
@@ -225,11 +157,10 @@ function signalRow(item, type) {
     const sma100 = Number(item.sma100 ?? item.SMA100);
     const sma200 = Number(item.sma200 ?? item.SMA200);
     const distance = Number(item.distanceFrom44 ?? item.buyDistanceFrom44);
-    const rowData = encodeURIComponent(JSON.stringify(item));
 
     return `
         <tr>
-            <td><strong class="symbol-code">${escapeHtml(symbol)}</strong></td>
+            <td><strong>${escapeHtml(symbol)}</strong></td>
             <td>${money(close)}</td>
             <td>${money(sma44)}</td>
             <td>${money(sma100)}</td>
@@ -237,7 +168,7 @@ function signalRow(item, type) {
             <td>${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
             <td>${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
             <td><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
-            <td><button class="btn btn-sm" onclick="openStockChartFromEncoded('${rowData}')">Chart</button></td>
+            <td><button class="btn-chart">Chart</button></td>
         </tr>
     `;
 }
@@ -250,33 +181,23 @@ function renderPortfolioTable() {
         container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
         return;
     }
-    container.innerHTML = rows.map(pos => {
-        const qty = pos.quantity || 0;
-        const buyP = pos.buyPrice || 0;
-        const currP = pos.currentPrice || buyP;
-        const invested = qty * buyP;
-        const currVal = qty * currP;
-        const pnl = currVal - invested;
-        const pnlPct = buyP ? ((currP - buyP) / buyP) * 100 : 0;
-
-        return `
-            <tr>
-                <td><strong class="symbol-code">${escapeHtml(pos.symbol || "—")}</strong></td>
-                <td>${qty}</td>
-                <td>${money(buyP)}</td>
-                <td>${money(currP)}</td>
-                <td>${money(invested)}</td>
-                <td>${money(currVal)}</td>
-                <td class="${pnlClass(pnl)}">${money(pnl)}</td>
-                <td class="${pnlClass(pnlPct)}">${percentage(pnlPct)}</td>
-                <td>${money(pos.currentSMA44)}</td>
-                <td>${money(pos.stopLossPrice)}</td>
-                <td>${money(pos.targetPrice)}</td>
-                <td><span class="badge badge-outline">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
-                <td>${formatDate(pos.buyDate)}</td>
-            </tr>
-        `;
-    }).join("");
+    container.innerHTML = rows.map(pos => `
+        <tr>
+            <td><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
+            <td>${pos.quantity || 0}</td>
+            <td>${money(pos.buyPrice)}</td>
+            <td>${money(pos.currentPrice || pos.buyPrice)}</td>
+            <td>${money((pos.quantity || 0) * (pos.buyPrice || 0))}</td>
+            <td>${money((pos.quantity || 0) * (pos.currentPrice || pos.buyPrice || 0))}</td>
+            <td class="${(pos.currentPrice - pos.buyPrice) >= 0 ? 'text-green' : 'text-red'}">${money((pos.currentPrice - pos.buyPrice) * pos.quantity)}</td>
+            <td class="${(pos.currentPrice - pos.buyPrice) >= 0 ? 'text-green' : 'text-red'}">${percentage(((pos.currentPrice - pos.buyPrice) / pos.buyPrice) * 100)}</td>
+            <td>${money(pos.currentSMA44)}</td>
+            <td>${money(pos.stopLossPrice)}</td>
+            <td>${money(pos.targetPrice)}</td>
+            <td><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
+            <td>${formatDate(pos.buyDate)}</td>
+        </tr>
+    `).join("");
 }
 
 function renderClosedTable() {
@@ -287,30 +208,20 @@ function renderClosedTable() {
         container.innerHTML = `<tr><td colspan="10" class="empty-state">No closed trades recorded</td></tr>`;
         return;
     }
-    container.innerHTML = rows.map(t => {
-        const qty = t.quantity || 0;
-        const buyP = t.buyPrice || 0;
-        const sellP = t.sellPrice || 0;
-        const invested = qty * buyP;
-        const proceeds = qty * sellP;
-        const pnl = t.pnl ?? (proceeds - invested);
-        const retPct = invested ? (pnl / invested) * 100 : 0;
-
-        return `
-            <tr>
-                <td><strong class="symbol-code">${escapeHtml(t.symbol || "—")}</strong></td>
-                <td>${qty}</td>
-                <td>${money(buyP)}</td>
-                <td>${money(sellP)}</td>
-                <td>${money(invested)}</td>
-                <td>${money(proceeds)}</td>
-                <td class="${pnlClass(pnl)}">${money(pnl)}</td>
-                <td class="${pnlClass(retPct)}">${percentage(retPct)}</td>
-                <td>${formatDate(t.buyDate)}</td>
-                <td><span class="badge ${pnl >= 0 ? "badge-green" : "badge-red"}">${escapeHtml(t.result || (pnl >= 0 ? "WIN" : "LOSS"))}</span></td>
-            </tr>
-        `;
-    }).join("");
+    container.innerHTML = rows.map(t => `
+        <tr>
+            <td><strong>${escapeHtml(t.symbol || "—")}</strong></td>
+            <td>${t.quantity || 0}</td>
+            <td>${money(t.buyPrice)}</td>
+            <td>${money(t.sellPrice)}</td>
+            <td>${money(t.quantity * t.buyPrice)}</td>
+            <td>${money(t.quantity * t.sellPrice)}</td>
+            <td class="${t.pnl >= 0 ? 'text-green' : 'text-red'}">${money(t.pnl)}</td>
+            <td>${percentage((t.pnl / (t.quantity * t.buyPrice)) * 100)}</td>
+            <td>${formatDate(t.buyDate)}</td>
+            <td><span class="badge ${t.pnl >= 0 ? 'badge-green' : 'badge-red'}">${escapeHtml(t.result || "CLOSED")}</span></td>
+        </tr>
+    `).join("");
 }
 
 function renderHistoryTable() {
@@ -324,7 +235,7 @@ function renderHistoryTable() {
     container.innerHTML = rows.slice().reverse().map(item => `
         <tr>
             <td>${formatDate(item.date)}</td>
-            <td><strong class="symbol-code">${escapeHtml(item.symbol || "—")}</strong></td>
+            <td><strong>${escapeHtml(item.symbol || "—")}</strong></td>
             <td><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
             <td>${money(item.close)}</td>
             <td>${money(item.sma44)}</td>
@@ -334,47 +245,25 @@ function renderHistoryTable() {
     `).join("");
 }
 
-function formatDate(value) {
-    if (!value) return "—";
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function setupNavigation() {
-    document.addEventListener("click", event => {
-        const target = event.target.closest("[data-tab]");
-        if (!target) return;
-        currentTab = target.dataset.tab;
-        renderNavigation();
-        renderCurrentView();
-    });
-}
-
-function setupRefresh() {
-    document.addEventListener("click", event => {
-        if (event.target.closest('[data-action="refresh"]')) {
-            loadData();
-        }
-    });
-}
-
-function openStockChartFromEncoded(encoded) {
-    try {
-        const item = JSON.parse(decodeURIComponent(encoded));
-        const modal = document.getElementById("stockChartModal");
-        if (modal) modal.style.display = "flex";
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-function closeChart() {
-    const modal = document.getElementById("stockChartModal");
-    if (modal) modal.style.display = "none";
+function formatDate(val) {
+    if (!val) return "—";
+    const dt = new Date(val);
+    return Number.isNaN(dt.getTime()) ? String(val) : dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    setupNavigation();
-    setupRefresh();
+    document.addEventListener("click", e => {
+        const nav = e.target.closest("[data-tab]");
+        if (nav) {
+            currentTab = nav.dataset.tab;
+            renderNavigation();
+            renderCurrentPage();
+        }
+
+        if (e.target.closest('[data-action="refresh"]')) {
+            loadData();
+        }
+    });
+
     loadData();
 });
