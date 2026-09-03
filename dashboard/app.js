@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH PORTFOLIO SUMMARY
+// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-SECTION SORTING
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -7,6 +7,15 @@ let history = [];
 let portfolio = { openPositions: [], closedTrades: [] };
 let currentTab = "dashboard";
 let isLoadingData = false;
+
+// Sorting state trackers
+let sortConfig = {
+    buy: "newest",
+    sell: "newest",
+    open: "newest",
+    closed: "newest",
+    history: "newest"
+};
 
 function money(val) {
     const num = Number(val);
@@ -60,6 +69,49 @@ function updateLastScan() {
     if (!val) { elem.textContent = "Last scan: —"; return; }
     const dt = new Date(val);
     elem.textContent = Number.isNaN(dt.getTime()) ? "Last scan: " + val : "Last scan: " + dt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function changeSort(section, value) {
+    sortConfig[section] = value;
+    render();
+}
+
+function sortDataList(list, type, sectionType) {
+    if (!Array.isArray(list)) return [];
+    let arr = [...list];
+
+    arr.sort((a, b) => {
+        const nameA = String(a.symbol || a.ticker || "").toUpperCase();
+        const nameB = String(b.symbol || b.ticker || "").toUpperCase();
+
+        const dateA = new Date(a.buyDate || a.entryDate || a.date || a.sellDate || 0).getTime();
+        const dateB = new Date(b.buyDate || b.entryDate || b.date || b.sellDate || 0).getTime();
+
+        const priceA = Number(a.close ?? a.price ?? 0);
+        const priceB = Number(b.close ?? b.price ?? 0);
+
+        const distA = Number(a.distanceFrom44 ?? a.buyDistanceFrom44 ?? 0);
+        const distB = Number(b.distanceFrom44 ?? b.buyDistanceFrom44 ?? 0);
+
+        const pnlA = Number(a.pnl ?? ((Number(a.currentPrice ?? a.buyPrice) - Number(a.buyPrice)) * Number(a.quantity)) ?? 0);
+        const pnlB = Number(b.pnl ?? ((Number(b.currentPrice ?? b.buyPrice) - Number(b.buyPrice)) * Number(b.quantity)) ?? 0);
+
+        switch (type) {
+            case "nameAsc": return nameA.localeCompare(nameB);
+            case "nameDesc": return nameB.localeCompare(nameA);
+            case "priceHigh": return priceB - priceA;
+            case "priceLow": return priceA - priceB;
+            case "distHigh": return distB - distA;
+            case "pnlHigh": return pnlB - pnlA;
+            case "pnlLow": return pnlA - pnlB;
+            case "dateOldest": case "oldest": return dateA - dateB;
+            case "newest": default:
+                if (dateA !== dateB && dateA > 0 && dateB > 0) return dateB - dateA;
+                return 0;
+        }
+    });
+
+    return arr;
 }
 
 function render() {
@@ -130,7 +182,9 @@ function renderDashboardView() {
 function renderBuyTable() {
     const container = document.getElementById("buyTableBody");
     if (!container) return;
-    const rows = getBuySignals();
+    const rawRows = getBuySignals();
+    const rows = sortDataList(rawRows, sortConfig.buy, "buy");
+
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="9" class="empty-state">No BUY signals generated today</td></tr>`;
         return;
@@ -141,7 +195,9 @@ function renderBuyTable() {
 function renderSellTable() {
     const container = document.getElementById("sellTableBody");
     if (!container) return;
-    const rows = getSellSignals();
+    const rawRows = getSellSignals();
+    const rows = sortDataList(rawRows, sortConfig.sell, "sell");
+
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="9" class="empty-state">No SELL signals generated today</td></tr>`;
         return;
@@ -187,12 +243,12 @@ function closeChart() {
 
 function renderPortfolioSummaryAndTable() {
     const container = document.getElementById("portfolioTableBody");
-    const rows = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
+    const rawRows = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
 
     let totalInvested = 0;
     let totalCurrentValue = 0;
 
-    rows.forEach(pos => {
+    rawRows.forEach(pos => {
         const qty = Number(pos.quantity) || 0;
         const buyPrice = Number(pos.buyPrice) || 0;
         const currentPrice = Number(pos.currentPrice ?? pos.buyPrice) || 0;
@@ -204,7 +260,6 @@ function renderPortfolioSummaryAndTable() {
     const totalPnL = totalCurrentValue - totalInvested;
     const totalReturnPercent = totalInvested ? (totalPnL / totalInvested) * 100 : 0;
 
-    // Update Summary KPI UI
     const invElem = document.getElementById("portInvested");
     const currElem = document.getElementById("portCurrentVal");
     const pnlElem = document.getElementById("portTotalPnl");
@@ -224,6 +279,8 @@ function renderPortfolioSummaryAndTable() {
     }
 
     if (!container) return;
+
+    const rows = sortDataList(rawRows, sortConfig.open, "open");
 
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
@@ -262,7 +319,9 @@ function renderPortfolioSummaryAndTable() {
 function renderClosedTable() {
     const container = document.getElementById("closedTradesBody");
     if (!container) return;
-    const rows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
+    const rawRows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
+    const rows = sortDataList(rawRows, sortConfig.closed, "closed");
+
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="10" class="empty-state">No closed trades recorded</td></tr>`;
         return;
@@ -286,12 +345,14 @@ function renderClosedTable() {
 function renderHistoryTable() {
     const container = document.getElementById("historyTableBody");
     if (!container) return;
-    const rows = Array.isArray(history) ? history : [];
+    const rawRows = Array.isArray(history) ? history : [];
+    const rows = sortDataList(rawRows, sortConfig.history, "history");
+
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history logs</td></tr>`;
         return;
     }
-    container.innerHTML = rows.slice().reverse().map(item => `
+    container.innerHTML = rows.map(item => `
         <tr>
             <td>${formatDate(item.date)}</td>
             <td><strong>${escapeHtml(item.symbol || "—")}</strong></td>
