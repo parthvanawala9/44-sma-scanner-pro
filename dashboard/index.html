@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260903-8">
+    <link rel="stylesheet" href="style.css?v=20260903-9">
 </head>
 <body>
 
@@ -119,6 +119,17 @@
 
             <!-- PAGE 2: BUY -->
             <div data-page="buy" class="page-panel" style="display:none;">
+                <div class="sort-bar">
+                    <label>Sort By:</label>
+                    <select id="sortBuy" onchange="changeSort('buy', this.value)">
+                        <option value="newest">Latest / Newest First</option>
+                        <option value="nameAsc">Name (A to Z)</option>
+                        <option value="nameDesc">Name (Z to A)</option>
+                        <option value="priceHigh">Price (High to Low)</option>
+                        <option value="priceLow">Price (Low to High)</option>
+                        <option value="distHigh">Distance % (High to Low)</option>
+                    </select>
+                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -133,6 +144,17 @@
 
             <!-- PAGE 3: SELL -->
             <div data-page="sell" class="page-panel" style="display:none;">
+                <div class="sort-bar">
+                    <label>Sort By:</label>
+                    <select id="sortSell" onchange="changeSort('sell', this.value)">
+                        <option value="newest">Latest / Newest First</option>
+                        <option value="nameAsc">Name (A to Z)</option>
+                        <option value="nameDesc">Name (Z to A)</option>
+                        <option value="priceHigh">Price (High to Low)</option>
+                        <option value="priceLow">Price (Low to High)</option>
+                        <option value="distHigh">Distance % (High to Low)</option>
+                    </select>
+                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -189,7 +211,20 @@
 
                 <div id="portfolioExitStrategy" class="strategy-banner"></div>
 
-                <h3 class="section-title mt-24">Open Positions</h3>
+                <div class="panel-section-header mt-24">
+                    <h3 class="section-title">Open Positions</h3>
+                    <div class="sort-bar inline-sort">
+                        <label>Sort By:</label>
+                        <select id="sortOpen" onchange="changeSort('open', this.value)">
+                            <option value="newest">Latest / Newest First</option>
+                            <option value="nameAsc">Name (A to Z)</option>
+                            <option value="nameDesc">Name (Z to A)</option>
+                            <option value="pnlHigh">Profit (High to Low)</option>
+                            <option value="pnlLow">Loss / Profit (Low to High)</option>
+                            <option value="dateOldest">Date (Oldest First)</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="table-container mt-12">
                     <table class="data-table">
                         <thead>
@@ -201,7 +236,20 @@
                     </table>
                 </div>
 
-                <h3 class="section-title mt-28">Closed Trades</h3>
+                <div class="panel-section-header mt-28">
+                    <h3 class="section-title">Closed Trades</h3>
+                    <div class="sort-bar inline-sort">
+                        <label>Sort By:</label>
+                        <select id="sortClosed" onchange="changeSort('closed', this.value)">
+                            <option value="newest">Latest / Newest First</option>
+                            <option value="nameAsc">Name (A to Z)</option>
+                            <option value="nameDesc">Name (Z to A)</option>
+                            <option value="pnlHigh">Profit (High to Low)</option>
+                            <option value="pnlLow">Loss (Low to High)</option>
+                            <option value="dateOldest">Date (Oldest First)</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="table-container mt-12">
                     <table class="data-table">
                         <thead>
@@ -216,6 +264,15 @@
 
             <!-- PAGE 5: HISTORY -->
             <div data-page="history" class="page-panel" style="display:none;">
+                <div class="sort-bar">
+                    <label>Sort By:</label>
+                    <select id="sortHistory" onchange="changeSort('history', this.value)">
+                        <option value="newest">Latest / Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="nameAsc">Name (A to Z)</option>
+                        <option value="nameDesc">Name (Z to A)</option>
+                    </select>
+                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -246,6 +303,6 @@
     </div>
 </div>
 
-<script src="app.js?v=20260903-8"></script>
+<script src="app.js?v=20260903-9"></script>
 </body>
 </html>
