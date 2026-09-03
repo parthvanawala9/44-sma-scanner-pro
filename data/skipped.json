@@ -1,16 +1,46 @@
 {
-  "scannedAt": "2026-09-02T14:36:54.639517+00:00",
+  "updatedAt": "2026-09-03T03:36:14.423635+00:00",
   "count": 10,
-  "symbols": [
-    "GROWW",
-    "EMMVEE",
-    "ICICIAMC",
-    "LENSKART",
-    "MEESHO",
-    "PWL",
-    "PINELABS",
-    "PIRAMALFIN",
-    "TMCV",
-    "TENNIND"
+  "items": [
+    {
+      "symbol": "GROWW",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "EMMVEE",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "ICICIAMC",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "LENSKART",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "MEESHO",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "PWL",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "PINELABS",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "PIRAMALFIN",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "TMCV",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "TENNIND",
+      "reason": "Insufficient/invalid data"
+    }
   ]
 }
