@@ -10,7 +10,8 @@ import yfinance as yf
 
 
 # ============================================================
-# CONFIG
+# 44 SMA SCANNER PRO
+# CLOSING PRICE PORTFOLIO SYSTEM
 # ============================================================
 
 PORTFOLIO_ALLOCATION = 5000
@@ -33,9 +34,6 @@ NIFTY_500_URL = (
 
 
 def get_nifty500():
-    """
-    Download the current official NIFTY 500 constituent list from NSE.
-    """
 
     headers = {
         "User-Agent": (
@@ -48,17 +46,23 @@ def get_nifty500():
     }
 
     try:
+
         response = requests.get(
             NIFTY_500_URL,
             headers=headers,
             timeout=30,
         )
+
         response.raise_for_status()
 
-        df = pd.read_csv(StringIO(response.text))
+        df = pd.read_csv(
+            StringIO(response.text)
+        )
 
         if "Symbol" not in df.columns:
-            raise ValueError("NSE NIFTY 500 CSV does not contain Symbol column.")
+            raise ValueError(
+                "NSE NIFTY 500 CSV does not contain Symbol column."
+            )
 
         symbols = (
             df["Symbol"]
@@ -69,26 +73,46 @@ def get_nifty500():
             .tolist()
         )
 
-        symbols = list(dict.fromkeys(symbols))
+        symbols = list(
+            dict.fromkeys(symbols)
+        )
 
-        print(f"NIFTY 500 symbols loaded: {len(symbols)}")
+        print(
+            f"NIFTY 500 symbols loaded: {len(symbols)}"
+        )
 
         return symbols
 
-    except Exception as e:
-        print(f"Failed to download NIFTY 500 list: {e}")
+    except Exception as error:
+
+        print(
+            f"Failed to download NIFTY 500 list: {error}"
+        )
 
         fallback_file = DATA / "universe.json"
 
         if fallback_file.exists():
+
             try:
-                with open(fallback_file, "r", encoding="utf-8") as f:
-                    old = json.load(f)
+
+                with open(
+                    fallback_file,
+                    "r",
+                    encoding="utf-8",
+                ) as file:
+
+                    old = json.load(file)
 
                 if isinstance(old, list):
                     return old
 
-                if isinstance(old, dict) and "symbols" in old:
+                if (
+                    isinstance(old, dict)
+                    and isinstance(
+                        old.get("symbols"),
+                        list,
+                    )
+                ):
                     return old["symbols"]
 
             except Exception:
@@ -98,17 +122,18 @@ def get_nifty500():
 
 
 # ============================================================
-# YFINANCE DOWNLOAD
+# YFINANCE
 # ============================================================
 
 def download_batch(symbols):
-    """
-    Download approximately 18 months of daily OHLC data.
-    """
 
-    tickers = [f"{symbol}.NS" for symbol in symbols]
+    tickers = [
+        f"{symbol}.NS"
+        for symbol in symbols
+    ]
 
     try:
+
         data = yf.download(
             tickers=tickers,
             period="18mo",
@@ -121,8 +146,12 @@ def download_batch(symbols):
 
         return data
 
-    except Exception as e:
-        print(f"Batch download error: {e}")
+    except Exception as error:
+
+        print(
+            f"Batch download error: {error}"
+        )
+
         return pd.DataFrame()
 
 
@@ -130,40 +159,102 @@ def download_batch(symbols):
 # CHART DATA
 # ============================================================
 
-def save_chart_data(symbol, df):
-    """
-    Save the daily data required by the dashboard charts.
-    """
+def save_chart_data(
+    symbol,
+    df,
+):
 
     try:
+
         if df is None or df.empty:
             return
 
         chart_df = df.copy()
 
-        chart_df = chart_df.reset_index()
+        if isinstance(
+            chart_df.columns,
+            pd.MultiIndex,
+        ):
 
-        if "Date" in chart_df.columns:
-            chart_df["Date"] = pd.to_datetime(
-                chart_df["Date"]
-            ).dt.strftime("%Y-%m-%d")
+            chart_df.columns = [
+                column[0]
+                if isinstance(column, tuple)
+                else column
+                for column in chart_df.columns
+            ]
+
+        required = [
+            "Open",
+            "High",
+            "Low",
+            "Close",
+        ]
+
+        for column in required:
+
+            if column not in chart_df.columns:
+                return
+
+            chart_df[column] = pd.to_numeric(
+                chart_df[column],
+                errors="coerce",
+            )
+
+        chart_df = chart_df.dropna(
+            subset=required
+        )
+
+        if chart_df.empty:
+            return
+
+        chart_df["sma44"] = (
+            chart_df["Close"]
+            .rolling(44)
+            .mean()
+        )
+
+        chart_df["sma100"] = (
+            chart_df["Close"]
+            .rolling(100)
+            .mean()
+        )
+
+        chart_df["sma200"] = (
+            chart_df["Close"]
+            .rolling(200)
+            .mean()
+        )
+
+        chart_df = chart_df.dropna(
+            subset=[
+                "sma44",
+                "sma100",
+                "sma200",
+            ]
+        )
 
         output = []
 
-        for _, row in chart_df.iterrows():
+        for index, row in chart_df.iterrows():
+
             try:
-                close = float(row["Close"])
-                open_price = float(row["Open"])
-                high = float(row["High"])
-                low = float(row["Low"])
+
+                date_value = pd.to_datetime(
+                    index
+                ).strftime(
+                    "%Y-%m-%d"
+                )
 
                 output.append(
                     {
-                        "date": row["Date"],
-                        "open": open_price,
-                        "high": high,
-                        "low": low,
-                        "close": close,
+                        "date": date_value,
+                        "open": float(row["Open"]),
+                        "high": float(row["High"]),
+                        "low": float(row["Low"]),
+                        "close": float(row["Close"]),
+                        "sma44": float(row["sma44"]),
+                        "sma100": float(row["sma100"]),
+                        "sma200": float(row["sma200"]),
                     }
                 )
 
@@ -173,13 +264,35 @@ def save_chart_data(symbol, df):
         if not output:
             return
 
-        file_path = CHARTS / f"{symbol}.json"
+        file_path = (
+            CHARTS / f"{symbol}.json"
+        )
 
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(output, f, separators=(",", ":"))
+        # IMPORTANT:
+        # Dashboard app.js expects chart.data
+        chart_payload = {
+            "symbol": symbol,
+            "data": output,
+        }
 
-    except Exception as e:
-        print(f"Chart save error for {symbol}: {e}")
+        with open(
+            file_path,
+            "w",
+            encoding="utf-8",
+        ) as file:
+
+            json.dump(
+                chart_payload,
+                file,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            )
+
+    except Exception as error:
+
+        print(
+            f"Chart save error for {symbol}: {error}"
+        )
 
 
 # ============================================================
@@ -187,25 +300,34 @@ def save_chart_data(symbol, df):
 # ============================================================
 
 def empty_portfolio():
+
     return {
-        "version": 2,
-        "allocationPerStock": PORTFOLIO_ALLOCATION,
-        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "version": 3,
+
+        "allocationPerStock":
+            PORTFOLIO_ALLOCATION,
+
+        "createdAt":
+            datetime.now(
+                timezone.utc
+            ).isoformat(),
+
         "updatedAt": None,
 
         "openPositions": [],
         "closedTrades": [],
 
-        "pendingOrders": [],
-
         "realizedPnL": 0,
         "unrealizedPnL": 0,
+
         "totalInvested": 0,
         "totalCurrentValue": 0,
+
         "totalPnL": 0,
         "totalPnLPercent": 0,
 
         "openPositionsCount": 0,
+
         "totalTrades": 0,
         "winningTrades": 0,
         "losingTrades": 0,
@@ -213,38 +335,93 @@ def empty_portfolio():
 
 
 def load_portfolio():
+
     file_path = DATA / "portfolio.json"
 
     if not file_path.exists():
         return empty_portfolio()
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            portfolio = json.load(f)
 
-        if not isinstance(portfolio, dict):
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8",
+        ) as file:
+
+            portfolio = json.load(file)
+
+        if not isinstance(
+            portfolio,
+            dict,
+        ):
+
             return empty_portfolio()
 
         defaults = empty_portfolio()
 
         for key, value in defaults.items():
+
             if key not in portfolio:
                 portfolio[key] = value
 
+        if not isinstance(
+            portfolio.get("openPositions"),
+            list,
+        ):
+
+            portfolio["openPositions"] = []
+
+        if not isinstance(
+            portfolio.get("closedTrades"),
+            list,
+        ):
+
+            portfolio["closedTrades"] = []
+
+        # ----------------------------------------------------
+        # IMPORTANT
+        # Old NEXT_TRADING_DAY_OPEN system used pendingOrders.
+        #
+        # We are now permanently using same-day CLOSE execution.
+        #
+        # DO NOT execute old pending orders.
+        # Simply remove them.
+        # ----------------------------------------------------
+
+        portfolio.pop(
+            "pendingOrders",
+            None,
+        )
+
+        portfolio["version"] = 3
+
         return portfolio
 
-    except Exception as e:
-        print(f"Portfolio load error: {e}")
+    except Exception as error:
+
+        print(
+            f"Portfolio load error: {error}"
+        )
+
         return empty_portfolio()
 
 
-def save_portfolio(portfolio):
+def save_portfolio(
+    portfolio,
+):
+
     file_path = DATA / "portfolio.json"
 
-    with open(file_path, "w", encoding="utf-8") as f:
+    with open(
+        file_path,
+        "w",
+        encoding="utf-8",
+    ) as file:
+
         json.dump(
             portfolio,
-            f,
+            file,
             indent=2,
             ensure_ascii=False,
         )
@@ -255,371 +432,45 @@ def save_portfolio(portfolio):
 # ============================================================
 
 def normalize_date(value):
+
     if value is None:
         return None
 
     try:
-        return pd.to_datetime(value).strftime("%Y-%m-%d")
+
+        return pd.to_datetime(
+            value
+        ).strftime(
+            "%Y-%m-%d"
+        )
+
     except Exception:
+
         return str(value)[:10]
 
 
-def find_position(portfolio, symbol):
-    for position in portfolio.get("openPositions", []):
-        if position.get("symbol") == symbol:
+def find_position(
+    portfolio,
+    symbol,
+):
+
+    for position in portfolio.get(
+        "openPositions",
+        [],
+    ):
+
+        if (
+            position.get("symbol")
+            == symbol
+        ):
+
             return position
 
     return None
 
 
-def has_pending_order(portfolio, symbol, signal, signal_date):
-    signal_date = normalize_date(signal_date)
-
-    for order in portfolio.get("pendingOrders", []):
-        if (
-            order.get("symbol") == symbol
-            and order.get("signal") == signal
-            and normalize_date(order.get("signalDate")) == signal_date
-            and order.get("status") == "PENDING"
-        ):
-            return True
-
-    return False
-
-
-def add_pending_order(
-    portfolio,
-    symbol,
-    ticker,
-    signal,
-    signal_date,
-    signal_timestamp,
-):
-    """
-    Store today's signal so it can execute at the next trading
-    day's OPEN.
-    """
-
-    signal_date = normalize_date(signal_date)
-
-    if has_pending_order(
-        portfolio,
-        symbol,
-        signal,
-        signal_date,
-    ):
-        return
-
-    portfolio.setdefault("pendingOrders", []).append(
-        {
-            "symbol": symbol,
-            "ticker": ticker,
-            "signal": signal,
-            "signalDate": signal_date,
-            "signalTimestamp": signal_timestamp,
-            "status": "PENDING",
-            "execution": "NEXT_TRADING_DAY_OPEN",
-        }
-    )
-
-
 # ============================================================
-# EXECUTE PENDING ORDERS
-# ============================================================
-
-def execute_pending_orders(
-    portfolio,
-    results,
-    scanned_at,
-):
-    """
-    Execute pending signals from previous scan(s).
-
-    IMPORTANT:
-    - Pending BUY executes at current day's OPEN.
-    - Pending SELL executes at current day's OPEN.
-    - Current result date MUST be later than signalDate.
-    - If current day's data is not available yet, order remains pending.
-    """
-
-    if not portfolio.get("pendingOrders"):
-        return
-
-    result_map = {}
-
-    for item in results:
-        symbol = item.get("symbol")
-
-        if symbol:
-            result_map[symbol] = item
-
-    remaining_orders = []
-
-    for order in portfolio.get("pendingOrders", []):
-        symbol = order.get("symbol")
-        signal = order.get("signal")
-
-        item = result_map.get(symbol)
-
-        # ----------------------------------------------------
-        # No current market data
-        # ----------------------------------------------------
-
-        if not item:
-            remaining_orders.append(order)
-            continue
-
-        current_date = normalize_date(item.get("date"))
-        signal_date = normalize_date(order.get("signalDate"))
-
-        if not current_date or not signal_date:
-            remaining_orders.append(order)
-            continue
-
-        # ----------------------------------------------------
-        # Never execute on the same day as signal.
-        # ----------------------------------------------------
-
-        if current_date <= signal_date:
-            remaining_orders.append(order)
-            continue
-
-        open_price = item.get("Open")
-
-        if open_price is None:
-            remaining_orders.append(order)
-            continue
-
-        try:
-            execution_price = float(open_price)
-
-        except Exception:
-            remaining_orders.append(order)
-            continue
-
-        if not math.isfinite(execution_price) or execution_price <= 0:
-            remaining_orders.append(order)
-            continue
-
-        # ====================================================
-        # BUY
-        # ====================================================
-
-        if signal == "BUY":
-
-            # Already holding this stock.
-            # Do not create another position.
-            existing_position = find_position(
-                portfolio,
-                symbol,
-            )
-
-            if existing_position:
-                continue
-
-            quantity = math.floor(
-                PORTFOLIO_ALLOCATION / execution_price
-            )
-
-            if quantity <= 0:
-                # Cannot buy even one share.
-                # Keep it pending for the next available day.
-                remaining_orders.append(order)
-                continue
-
-            invested = quantity * execution_price
-
-            position = {
-                "symbol": symbol,
-                "ticker": order.get(
-                    "ticker",
-                    item.get("ticker"),
-                ),
-
-                # Signal information
-                "signalDate": signal_date,
-                "signalTimestamp": order.get(
-                    "signalTimestamp"
-                ),
-
-                # Actual execution
-                "buyDate": current_date,
-                "buyTimestamp": order.get(
-                    "signalTimestamp"
-                ),
-                "buyExecutionTimestamp": scanned_at,
-                "buyPrice": execution_price,
-                "quantity": quantity,
-                "invested": invested,
-
-                # Current valuation
-                "currentPrice": float(item.get("Close", execution_price)),
-                "currentValue": quantity
-                * float(item.get("Close", execution_price)),
-
-                "unrealizedPnL": (
-                    quantity
-                    * float(item.get("Close", execution_price))
-                    - invested
-                ),
-
-                "unrealizedPnLPercent": (
-                    (
-                        quantity
-                        * float(item.get("Close", execution_price))
-                        - invested
-                    )
-                    / invested
-                    * 100
-                )
-                if invested
-                else 0,
-
-                "execution": "NEXT_TRADING_DAY_OPEN",
-            }
-
-            portfolio.setdefault(
-                "openPositions",
-                [],
-            ).append(position)
-
-            print(
-                f"PORTFOLIO BUY EXECUTED: "
-                f"{symbol} | "
-                f"Signal {signal_date} | "
-                f"Buy {current_date} OPEN "
-                f"{execution_price:.2f} | "
-                f"Qty {quantity}"
-            )
-
-            continue
-
-        # ====================================================
-        # SELL
-        # ====================================================
-
-        if signal == "SELL":
-
-            position = find_position(
-                portfolio,
-                symbol,
-            )
-
-            if not position:
-                # Nothing to sell anymore.
-                continue
-
-            quantity = int(
-                position.get("quantity", 0)
-            )
-
-            buy_price = float(
-                position.get("buyPrice", 0)
-            )
-
-            if quantity <= 0 or buy_price <= 0:
-                continue
-
-            sell_price = execution_price
-
-            invested = quantity * buy_price
-            sale_value = quantity * sell_price
-            pnl = sale_value - invested
-
-            pnl_percent = (
-                (pnl / invested) * 100
-                if invested
-                else 0
-            )
-
-            closed_trade = {
-                "symbol": symbol,
-                "ticker": position.get(
-                    "ticker",
-                    order.get("ticker"),
-                ),
-
-                # Original BUY information
-                "signalDate": position.get(
-                    "signalDate"
-                ),
-                "buySignalDate": position.get(
-                    "signalDate"
-                ),
-                "buyTimestamp": position.get(
-                    "buyTimestamp"
-                ),
-                "buyExecutionTimestamp": position.get(
-                    "buyExecutionTimestamp"
-                ),
-                "buyDate": position.get(
-                    "buyDate"
-                ),
-                "buyPrice": buy_price,
-
-                # SELL signal information
-                "sellSignalDate": signal_date,
-                "sellSignalTimestamp": order.get(
-                    "signalTimestamp"
-                ),
-
-                # Actual SELL execution
-                "sellDate": current_date,
-                "sellTimestamp": scanned_at,
-                "sellPrice": sell_price,
-
-                "quantity": quantity,
-                "invested": invested,
-                "saleValue": sale_value,
-
-                "pnl": pnl,
-                "pnlPercent": pnl_percent,
-
-                "execution": "NEXT_TRADING_DAY_OPEN",
-            }
-
-            portfolio.setdefault(
-                "closedTrades",
-                [],
-            ).append(closed_trade)
-
-            portfolio["realizedPnL"] = sum(
-                float(trade.get("pnl", 0))
-                for trade in portfolio.get(
-                    "closedTrades",
-                    [],
-                )
-            )
-
-            portfolio["openPositions"] = [
-                p
-                for p in portfolio.get(
-                    "openPositions",
-                    [],
-                )
-                if p.get("symbol") != symbol
-            ]
-
-            print(
-                f"PORTFOLIO SELL EXECUTED: "
-                f"{symbol} | "
-                f"Signal {signal_date} | "
-                f"Sell {current_date} OPEN "
-                f"{sell_price:.2f} | "
-                f"Qty {quantity} | "
-                f"PnL {pnl:.2f}"
-            )
-
-            continue
-
-        # Unknown signal
-        remaining_orders.append(order)
-
-    portfolio["pendingOrders"] = remaining_orders
-
-
-# ============================================================
-# UPDATE PORTFOLIO
+# EXECUTE SAME-DAY CLOSE
 # ============================================================
 
 def update_portfolio(
@@ -629,32 +480,23 @@ def update_portfolio(
     sells,
     scanned_at,
 ):
+
     """
-    Portfolio lifecycle:
+    FINAL PORTFOLIO MODEL
 
-    1. Execute OLD pending orders at today's OPEN.
-    2. Update current values using today's CLOSE.
-    3. Store TODAY's new signals as pending orders.
-    4. Recalculate portfolio totals.
+    Scanner runs after daily candle closes.
 
-    This means:
-        Day 1 4 PM -> signal
-        Day 2 OPEN -> portfolio execution
+    BUY:
+        Today's BUY signal
+        -> BUY at today's CLOSE
+
+    SELL:
+        Today's SELL signal
+        -> SELL at today's CLOSE
+
+    No pending orders.
+    No next-day OPEN execution.
     """
-
-    # ========================================================
-    # 1. EXECUTE PREVIOUS PENDING ORDERS FIRST
-    # ========================================================
-
-    execute_pending_orders(
-        portfolio,
-        results,
-        scanned_at,
-    )
-
-    # ========================================================
-    # 2. UPDATE OPEN POSITION MARKET VALUES
-    # ========================================================
 
     result_map = {
         item.get("symbol"): item
@@ -662,81 +504,17 @@ def update_portfolio(
         if item.get("symbol")
     }
 
-    for position in portfolio.get(
-        "openPositions",
-        [],
-    ):
-        symbol = position.get("symbol")
-
-        item = result_map.get(symbol)
-
-        if not item:
-            continue
-
-        close_price = item.get("Close")
-
-        try:
-            close_price = float(close_price)
-        except Exception:
-            continue
-
-        if not math.isfinite(close_price):
-            continue
-
-        quantity = int(
-            position.get("quantity", 0)
-        )
-
-        invested = float(
-            position.get("invested", 0)
-        )
-
-        current_value = quantity * close_price
-
-        unrealized_pnl = current_value - invested
-
-        position["currentPrice"] = close_price
-        position["currentValue"] = current_value
-        position["unrealizedPnL"] = unrealized_pnl
-
-        position["unrealizedPnLPercent"] = (
-            unrealized_pnl / invested * 100
-            if invested
-            else 0
-        )
-
     # ========================================================
-    # 3. STORE TODAY'S BUY SIGNALS AS PENDING
+    # REMOVE OLD PENDING ORDER SYSTEM
     # ========================================================
 
-    for item in buys:
-
-        symbol = item.get("symbol")
-
-        if not symbol:
-            continue
-
-        # Don't queue BUY if already holding.
-        if find_position(
-            portfolio,
-            symbol,
-        ):
-            continue
-
-        add_pending_order(
-            portfolio=portfolio,
-            symbol=symbol,
-            ticker=item.get(
-                "ticker",
-                f"{symbol}.NS",
-            ),
-            signal="BUY",
-            signal_date=item.get("date"),
-            signal_timestamp=scanned_at,
-        )
+    portfolio.pop(
+        "pendingOrders",
+        None,
+    )
 
     # ========================================================
-    # 4. STORE TODAY'S SELL SIGNALS AS PENDING
+    # 1. SELL FIRST
     # ========================================================
 
     for item in sells:
@@ -746,27 +524,388 @@ def update_portfolio(
         if not symbol:
             continue
 
-        # Only queue SELL if currently holding.
-        if not find_position(
+        position = find_position(
             portfolio,
             symbol,
-        ):
+        )
+
+        if not position:
             continue
 
-        add_pending_order(
-            portfolio=portfolio,
-            symbol=symbol,
-            ticker=item.get(
+        try:
+
+            sell_price = float(
+                item.get("Close")
+            )
+
+            if (
+                not math.isfinite(
+                    sell_price
+                )
+                or sell_price <= 0
+            ):
+                continue
+
+        except Exception:
+            continue
+
+        try:
+
+            quantity = int(
+                position.get(
+                    "quantity",
+                    0,
+                )
+            )
+
+            buy_price = float(
+                position.get(
+                    "buyPrice",
+                    0,
+                )
+            )
+
+        except Exception:
+            continue
+
+        if (
+            quantity <= 0
+            or buy_price <= 0
+        ):
+
+            continue
+
+        invested = (
+            quantity
+            * buy_price
+        )
+
+        sell_value = (
+            quantity
+            * sell_price
+        )
+
+        pnl = (
+            sell_value
+            - invested
+        )
+
+        pnl_percent = (
+            pnl
+            / invested
+            * 100
+            if invested
+            else 0
+        )
+
+        closed_trade = {
+
+            "symbol": symbol,
+
+            "ticker": position.get(
                 "ticker",
                 f"{symbol}.NS",
             ),
-            signal="SELL",
-            signal_date=item.get("date"),
-            signal_timestamp=scanned_at,
+
+            "signalDate":
+                position.get(
+                    "signalDate"
+                ),
+
+            "buySignalDate":
+                position.get(
+                    "signalDate"
+                ),
+
+            "buyTimestamp":
+                position.get(
+                    "buyTimestamp"
+                ),
+
+            "buyExecutionTimestamp":
+                position.get(
+                    "buyExecutionTimestamp"
+                ),
+
+            "buyDate":
+                position.get(
+                    "buyDate"
+                ),
+
+            "buyPrice":
+                buy_price,
+
+            "sellSignalDate":
+                normalize_date(
+                    item.get("date")
+                ),
+
+            "sellSignalTimestamp":
+                scanned_at,
+
+            "sellDate":
+                normalize_date(
+                    item.get("date")
+                ),
+
+            "sellTimestamp":
+                scanned_at,
+
+            "sellPrice":
+                sell_price,
+
+            "quantity":
+                quantity,
+
+            "invested":
+                invested,
+
+            "sellValue":
+                sell_value,
+
+            # Keep compatibility with older data
+            "saleValue":
+                sell_value,
+
+            "pnl":
+                pnl,
+
+            "pnlPercent":
+                pnl_percent,
+
+            "execution":
+                "SAME_DAY_CLOSE",
+        }
+
+        portfolio.setdefault(
+            "closedTrades",
+            [],
+        ).append(
+            closed_trade
+        )
+
+        portfolio["openPositions"] = [
+            existing
+            for existing
+            in portfolio.get(
+                "openPositions",
+                [],
+            )
+            if existing.get("symbol")
+            != symbol
+        ]
+
+        print(
+            f"PORTFOLIO SELL: "
+            f"{symbol} | "
+            f"Close {sell_price:.2f} | "
+            f"Qty {quantity} | "
+            f"PnL {pnl:.2f}"
         )
 
     # ========================================================
-    # 5. RECALCULATE TOTALS
+    # 2. BUY
+    # ========================================================
+
+    for item in buys:
+
+        symbol = item.get("symbol")
+
+        if not symbol:
+            continue
+
+        # Already holding
+        if find_position(
+            portfolio,
+            symbol,
+        ):
+
+            continue
+
+        try:
+
+            buy_price = float(
+                item.get("Close")
+            )
+
+            if (
+                not math.isfinite(
+                    buy_price
+                )
+                or buy_price <= 0
+            ):
+                continue
+
+        except Exception:
+            continue
+
+        quantity = math.floor(
+            PORTFOLIO_ALLOCATION
+            / buy_price
+        )
+
+        if quantity <= 0:
+            continue
+
+        invested = (
+            quantity
+            * buy_price
+        )
+
+        current_value = invested
+
+        position = {
+
+            "symbol":
+                symbol,
+
+            "ticker":
+                item.get(
+                    "ticker",
+                    f"{symbol}.NS",
+                ),
+
+            # Signal and execution happen same day
+            "signalDate":
+                normalize_date(
+                    item.get("date")
+                ),
+
+            "signalTimestamp":
+                scanned_at,
+
+            "buyDate":
+                normalize_date(
+                    item.get("date")
+                ),
+
+            "buyTimestamp":
+                scanned_at,
+
+            "buyExecutionTimestamp":
+                scanned_at,
+
+            "buyPrice":
+                buy_price,
+
+            "quantity":
+                quantity,
+
+            "invested":
+                invested,
+
+            "currentPrice":
+                buy_price,
+
+            "currentValue":
+                current_value,
+
+            "unrealizedPnL":
+                0,
+
+            "unrealizedPnLPercent":
+                0,
+
+            "execution":
+                "SAME_DAY_CLOSE",
+        }
+
+        portfolio.setdefault(
+            "openPositions",
+            [],
+        ).append(
+            position
+        )
+
+        print(
+            f"PORTFOLIO BUY: "
+            f"{symbol} | "
+            f"Close {buy_price:.2f} | "
+            f"Qty {quantity}"
+        )
+
+    # ========================================================
+    # 3. UPDATE CURRENT VALUES
+    # ========================================================
+
+    for position in portfolio.get(
+        "openPositions",
+        [],
+    ):
+
+        symbol = position.get(
+            "symbol"
+        )
+
+        item = result_map.get(
+            symbol
+        )
+
+        if not item:
+            continue
+
+        try:
+
+            close_price = float(
+                item.get("Close")
+            )
+
+            if not math.isfinite(
+                close_price
+            ):
+                continue
+
+            quantity = int(
+                position.get(
+                    "quantity",
+                    0,
+                )
+            )
+
+            invested = float(
+                position.get(
+                    "invested",
+                    0,
+                )
+            )
+
+        except Exception:
+            continue
+
+        current_value = (
+            quantity
+            * close_price
+        )
+
+        unrealized_pnl = (
+            current_value
+            - invested
+        )
+
+        position["currentPrice"] = (
+            close_price
+        )
+
+        position["currentValue"] = (
+            current_value
+        )
+
+        position["unrealizedPnL"] = (
+            unrealized_pnl
+        )
+
+        position[
+            "unrealizedPnLPercent"
+        ] = (
+            unrealized_pnl
+            / invested
+            * 100
+            if invested
+            else 0
+        )
+
+    # ========================================================
+    # 4. TOTALS
     # ========================================================
 
     open_positions = portfolio.get(
@@ -780,13 +919,25 @@ def update_portfolio(
     )
 
     total_invested = sum(
-        float(position.get("invested", 0))
-        for position in open_positions
+        float(
+            position.get(
+                "invested",
+                0,
+            )
+        )
+        for position
+        in open_positions
     )
 
     total_current_value = sum(
-        float(position.get("currentValue", 0))
-        for position in open_positions
+        float(
+            position.get(
+                "currentValue",
+                0,
+            )
+        )
+        for position
+        in open_positions
     )
 
     unrealized_pnl = (
@@ -795,8 +946,14 @@ def update_portfolio(
     )
 
     realized_pnl = sum(
-        float(trade.get("pnl", 0))
-        for trade in closed_trades
+        float(
+            trade.get(
+                "pnl",
+                0,
+            )
+        )
+        for trade
+        in closed_trades
     )
 
     total_pnl = (
@@ -804,40 +961,63 @@ def update_portfolio(
         + unrealized_pnl
     )
 
-    portfolio["realizedPnL"] = realized_pnl
-    portfolio["unrealizedPnL"] = unrealized_pnl
-    portfolio["totalInvested"] = total_invested
-    portfolio["totalCurrentValue"] = total_current_value
-    portfolio["totalPnL"] = total_pnl
+    portfolio["realizedPnL"] = (
+        realized_pnl
+    )
 
-    # Keep the same useful denominator for open portfolio return.
+    portfolio["unrealizedPnL"] = (
+        unrealized_pnl
+    )
+
+    portfolio["totalInvested"] = (
+        total_invested
+    )
+
+    portfolio["totalCurrentValue"] = (
+        total_current_value
+    )
+
+    portfolio["totalPnL"] = (
+        total_pnl
+    )
+
     portfolio["totalPnLPercent"] = (
-        total_pnl / total_invested * 100
+        total_pnl
+        / total_invested
+        * 100
         if total_invested
         else 0
     )
 
-    portfolio["openPositionsCount"] = len(
-        open_positions
+    portfolio["openPositionsCount"] = (
+        len(open_positions)
     )
 
-    portfolio["totalTrades"] = len(
-        closed_trades
+    portfolio["totalTrades"] = (
+        len(closed_trades)
     )
 
     portfolio["winningTrades"] = sum(
         1
         for trade in closed_trades
-        if float(trade.get("pnl", 0)) > 0
+        if float(
+            trade.get("pnl", 0)
+        ) > 0
     )
 
     portfolio["losingTrades"] = sum(
         1
         for trade in closed_trades
-        if float(trade.get("pnl", 0)) < 0
+        if float(
+            trade.get("pnl", 0)
+        ) < 0
     )
 
-    portfolio["updatedAt"] = scanned_at
+    portfolio["updatedAt"] = (
+        scanned_at
+    )
+
+    portfolio["version"] = 3
 
     return portfolio
 
@@ -846,37 +1026,51 @@ def update_portfolio(
 # PROCESS STOCK
 # ============================================================
 
-def process_stock(symbol, df):
+def process_stock(
+    symbol,
+    df,
+):
+
     """
-    Apply the final 44 SMA strategy.
+    FINAL 44 SMA STRATEGY
 
     BUY:
-      - 44 SMA rising vs 10 trading days ago
-      - Low within 1% above 44 SMA
-      - Close above 44 SMA
-      - 44 SMA above 100 SMA
-      - 100 SMA above 200 SMA
-      - Green candle
+
+    1. 44 SMA rising vs 10 trading days ago
+    2. Low can be up to 1% above 44 SMA
+    3. Close above 44 SMA
+    4. 44 SMA above 100 SMA
+    5. 100 SMA above 200 SMA
+    6. Green candle
 
     SELL:
-      - High touches/exceeds 44 SMA
-      - Close below 44 SMA
-      - Red candle
+
+    1. High touches/exceeds 44 SMA
+    2. Close below 44 SMA
+    3. Red candle
     """
 
     if df is None or df.empty:
         return None
 
     try:
+
         df = df.copy()
 
-        # Handle MultiIndex if returned by yfinance.
-        if isinstance(df.columns, pd.MultiIndex):
+        if isinstance(
+            df.columns,
+            pd.MultiIndex,
+        ):
+
             df.columns = [
                 column[0]
-                if isinstance(column, tuple)
+                if isinstance(
+                    column,
+                    tuple,
+                )
                 else column
-                for column in df.columns
+                for column
+                in df.columns
             ]
 
         required_columns = [
@@ -887,6 +1081,7 @@ def process_stock(symbol, df):
         ]
 
         for column in required_columns:
+
             if column not in df.columns:
                 return None
 
@@ -902,9 +1097,9 @@ def process_stock(symbol, df):
         if len(df) < 210:
             return None
 
-        # ----------------------------------------------------
-        # SMA calculations
-        # ----------------------------------------------------
+        # ====================================================
+        # SMA
+        # ====================================================
 
         df["SMA44"] = (
             df["Close"]
@@ -937,10 +1132,6 @@ def process_stock(symbol, df):
 
         latest = df.iloc[-1]
 
-        sma44_10d = float(
-            df["SMA44"].iloc[-11]
-        )
-
         sma44 = float(
             latest["SMA44"]
         )
@@ -951,6 +1142,10 @@ def process_stock(symbol, df):
 
         sma200 = float(
             latest["SMA200"]
+        )
+
+        sma44_10d = float(
+            df["SMA44"].iloc[-11]
         )
 
         open_price = float(
@@ -969,50 +1164,49 @@ def process_stock(symbol, df):
             latest["Close"]
         )
 
-        # ----------------------------------------------------
-        # Date
-        # ----------------------------------------------------
+        current_date = (
+            pd.to_datetime(
+                df.index[-1]
+            ).strftime(
+                "%Y-%m-%d"
+            )
+        )
 
-        current_date = pd.to_datetime(
-            df.index[-1]
-        ).strftime("%Y-%m-%d")
-
-        # ----------------------------------------------------
-        # BUY distance
-        # ----------------------------------------------------
+        # ====================================================
+        # BUY DISTANCE
+        # ====================================================
 
         buy_distance_from_44 = (
-            (low_price / sma44) - 1
+            (
+                low_price
+                / sma44
+            )
+            - 1
         ) * 100
 
         # ====================================================
-        # BUY STRATEGY
+        # BUY
         # ====================================================
 
         buy_checks = {
-            "44 SMA rising": (
-                sma44 > sma44_10d
-            ),
 
-            "Low within 1% of 44 SMA": (
-                buy_distance_from_44 <= 1.0
-            ),
+            "44 SMA rising":
+                sma44 > sma44_10d,
 
-            "Close above 44 SMA": (
-                close_price > sma44
-            ),
+            "Low within 1% of 44 SMA":
+                buy_distance_from_44 <= 1.0,
 
-            "44 SMA above 100 SMA": (
-                sma44 > sma100
-            ),
+            "Close above 44 SMA":
+                close_price > sma44,
 
-            "100 SMA above 200 SMA": (
-                sma100 > sma200
-            ),
+            "44 SMA above 100 SMA":
+                sma44 > sma100,
 
-            "Green candle": (
-                close_price > open_price
-            ),
+            "100 SMA above 200 SMA":
+                sma100 > sma200,
+
+            "Green candle":
+                close_price > open_price,
         }
 
         buy = all(
@@ -1020,61 +1214,106 @@ def process_stock(symbol, df):
         )
 
         # ====================================================
-        # SELL STRATEGY
+        # SELL
         # ====================================================
 
         sell_checks = {
-            "High touches 44 SMA": (
-                high_price >= sma44
-            ),
 
-            "Close below 44 SMA": (
-                close_price < sma44
-            ),
+            "High touches 44 SMA":
+                high_price >= sma44,
 
-            "Red candle": (
-                close_price < open_price
-            ),
+            "Close below 44 SMA":
+                close_price < sma44,
+
+            "Red candle":
+                close_price < open_price,
         }
 
         sell = all(
             sell_checks.values()
         )
 
-        ticker = f"{symbol}.NS"
+        ticker = (
+            f"{symbol}.NS"
+        )
+
+        # ====================================================
+        # DASHBOARD-COMPATIBLE RESULT
+        # ====================================================
 
         result = {
-            "symbol": symbol,
-            "ticker": ticker,
 
-            "date": current_date,
+            "symbol":
+                symbol,
 
-            "Open": open_price,
-            "High": high_price,
-            "Low": low_price,
-            "Close": close_price,
+            "ticker":
+                ticker,
 
-            "SMA44": sma44,
-            "SMA100": sma100,
-            "SMA200": sma200,
+            "date":
+                current_date,
 
-            "SMA44_10d": sma44_10d,
+            "Open":
+                open_price,
 
-            "buyDistanceFrom44": buy_distance_from_44,
+            "High":
+                high_price,
 
-            "buy": buy,
-            "sell": sell,
+            "Low":
+                low_price,
 
-            "buyChecks": buy_checks,
-            "sellChecks": sell_checks,
+            "Close":
+                close_price,
+
+            # lowercase fields required by dashboard
+            "sma44":
+                sma44,
+
+            "sma100":
+                sma100,
+
+            "sma200":
+                sma200,
+
+            "sma44_10d":
+                sma44_10d,
+
+            "distanceFrom44":
+                buy_distance_from_44,
+
+            "buyDistanceFrom44":
+                buy_distance_from_44,
+
+            "signal":
+                "BUY"
+                if buy
+                else (
+                    "SELL"
+                    if sell
+                    else ""
+                ),
+
+            "buy":
+                buy,
+
+            "sell":
+                sell,
+
+            "buyChecks":
+                buy_checks,
+
+            "sellChecks":
+                sell_checks,
         }
 
         return result
 
-    except Exception as e:
+    except Exception as error:
+
         print(
-            f"Process error for {symbol}: {e}"
+            f"Process error for "
+            f"{symbol}: {error}"
         )
+
         return None
 
 
@@ -1084,46 +1323,55 @@ def process_stock(symbol, df):
 
 def main():
 
-    scanned_at = datetime.now(
-        timezone.utc
-    ).isoformat()
+    scanned_at = (
+        datetime.now(
+            timezone.utc
+        ).isoformat()
+    )
 
     print("=" * 70)
     print("44 SMA SCANNER PRO")
+    print("SAME-DAY CLOSING PRICE PORTFOLIO")
     print("=" * 70)
+
     print(
         f"Scan started: {scanned_at}"
     )
 
-    # --------------------------------------------------------
-    # NIFTY 500
-    # --------------------------------------------------------
+    # ========================================================
+    # UNIVERSE
+    # ========================================================
 
     symbols = get_nifty500()
 
     if not symbols:
+
         print(
             "No NIFTY 500 symbols available."
         )
+
         return
 
     print(
         f"Total symbols: {len(symbols)}"
     )
 
-    # --------------------------------------------------------
-    # Portfolio
-    # --------------------------------------------------------
+    # ========================================================
+    # PORTFOLIO
+    # ========================================================
 
     portfolio = load_portfolio()
 
-    # --------------------------------------------------------
-    # Scan
-    # --------------------------------------------------------
+    # ========================================================
+    # SCAN
+    # ========================================================
 
     all_results = []
+
     buys = []
+
     sells = []
+
     skipped = []
 
     batch_size = 50
@@ -1135,7 +1383,8 @@ def main():
     ):
 
         batch_symbols = symbols[
-            start:start + batch_size
+            start:
+            start + batch_size
         ]
 
         print(
@@ -1149,16 +1398,24 @@ def main():
             batch_symbols
         )
 
-        if data is None or data.empty:
+        if (
+            data is None
+            or data.empty
+        ):
+
             print(
                 "Batch returned no data."
             )
 
             for symbol in batch_symbols:
+
                 skipped.append(
                     {
-                        "symbol": symbol,
-                        "reason": "No market data",
+                        "symbol":
+                            symbol,
+
+                        "reason":
+                            "No market data",
                     }
                 )
 
@@ -1166,26 +1423,41 @@ def main():
 
         for symbol in batch_symbols:
 
-            ticker = f"{symbol}.NS"
+            ticker = (
+                f"{symbol}.NS"
+            )
 
             try:
 
-                # ------------------------------------------------
-                # Extract ticker dataframe
-                # ------------------------------------------------
+                # =================================================
+                # EXTRACT TICKER DATA
+                # =================================================
 
                 if isinstance(
                     data.columns,
                     pd.MultiIndex,
                 ):
 
-                    if ticker not in data.columns.get_level_values(0):
+                    level_zero = (
+                        data.columns
+                        .get_level_values(0)
+                    )
+
+                    if (
+                        ticker
+                        not in level_zero
+                    ):
+
                         skipped.append(
                             {
-                                "symbol": symbol,
-                                "reason": "Ticker data missing",
+                                "symbol":
+                                    symbol,
+
+                                "reason":
+                                    "Ticker data missing",
                             }
                         )
+
                         continue
 
                     stock_df = data[
@@ -1194,29 +1466,36 @@ def main():
 
                 else:
 
-                    stock_df = data.copy()
+                    stock_df = (
+                        data.copy()
+                    )
 
                 if stock_df.empty:
+
                     skipped.append(
                         {
-                            "symbol": symbol,
-                            "reason": "Empty dataframe",
+                            "symbol":
+                                symbol,
+
+                            "reason":
+                                "Empty dataframe",
                         }
                     )
+
                     continue
 
-                # ------------------------------------------------
-                # Save chart data
-                # ------------------------------------------------
+                # =================================================
+                # CHART
+                # =================================================
 
                 save_chart_data(
                     symbol,
                     stock_df,
                 )
 
-                # ------------------------------------------------
-                # Strategy
-                # ------------------------------------------------
+                # =================================================
+                # STRATEGY
+                # =================================================
 
                 result = process_stock(
                     symbol,
@@ -1224,12 +1503,17 @@ def main():
                 )
 
                 if result is None:
+
                     skipped.append(
                         {
-                            "symbol": symbol,
-                            "reason": "Insufficient/invalid data",
+                            "symbol":
+                                symbol,
+
+                            "reason":
+                                "Insufficient/invalid data",
                         }
                     )
+
                     continue
 
                 all_results.append(
@@ -1237,64 +1521,107 @@ def main():
                 )
 
                 if result["buy"]:
+
                     buys.append(
                         result
                     )
 
                 if result["sell"]:
+
                     sells.append(
                         result
                     )
 
-            except Exception as e:
+            except Exception as error:
 
                 skipped.append(
                     {
-                        "symbol": symbol,
-                        "reason": str(e),
+                        "symbol":
+                            symbol,
+
+                        "reason":
+                            str(error),
                     }
                 )
 
     # ========================================================
-    # SAVE SIGNALS
+    # SIGNAL DATE
     # ========================================================
 
     signal_date = None
 
     if all_results:
+
         dates = [
             item.get("date")
-            for item in all_results
+            for item
+            in all_results
             if item.get("date")
         ]
 
         if dates:
-            signal_date = max(dates)
+
+            signal_date = max(
+                dates
+            )
+
+    # ========================================================
+    # SIGNALS
+    # ========================================================
 
     signals = {
-        "scannedAt": scanned_at,
-        "signalDate": signal_date,
 
-        "buyCount": len(buys),
-        "sellCount": len(sells),
+        "scannedAt":
+            scanned_at,
 
-        "buys": buys,
-        "sells": sells,
+        "signalDate":
+            signal_date,
 
-        "portfolioExecution": (
-            "NEXT_TRADING_DAY_OPEN"
-        ),
+        "universe":
+            "NIFTY 500",
+
+        "universeCount":
+            len(symbols),
+
+        "scanned":
+            len(all_results),
+
+        "skipped":
+            len(skipped),
+
+        "buyCount":
+            len(buys),
+
+        "sellCount":
+            len(sells),
+
+        # Dashboard uses these
+        "buy":
+            buys,
+
+        "sell":
+            sells,
+
+        # Keep compatibility with old scanner naming
+        "buys":
+            buys,
+
+        "sells":
+            sells,
+
+        "portfolioExecution":
+            "SAME_DAY_CLOSE",
     }
 
     with open(
         DATA / "signals.json",
         "w",
         encoding="utf-8",
-    ) as f:
+    ) as file:
 
         json.dump(
             signals,
-            f,
+            file,
             indent=2,
             ensure_ascii=False,
         )
@@ -1303,61 +1630,117 @@ def main():
     # HISTORY
     # ========================================================
 
-    history_file = DATA / "history.json"
+    history_file = (
+        DATA / "history.json"
+    )
 
     history = []
 
     if history_file.exists():
+
         try:
+
             with open(
                 history_file,
                 "r",
                 encoding="utf-8",
-            ) as f:
-                history = json.load(f)
+            ) as file:
 
-            if not isinstance(
-                history,
+                old_history = json.load(
+                    file
+                )
+
+            if isinstance(
+                old_history,
                 list,
             ):
-                history = []
+
+                history = old_history
 
         except Exception:
+
             history = []
 
-    history_entry = {
-        "scannedAt": scanned_at,
-        "date": signal_date,
+    # --------------------------------------------------------
+    # Current dashboard history needs flat stock records.
+    # Store today's BUY + SELL records.
+    # --------------------------------------------------------
 
-        "buyCount": len(buys),
-        "sellCount": len(sells),
+    today_history = []
 
-        "buys": buys,
-        "sells": sells,
-    }
+    for item in buys:
 
-    # Prevent duplicate history entries
-    # for the same scan date.
-    history = [
-        entry
-        for entry in history
-        if entry.get("date") != signal_date
-    ]
+        history_item = dict(
+            item
+        )
 
-    history.insert(
-        0,
-        history_entry,
+        history_item[
+            "signal"
+        ] = "BUY"
+
+        today_history.append(
+            history_item
+        )
+
+    for item in sells:
+
+        history_item = dict(
+            item
+        )
+
+        history_item[
+            "signal"
+        ] = "SELL"
+
+        today_history.append(
+            history_item
+        )
+
+    # Remove today's old flat records
+    # and today's old summary-style record.
+
+    cleaned_history = []
+
+    for entry in history:
+
+        entry_date = (
+            entry.get("date")
+            if isinstance(
+                entry,
+                dict,
+            )
+            else None
+        )
+
+        if (
+            normalize_date(
+                entry_date
+            )
+            == normalize_date(
+                signal_date
+            )
+        ):
+
+            continue
+
+        cleaned_history.append(
+            entry
+        )
+
+    history = (
+        today_history
+        + cleaned_history
     )
 
     with open(
         history_file,
         "w",
         encoding="utf-8",
-    ) as f:
+    ) as file:
 
         json.dump(
             history,
-            f,
+            file,
             indent=2,
             ensure_ascii=False,
         )
@@ -1383,20 +1766,26 @@ def main():
     # ========================================================
 
     universe = {
-        "updatedAt": scanned_at,
-        "count": len(symbols),
-        "symbols": symbols,
+
+        "updatedAt":
+            scanned_at,
+
+        "count":
+            len(symbols),
+
+        "symbols":
+            symbols,
     }
 
     with open(
         DATA / "universe.json",
         "w",
         encoding="utf-8",
-    ) as f:
+    ) as file:
 
         json.dump(
             universe,
-            f,
+            file,
             indent=2,
             ensure_ascii=False,
         )
@@ -1406,20 +1795,26 @@ def main():
     # ========================================================
 
     skipped_data = {
-        "updatedAt": scanned_at,
-        "count": len(skipped),
-        "items": skipped,
+
+        "updatedAt":
+            scanned_at,
+
+        "count":
+            len(skipped),
+
+        "items":
+            skipped,
     }
 
     with open(
         DATA / "skipped.json",
         "w",
         encoding="utf-8",
-    ) as f:
+    ) as file:
 
         json.dump(
             skipped_data,
-            f,
+            file,
             indent=2,
             ensure_ascii=False,
         )
@@ -1433,19 +1828,23 @@ def main():
     print("=" * 70)
 
     print(
-        f"Scanned stocks : {len(all_results)}"
+        f"Scanned stocks : "
+        f"{len(all_results)}"
     )
 
     print(
-        f"BUY signals    : {len(buys)}"
+        f"BUY signals    : "
+        f"{len(buys)}"
     )
 
     print(
-        f"SELL signals   : {len(sells)}"
+        f"SELL signals   : "
+        f"{len(sells)}"
     )
 
     print(
-        f"Skipped        : {len(skipped)}"
+        f"Skipped        : "
+        f"{len(skipped)}"
     )
 
     print(
@@ -1454,8 +1853,7 @@ def main():
     )
 
     print(
-        f"Pending orders : "
-        f"{len(portfolio.get('pendingOrders', []))}"
+        "Execution      : SAME_DAY_CLOSE"
     )
 
     print(
