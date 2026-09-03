@@ -36,6 +36,7 @@ let portfolio = {
 
     openPositions: [],
     closedTrades: [],
+    pendingOrders: [],
 
     realizedPnL: 0,
     unrealizedPnL: 0,
@@ -184,50 +185,39 @@ async function loadData(options = {}) {
 
         refreshButton.disabled = true;
 
-        refreshButton.dataset.loading = "true";
+        refreshButton.dataset.loading =
+            "true";
 
         refreshButton.textContent =
             "↻ Loading...";
 
-        refreshButton.style.opacity = "0.7";
+        refreshButton.style.opacity =
+            "0.7";
 
-        refreshButton.style.cursor = "wait";
+        refreshButton.style.cursor =
+            "wait";
 
     }
+
 
     try {
 
         const timestamp =
             Date.now();
 
-        const [
-            signalResponse,
-            historyResponse,
-            portfolioResponse
-        ] = await Promise.all([
 
-            fetch(
+        // ====================================================
+        // SIGNAL DATA
+        // ====================================================
+
+        const signalResponse =
+            await fetch(
                 "./data/signals.json?" + timestamp,
                 {
                     cache: "no-store"
                 }
-            ),
+            );
 
-            fetch(
-                "./data/history.json?" + timestamp,
-                {
-                    cache: "no-store"
-                }
-            ),
-
-            fetch(
-                "./data/portfolio.json?" + timestamp,
-                {
-                    cache: "no-store"
-                }
-            )
-
-        ]);
 
         if (!signalResponse.ok) {
 
@@ -237,52 +227,245 @@ async function loadData(options = {}) {
 
         }
 
-        signals =
+
+        const signalData =
             await signalResponse.json();
 
-        if (historyResponse.ok) {
 
-            history =
-                await historyResponse.json();
+        if (
+            !signalData ||
+            typeof signalData !== "object"
+        ) {
 
-        } else {
+            throw new Error(
+                "signals.json contains invalid data"
+            );
+
+        }
+
+
+        signals =
+            signalData;
+
+
+        // ====================================================
+        // HISTORY DATA
+        // ====================================================
+
+        try {
+
+            const historyResponse =
+                await fetch(
+                    "./data/history.json?" + timestamp,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (historyResponse.ok) {
+
+                const historyData =
+                    await historyResponse.json();
+
+
+                if (Array.isArray(historyData)) {
+
+                    history =
+                        historyData;
+
+                } else {
+
+                    history = [];
+
+                }
+
+            } else {
+
+                history = [];
+
+            }
+
+        } catch (historyError) {
+
+            console.error(
+                "History data error:",
+                historyError
+            );
 
             history = [];
 
         }
 
-        if (portfolioResponse.ok) {
 
-            portfolio =
-                await portfolioResponse.json();
+        // ====================================================
+        // PORTFOLIO DATA
+        //
+        // IMPORTANT:
+        // Portfolio is isolated from scanner data.
+        // A portfolio problem must NEVER stop the
+        // main scanner dashboard from loading.
+        // ====================================================
 
-        } else {
+        try {
+
+            const portfolioResponse =
+                await fetch(
+                    "./data/portfolio.json?" + timestamp,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (portfolioResponse.ok) {
+
+                const portfolioData =
+                    await portfolioResponse.json();
+
+
+                if (
+                    portfolioData &&
+                    typeof portfolioData === "object" &&
+                    !Array.isArray(portfolioData)
+                ) {
+
+                    portfolio =
+                        portfolioData;
+
+                } else {
+
+                    console.error(
+                        "portfolio.json contains invalid object data"
+                    );
+
+                    portfolio =
+                        createEmptyPortfolio();
+
+                }
+
+            } else {
+
+                console.error(
+                    "portfolio.json HTTP error:",
+                    portfolioResponse.status
+                );
+
+                portfolio =
+                    createEmptyPortfolio();
+
+            }
+
+        } catch (portfolioError) {
 
             /*
-             * portfolio.json is optional.
-             * Keeping this fallback means the
-             * dashboard still works when the
-             * portfolio file has not been created
-             * by the scanner workflow yet.
+             * IMPORTANT:
+             * Do not allow portfolio parsing/loading
+             * to break the complete dashboard.
              */
-            portfolio = createEmptyPortfolio();
+
+            console.error(
+                "Portfolio data error:",
+                portfolioError
+            );
+
+            portfolio =
+                createEmptyPortfolio();
 
         }
 
-        normalizePortfolio();
+
+        // ====================================================
+        // NORMALIZE PORTFOLIO
+        // ====================================================
+
+        try {
+
+            normalizePortfolio();
+
+        } catch (normalizeError) {
+
+            console.error(
+                "Portfolio normalization error:",
+                normalizeError
+            );
+
+            portfolio =
+                createEmptyPortfolio();
+
+        }
+
+
+        // ====================================================
+        // LAST SCAN
+        // ====================================================
 
         updateLastScan();
 
-        render();
+
+        // ====================================================
+        // RENDER
+        // ====================================================
+
+        try {
+
+            render();
+
+        } catch (renderError) {
+
+            /*
+             * If portfolio data somehow causes a rendering
+             * problem, render the dashboard once again with
+             * a clean portfolio object.
+             */
+
+            console.error(
+                "Dashboard render error:",
+                renderError
+            );
+
+
+            portfolio =
+                createEmptyPortfolio();
+
+
+            try {
+
+                render();
+
+            } catch (secondRenderError) {
+
+                console.error(
+                    "Second dashboard render error:",
+                    secondRenderError
+                );
+
+                throw secondRenderError;
+
+            }
+
+        }
+
 
         console.log(
             "44 SMA data loaded successfully"
         );
 
         console.log(
+            "Signals:",
+            signals
+        );
+
+        console.log(
+            "History:",
+            history
+        );
+
+        console.log(
             "Portfolio:",
             portfolio
         );
+
 
     } catch (error) {
 
@@ -291,36 +474,44 @@ async function loadData(options = {}) {
             error
         );
 
+
         renderError(
             "Unable to load dashboard data."
         );
+
 
     } finally {
 
         isLoadingData = false;
 
+
         const button =
             findRefreshButton();
+
 
         if (button) {
 
             button.disabled = false;
 
-            button.dataset.loading = "false";
+            button.dataset.loading =
+                "false";
 
             button.textContent =
                 originalRefreshText ||
                 "↻ Refresh";
 
-            button.style.opacity = "";
+            button.style.opacity =
+                "";
 
-            button.style.cursor = "";
+            button.style.cursor =
+                "";
 
         }
 
     }
 
 }
+
 
 // ============================================================
 // PORTFOLIO HELPERS
@@ -334,6 +525,7 @@ function createEmptyPortfolio() {
 
         openPositions: [],
         closedTrades: [],
+        pendingOrders: [],
 
         realizedPnL: 0,
         unrealizedPnL: 0,
@@ -357,8 +549,11 @@ function createEmptyPortfolio() {
 
 function normalizePortfolio() {
 
-    if (!portfolio ||
-        typeof portfolio !== "object") {
+    if (
+        !portfolio ||
+        typeof portfolio !== "object" ||
+        Array.isArray(portfolio)
+    ) {
 
         portfolio =
             createEmptyPortfolio();
@@ -367,8 +562,10 @@ function normalizePortfolio() {
 
     }
 
+
     const defaults =
         createEmptyPortfolio();
+
 
     Object.keys(defaults).forEach(
         key => {
@@ -386,56 +583,81 @@ function normalizePortfolio() {
         }
     );
 
-    if (!Array.isArray(
-        portfolio.openPositions
-    )) {
+
+    if (
+        !Array.isArray(
+            portfolio.openPositions
+        )
+    ) {
 
         portfolio.openPositions = [];
 
     }
 
-    if (!Array.isArray(
-        portfolio.closedTrades
-    )) {
+
+    if (
+        !Array.isArray(
+            portfolio.closedTrades
+        )
+    ) {
 
         portfolio.closedTrades = [];
 
     }
+
+
+    if (
+        !Array.isArray(
+            portfolio.pendingOrders
+        )
+    ) {
+
+        portfolio.pendingOrders = [];
+
+    }
+
 
     portfolio.allocationPerStock =
         Number(
             portfolio.allocationPerStock
         ) || 5000;
 
+
     portfolio.realizedPnL =
         Number(
             portfolio.realizedPnL
         ) || 0;
+
 
     portfolio.unrealizedPnL =
         Number(
             portfolio.unrealizedPnL
         ) || 0;
 
+
     portfolio.totalInvested =
         Number(
             portfolio.totalInvested
         ) || 0;
+
 
     portfolio.totalCurrentValue =
         Number(
             portfolio.totalCurrentValue
         ) || 0;
 
+
     portfolio.totalPnL =
         Number(
             portfolio.totalPnL
         ) || 0;
 
+
     portfolio.totalPnLPercent =
         Number(
             portfolio.totalPnLPercent
         ) || 0;
+
 
     portfolio.openPositionsCount =
         Number(
@@ -458,6 +680,7 @@ function findRefreshButton() {
 
     ];
 
+
     for (
         const selector of selectors
     ) {
@@ -467,6 +690,7 @@ function findRefreshButton() {
                 selector
             );
 
+
         if (button) {
 
             return button;
@@ -475,16 +699,14 @@ function findRefreshButton() {
 
     }
 
-    /*
-     * Fallback for the existing dashboard
-     * if the button has no id/data attribute.
-     */
+
     const buttons =
         Array.from(
             document.querySelectorAll(
                 "button"
             )
         );
+
 
     return buttons.find(
         button =>
@@ -501,16 +723,14 @@ function setupRefreshButton() {
     const button =
         findRefreshButton();
 
+
     if (!button) {
 
         return;
 
     }
 
-    /*
-     * Prevent duplicate listeners when
-     * render() is called repeatedly.
-     */
+
     if (
         button.dataset.refreshBound ===
         "true"
@@ -520,8 +740,10 @@ function setupRefreshButton() {
 
     }
 
+
     button.dataset.refreshBound =
         "true";
+
 
     button.addEventListener(
         "click",
@@ -531,11 +753,13 @@ function setupRefreshButton() {
 
             event.stopPropagation();
 
+
             if (isLoadingData) {
 
                 return;
 
             }
+
 
             loadData({
                 manual: true
@@ -547,9 +771,6 @@ function setupRefreshButton() {
 }
 
 
-
-
-
 // ============================================================
 // ERROR
 // ============================================================
@@ -558,6 +779,7 @@ function renderError(message) {
 
     const content =
         $("#content");
+
 
     if (!content) {
         return;
@@ -1267,45 +1489,81 @@ function signalPage(type) {
 
 function sortPortfolioPositions(positions) {
 
-    const sorted = [...(positions || [])];
+    const sorted =
+        [...(positions || [])];
+
 
     if (portfolioSort === "buyDateAsc") {
 
-        sorted.sort((a, b) =>
-            String(a.buyDate || "").localeCompare(
-                String(b.buyDate || "")
-            )
+        sorted.sort(
+            (a, b) =>
+                String(
+                    a.buyDate || ""
+                ).localeCompare(
+                    String(
+                        b.buyDate || ""
+                    )
+                )
         );
 
     }
 
-    else if (portfolioSort === "buyDateDesc") {
+    else if (
+        portfolioSort ===
+        "buyDateDesc"
+    ) {
 
-        sorted.sort((a, b) =>
-            String(b.buyDate || "").localeCompare(
-                String(a.buyDate || "")
-            )
+        sorted.sort(
+            (a, b) =>
+                String(
+                    b.buyDate || ""
+                ).localeCompare(
+                    String(
+                        a.buyDate || ""
+                    )
+                )
         );
 
     }
 
-    else if (portfolioSort === "returnAsc") {
+    else if (
+        portfolioSort ===
+        "returnAsc"
+    ) {
 
-        sorted.sort((a, b) =>
-            Number(a.unrealizedPnLPercent || 0) -
-            Number(b.unrealizedPnLPercent || 0)
+        sorted.sort(
+            (a, b) =>
+                Number(
+                    a.unrealizedPnLPercent ||
+                    0
+                ) -
+                Number(
+                    b.unrealizedPnLPercent ||
+                    0
+                )
         );
 
     }
 
-    else if (portfolioSort === "returnDesc") {
+    else if (
+        portfolioSort ===
+        "returnDesc"
+    ) {
 
-        sorted.sort((a, b) =>
-            Number(b.unrealizedPnLPercent || 0) -
-            Number(a.unrealizedPnLPercent || 0)
+        sorted.sort(
+            (a, b) =>
+                Number(
+                    b.unrealizedPnLPercent ||
+                    0
+                ) -
+                Number(
+                    a.unrealizedPnLPercent ||
+                    0
+                )
         );
 
     }
+
 
     return sorted;
 
@@ -1314,45 +1572,80 @@ function sortPortfolioPositions(positions) {
 
 function sortClosedTrades(trades) {
 
-    const sorted = [...(trades || [])];
+    const sorted =
+        [...(trades || [])];
 
-    if (closedTradeSort === "sellDateAsc") {
 
-        sorted.sort((a, b) =>
-            String(a.sellDate || "").localeCompare(
-                String(b.sellDate || "")
-            )
+    if (
+        closedTradeSort ===
+        "sellDateAsc"
+    ) {
+
+        sorted.sort(
+            (a, b) =>
+                String(
+                    a.sellDate || ""
+                ).localeCompare(
+                    String(
+                        b.sellDate || ""
+                    )
+                )
         );
 
     }
 
-    else if (closedTradeSort === "sellDateDesc") {
+    else if (
+        closedTradeSort ===
+        "sellDateDesc"
+    ) {
 
-        sorted.sort((a, b) =>
-            String(b.sellDate || "").localeCompare(
-                String(a.sellDate || "")
-            )
+        sorted.sort(
+            (a, b) =>
+                String(
+                    b.sellDate || ""
+                ).localeCompare(
+                    String(
+                        a.sellDate || ""
+                    )
+                )
         );
 
     }
 
-    else if (closedTradeSort === "returnAsc") {
+    else if (
+        closedTradeSort ===
+        "returnAsc"
+    ) {
 
-        sorted.sort((a, b) =>
-            Number(a.pnlPercent || 0) -
-            Number(b.pnlPercent || 0)
+        sorted.sort(
+            (a, b) =>
+                Number(
+                    a.pnlPercent || 0
+                ) -
+                Number(
+                    b.pnlPercent || 0
+                )
         );
 
     }
 
-    else if (closedTradeSort === "returnDesc") {
+    else if (
+        closedTradeSort ===
+        "returnDesc"
+    ) {
 
-        sorted.sort((a, b) =>
-            Number(b.pnlPercent || 0) -
-            Number(a.pnlPercent || 0)
+        sorted.sort(
+            (a, b) =>
+                Number(
+                    b.pnlPercent || 0
+                ) -
+                Number(
+                    a.pnlPercent || 0
+                )
         );
 
     }
+
 
     return sorted;
 
@@ -1362,19 +1655,25 @@ function sortClosedTrades(trades) {
 function setupPortfolioSort() {
 
     const select =
-        document.getElementById("portfolioSort");
+        document.getElementById(
+            "portfolioSort"
+        );
+
 
     if (select) {
 
         select.value =
             portfolioSort;
 
+
         if (
-            select.dataset.bound !== "true"
+            select.dataset.bound !==
+            "true"
         ) {
 
             select.dataset.bound =
                 "true";
+
 
             select.addEventListener(
                 "change",
@@ -1398,17 +1697,21 @@ function setupPortfolioSort() {
             "closedTradeSort"
         );
 
+
     if (closedSelect) {
 
         closedSelect.value =
             closedTradeSort;
 
+
         if (
-            closedSelect.dataset.bound !== "true"
+            closedSelect.dataset.bound !==
+            "true"
         ) {
 
             closedSelect.dataset.bound =
                 "true";
+
 
             closedSelect.addEventListener(
                 "change",
@@ -1427,6 +1730,7 @@ function setupPortfolioSort() {
     }
 
 }
+
 
 // ============================================================
 // PORTFOLIO PAGE
@@ -1463,16 +1767,19 @@ function portfolioPage() {
 
             <div class="panel-header">
 
+
                 <div>
 
                     <h2 class="panel-title">
                         💼 My Portfolio
                     </h2>
 
+
                     <div class="portfolio-subtitle">
 
                         ₹${money(
-                            portfolio.allocationPerStock || 5000
+                            portfolio.allocationPerStock ||
+                            5000
                         )}
                         allocated to every BUY signal
 
@@ -1500,6 +1807,7 @@ function portfolioPage() {
                         TOTAL INVESTED
                     </div>
 
+
                     <div class="portfolio-stat-value">
 
                         ₹${money(
@@ -1517,6 +1825,7 @@ function portfolioPage() {
                         CURRENT VALUE
                     </div>
 
+
                     <div class="portfolio-stat-value">
 
                         ₹${money(
@@ -1533,6 +1842,7 @@ function portfolioPage() {
                     <div class="portfolio-stat-label">
                         TOTAL P&L
                     </div>
+
 
                     <div class="
                         portfolio-stat-value
@@ -1557,6 +1867,7 @@ function portfolioPage() {
                     <div class="portfolio-stat-label">
                         TOTAL RETURN
                     </div>
+
 
                     <div class="
                         portfolio-stat-value
@@ -1603,6 +1914,7 @@ function portfolioPage() {
                         REALIZED P&L
                     </div>
 
+
                     <div class="
                         portfolio-stat-value
                         ${pnlClass(
@@ -1612,14 +1924,16 @@ function portfolioPage() {
 
                         ${
                             Number(
-                                portfolio.realizedPnL || 0
+                                portfolio.realizedPnL ||
+                                0
                             ) >= 0
                                 ? "+"
                                 : ""
                         }₹${money(
                             Math.abs(
                                 Number(
-                                    portfolio.realizedPnL || 0
+                                    portfolio.realizedPnL ||
+                                    0
                                 )
                             )
                         )}
@@ -1635,6 +1949,7 @@ function portfolioPage() {
                         UNREALIZED P&L
                     </div>
 
+
                     <div class="
                         portfolio-stat-value
                         ${pnlClass(
@@ -1644,14 +1959,16 @@ function portfolioPage() {
 
                         ${
                             Number(
-                                portfolio.unrealizedPnL || 0
+                                portfolio.unrealizedPnL ||
+                                0
                             ) >= 0
                                 ? "+"
                                 : ""
                         }₹${money(
                             Math.abs(
                                 Number(
-                                    portfolio.unrealizedPnL || 0
+                                    portfolio.unrealizedPnL ||
+                                    0
                                 )
                             )
                         )}
@@ -1666,6 +1983,7 @@ function portfolioPage() {
                     <div class="portfolio-stat-label">
                         WINNING TRADES
                     </div>
+
 
                     <div class="
                         portfolio-stat-value
@@ -1684,6 +2002,7 @@ function portfolioPage() {
                     <div class="portfolio-stat-label">
                         LOSING TRADES
                     </div>
+
 
                     <div class="
                         portfolio-stat-value
@@ -1716,12 +2035,14 @@ function portfolioPage() {
                     📈 Open Positions
                 </h2>
 
+
                 <div style="
                     display:flex;
                     align-items:center;
                     gap:10px;
                     flex-wrap:wrap;
                 ">
+
 
                     <select
                         id="portfolioSort"
@@ -1733,23 +2054,29 @@ function portfolioPage() {
                         "
                     >
 
+
                         <option value="buyDateDesc">
                             Buy Date — Newest First
                         </option>
+
 
                         <option value="buyDateAsc">
                             Buy Date — Oldest First
                         </option>
 
+
                         <option value="returnDesc">
                             Return — Highest First
                         </option>
+
 
                         <option value="returnAsc">
                             Return — Lowest First
                         </option>
 
+
                     </select>
+
 
                     <span class="panel-count">
 
@@ -1757,6 +2084,7 @@ function portfolioPage() {
                         stocks
 
                     </span>
+
 
                 </div>
 
@@ -1838,12 +2166,14 @@ function portfolioPage() {
                     📕 Closed Trades
                 </h2>
 
+
                 <div style="
                     display:flex;
                     align-items:center;
                     gap:10px;
                     flex-wrap:wrap;
                 ">
+
 
                     <select
                         id="closedTradeSort"
@@ -1855,23 +2185,29 @@ function portfolioPage() {
                         "
                     >
 
+
                         <option value="sellDateDesc">
                             Sell Date — Newest First
                         </option>
+
 
                         <option value="sellDateAsc">
                             Sell Date — Oldest First
                         </option>
 
+
                         <option value="returnDesc">
                             Return — Highest First
                         </option>
+
 
                         <option value="returnAsc">
                             Return — Lowest First
                         </option>
 
+
                     </select>
+
 
                     <span class="panel-count">
 
@@ -1879,6 +2215,7 @@ function portfolioPage() {
                         trades
 
                     </span>
+
 
                 </div>
 
@@ -1974,6 +2311,7 @@ function portfolioPage() {
                         OPEN POSITIONS
                     </div>
 
+
                     <div class="portfolio-stat-value">
 
                         ${portfolio.openPositionsCount || 0}
@@ -1989,6 +2327,7 @@ function portfolioPage() {
                         TOTAL CLOSED TRADES
                     </div>
 
+
                     <div class="portfolio-stat-value">
 
                         ${portfolio.totalTrades || 0}
@@ -2003,6 +2342,7 @@ function portfolioPage() {
                     <div class="portfolio-stat-label">
                         WINNING
                     </div>
+
 
                     <div class="
                         portfolio-stat-value
@@ -2021,6 +2361,7 @@ function portfolioPage() {
                     <div class="portfolio-stat-label">
                         LOSING
                     </div>
+
 
                     <div class="
                         portfolio-stat-value
@@ -2199,6 +2540,7 @@ function closedTradeRow(trade) {
 
                 </button>
 
+
                 <div style="
                     margin-top:4px;
                     font-size:11px;
@@ -2206,9 +2548,15 @@ function closedTradeRow(trade) {
                     color:#7d8fa8;
                 ">
 
-                    Buy: ${escapeHtml(trade.buyDate || "—")}
+                    Buy: ${escapeHtml(
+                        trade.buyDate || "—"
+                    )}
+
                     <br>
-                    Sell: ${escapeHtml(trade.sellDate || "—")}
+
+                    Sell: ${escapeHtml(
+                        trade.sellDate || "—"
+                    )}
 
                 </div>
 
