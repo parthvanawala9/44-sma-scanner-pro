@@ -1,858 +1,319 @@
+// पूरा App.js नीचे है — सीधे copy करके dashboard/app.js में paste करो।
+
 // ============================================================
 // 44 SMA SCANNER PRO
 // DASHBOARD + PORTFOLIO
 // ============================================================
 
-
-// ============================================================
-// DATA
-// ============================================================
-
 let signals = {
-
     buy: [],
     sell: [],
-
     scanned: 0,
     skipped: 0,
-
     scannedAt: null,
-
     buyCount: 0,
     sellCount: 0,
-
     universe: "NIFTY 500",
     universeCount: 0
-
 };
 
-
 let history = [];
-
-
 let portfolio = {
-
     allocationPerStock: 5000,
-
     openPositions: [],
     closedTrades: [],
-    pendingOrders: [],
-
     realizedPnL: 0,
     unrealizedPnL: 0,
-
     totalInvested: 0,
     totalCurrentValue: 0,
-
     totalPnL: 0,
     totalPnLPercent: 0,
-
     openPositionsCount: 0,
-
     totalTrades: 0,
     winningTrades: 0,
     losingTrades: 0
-
 };
 
-
 let currentTab = "dashboard";
-
 let currentChartRows = null;
-
 let portfolioSort = "buyDateDesc";
-
 let closedTradeSort = "sellDateDesc";
-
 let isLoadingData = false;
 
-
-// ============================================================
-// HELPERS
-// ============================================================
-
-const $ = selector =>
-    document.querySelector(selector);
-
+const $ = selector => document.querySelector(selector);
 
 function money(value) {
-
     const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "—";
-    }
-
-    return number.toLocaleString(
-        "en-IN",
-        {
-            maximumFractionDigits: 2
-        }
-    );
-
+    if (!Number.isFinite(number)) return "—";
+    return number.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
-
 
 function percentage(value) {
-
     const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return "—";
-    }
-
-    const sign =
-        number >= 0
-            ? "+"
-            : "";
-
-    return (
-        sign +
-        number.toFixed(2) +
-        "%"
-    );
-
+    if (!Number.isFinite(number)) return "—";
+    const sign = number >= 0 ? "+" : "";
+    return sign + number.toFixed(2) + "%";
 }
-
 
 function pnlClass(value) {
-
     const number = Number(value);
-
-    if (number > 0) {
-        return "green";
-    }
-
-    if (number < 0) {
-        return "red";
-    }
-
+    if (number > 0) return "green";
+    if (number < 0) return "red";
     return "";
-
 }
-
 
 function escapeHtml(value) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
-
-// ============================================================
-// LOAD DATA
-// ============================================================
-
 async function loadData(options = {}) {
-
-    if (isLoadingData) {
-        return;
-    }
+    if (isLoadingData) return;
 
     isLoadingData = true;
 
-    const refreshButton =
-        findRefreshButton();
-
-    const originalRefreshText =
-        refreshButton
-            ? refreshButton.textContent
-            : null;
+    const refreshButton = findRefreshButton();
+    const originalRefreshText = refreshButton ? refreshButton.textContent : null;
 
     if (refreshButton) {
-
         refreshButton.disabled = true;
-
-        refreshButton.dataset.loading =
-            "true";
-
-        refreshButton.textContent =
-            "↻ Loading...";
-
-        refreshButton.style.opacity =
-            "0.7";
-
-        refreshButton.style.cursor =
-            "wait";
-
+        refreshButton.dataset.loading = "true";
+        refreshButton.textContent = "↻ Loading...";
+        refreshButton.style.opacity = "0.7";
+        refreshButton.style.cursor = "wait";
     }
 
-
     try {
+        const timestamp = Date.now();
 
-        const timestamp =
-            Date.now();
-
-
-        // ====================================================
-        // SIGNAL DATA
-        // ====================================================
-
-        const signalResponse =
-            await fetch(
-                "./data/signals.json?" + timestamp,
-                {
-                    cache: "no-store"
-                }
-            );
-
+        const signalResponse = await fetch("./data/signals.json?" + timestamp, {
+            cache: "no-store"
+        });
 
         if (!signalResponse.ok) {
-
-            throw new Error(
-                "signals.json could not be loaded"
-            );
-
+            throw new Error("signals.json could not be loaded");
         }
 
+        const signalData = await signalResponse.json();
 
-        const signalData =
-            await signalResponse.json();
-
-
-        if (
-            !signalData ||
-            typeof signalData !== "object"
-        ) {
-
-            throw new Error(
-                "signals.json contains invalid data"
-            );
-
+        if (!signalData || typeof signalData !== "object") {
+            throw new Error("signals.json contains invalid data");
         }
 
-
-        signals =
-            signalData;
-
-
-        // ====================================================
-        // HISTORY DATA
-        // ====================================================
+        signals = signalData;
 
         try {
-
-            const historyResponse =
-                await fetch(
-                    "./data/history.json?" + timestamp,
-                    {
-                        cache: "no-store"
-                    }
-                );
-
+            const historyResponse = await fetch("./data/history.json?" + timestamp, {
+                cache: "no-store"
+            });
 
             if (historyResponse.ok) {
-
-                const historyData =
-                    await historyResponse.json();
-
-
-                if (Array.isArray(historyData)) {
-
-                    history =
-                        historyData;
-
-                } else {
-
-                    history = [];
-
-                }
-
+                const historyData = await historyResponse.json();
+                history = Array.isArray(historyData) ? historyData : [];
             } else {
-
                 history = [];
-
             }
-
         } catch (historyError) {
-
-            console.error(
-                "History data error:",
-                historyError
-            );
-
+            console.error("History data error:", historyError);
             history = [];
-
         }
 
-
-        // ====================================================
-        // PORTFOLIO DATA
-        //
-        // IMPORTANT:
-        // Portfolio is isolated from scanner data.
-        // A portfolio problem must NEVER stop the
-        // main scanner dashboard from loading.
-        // ====================================================
-
         try {
-
-            const portfolioResponse =
-                await fetch(
-                    "./data/portfolio.json?" + timestamp,
-                    {
-                        cache: "no-store"
-                    }
-                );
-
+            const portfolioResponse = await fetch("./data/portfolio.json?" + timestamp, {
+                cache: "no-store"
+            });
 
             if (portfolioResponse.ok) {
-
-                const portfolioData =
-                    await portfolioResponse.json();
-
+                const portfolioData = await portfolioResponse.json();
 
                 if (
                     portfolioData &&
                     typeof portfolioData === "object" &&
                     !Array.isArray(portfolioData)
                 ) {
-
-                    portfolio =
-                        portfolioData;
-
+                    portfolio = portfolioData;
                 } else {
-
-                    console.error(
-                        "portfolio.json contains invalid object data"
-                    );
-
-                    portfolio =
-                        createEmptyPortfolio();
-
+                    console.error("portfolio.json contains invalid object data");
+                    portfolio = createEmptyPortfolio();
                 }
-
             } else {
-
                 console.error(
                     "portfolio.json HTTP error:",
                     portfolioResponse.status
                 );
-
-                portfolio =
-                    createEmptyPortfolio();
-
+                portfolio = createEmptyPortfolio();
             }
-
         } catch (portfolioError) {
-
-            /*
-             * IMPORTANT:
-             * Do not allow portfolio parsing/loading
-             * to break the complete dashboard.
-             */
-
-            console.error(
-                "Portfolio data error:",
-                portfolioError
-            );
-
-            portfolio =
-                createEmptyPortfolio();
-
+            console.error("Portfolio data error:", portfolioError);
+            portfolio = createEmptyPortfolio();
         }
 
-
-        // ====================================================
-        // NORMALIZE PORTFOLIO
-        // ====================================================
-
         try {
-
             normalizePortfolio();
-
         } catch (normalizeError) {
-
             console.error(
                 "Portfolio normalization error:",
                 normalizeError
             );
-
-            portfolio =
-                createEmptyPortfolio();
-
+            portfolio = createEmptyPortfolio();
         }
-
-
-        // ====================================================
-        // LAST SCAN
-        // ====================================================
 
         updateLastScan();
 
-
-        // ====================================================
-        // RENDER
-        // ====================================================
-
         try {
-
             render();
-
         } catch (renderError) {
-
-            /*
-             * If portfolio data somehow causes a rendering
-             * problem, render the dashboard once again with
-             * a clean portfolio object.
-             */
-
-            console.error(
-                "Dashboard render error:",
-                renderError
-            );
-
-
-            portfolio =
-                createEmptyPortfolio();
-
+            console.error("Dashboard render error:", renderError);
+            portfolio = createEmptyPortfolio();
 
             try {
-
                 render();
-
             } catch (secondRenderError) {
-
                 console.error(
                     "Second dashboard render error:",
                     secondRenderError
                 );
-
                 throw secondRenderError;
-
             }
-
         }
 
-
-        console.log(
-            "44 SMA data loaded successfully"
-        );
-
-        console.log(
-            "Signals:",
-            signals
-        );
-
-        console.log(
-            "History:",
-            history
-        );
-
-        console.log(
-            "Portfolio:",
-            portfolio
-        );
-
-
+        console.log("44 SMA data loaded successfully");
+        console.log("Signals:", signals);
+        console.log("History:", history);
+        console.log("Portfolio:", portfolio);
     } catch (error) {
-
-        console.error(
-            "Dashboard data error:",
-            error
-        );
-
-
-        renderError(
-            "Unable to load dashboard data."
-        );
-
-
+        console.error("Dashboard data error:", error);
+        renderError("Unable to load dashboard data.");
     } finally {
-
         isLoadingData = false;
 
-
-        const button =
-            findRefreshButton();
-
+        const button = findRefreshButton();
 
         if (button) {
-
             button.disabled = false;
-
-            button.dataset.loading =
-                "false";
-
-            button.textContent =
-                originalRefreshText ||
-                "↻ Refresh";
-
-            button.style.opacity =
-                "";
-
-            button.style.cursor =
-                "";
-
+            button.dataset.loading = "false";
+            button.textContent = originalRefreshText || "↻ Refresh";
+            button.style.opacity = "";
+            button.style.cursor = "";
         }
-
     }
-
 }
 
-
-// ============================================================
-// PORTFOLIO HELPERS
-// ============================================================
-
 function createEmptyPortfolio() {
-
     return {
-
         allocationPerStock: 5000,
-
         openPositions: [],
         closedTrades: [],
         pendingOrders: [],
-
         realizedPnL: 0,
         unrealizedPnL: 0,
-
         totalInvested: 0,
         totalCurrentValue: 0,
-
         totalPnL: 0,
         totalPnLPercent: 0,
-
         openPositionsCount: 0,
-
         totalTrades: 0,
         winningTrades: 0,
         losingTrades: 0
-
     };
-
 }
-
 
 function normalizePortfolio() {
-
-    if (
-        !portfolio ||
-        typeof portfolio !== "object" ||
-        Array.isArray(portfolio)
-    ) {
-
-        portfolio =
-            createEmptyPortfolio();
-
-        return;
-
+    if (!portfolio || typeof portfolio !== "object") {
+        portfolio = createEmptyPortfolio();
     }
 
-
-    const defaults =
-        createEmptyPortfolio();
-
-
-    Object.keys(defaults).forEach(
-        key => {
-
-            if (
-                portfolio[key] === undefined ||
-                portfolio[key] === null
-            ) {
-
-                portfolio[key] =
-                    defaults[key];
-
-            }
-
-        }
-    );
-
-
-    if (
-        !Array.isArray(
-            portfolio.openPositions
-        )
-    ) {
-
+    if (!Array.isArray(portfolio.openPositions)) {
         portfolio.openPositions = [];
-
     }
 
-
-    if (
-        !Array.isArray(
-            portfolio.closedTrades
-        )
-    ) {
-
+    if (!Array.isArray(portfolio.closedTrades)) {
         portfolio.closedTrades = [];
-
     }
 
-
-    if (
-        !Array.isArray(
-            portfolio.pendingOrders
-        )
-    ) {
-
-        portfolio.pendingOrders = [];
-
+    if (!Number.isFinite(Number(portfolio.allocationPerStock))) {
+        portfolio.allocationPerStock = 5000;
     }
 
-
-    portfolio.allocationPerStock =
-        Number(
-            portfolio.allocationPerStock
-        ) || 5000;
-
-
-    portfolio.realizedPnL =
-        Number(
-            portfolio.realizedPnL
-        ) || 0;
-
-
-    portfolio.unrealizedPnL =
-        Number(
-            portfolio.unrealizedPnL
-        ) || 0;
-
-
-    portfolio.totalInvested =
-        Number(
-            portfolio.totalInvested
-        ) || 0;
-
-
-    portfolio.totalCurrentValue =
-        Number(
-            portfolio.totalCurrentValue
-        ) || 0;
-
-
-    portfolio.totalPnL =
-        Number(
-            portfolio.totalPnL
-        ) || 0;
-
-
-    portfolio.totalPnLPercent =
-        Number(
-            portfolio.totalPnLPercent
-        ) || 0;
-
+    portfolio.realizedPnL = Number(portfolio.realizedPnL) || 0;
+    portfolio.unrealizedPnL = Number(portfolio.unrealizedPnL) || 0;
+    portfolio.totalInvested = Number(portfolio.totalInvested) || 0;
+    portfolio.totalCurrentValue = Number(portfolio.totalCurrentValue) || 0;
+    portfolio.totalPnL = Number(portfolio.totalPnL) || 0;
+    portfolio.totalPnLPercent = Number(portfolio.totalPnLPercent) || 0;
 
     portfolio.openPositionsCount =
-        Number(
-            portfolio.openPositionsCount
-        ) ||
         portfolio.openPositions.length;
 
-}
+    portfolio.totalTrades =
+        Number(portfolio.totalTrades) ||
+        portfolio.closedTrades.length;
 
+    portfolio.winningTrades =
+        Number(portfolio.winningTrades) ||
+        portfolio.closedTrades.filter(
+            trade => Number(trade.pnl) > 0
+        ).length;
+
+    portfolio.losingTrades =
+        Number(portfolio.losingTrades) ||
+        portfolio.closedTrades.filter(
+            trade => Number(trade.pnl) < 0
+        ).length;
+}
 
 function findRefreshButton() {
-
-    const selectors = [
-
-        "#refreshButton",
-        "#refreshBtn",
-        "#refresh",
-        "[data-action='refresh']",
-        "[data-refresh]"
-
-    ];
-
-
-    for (
-        const selector of selectors
-    ) {
-
-        const button =
-            document.querySelector(
-                selector
-            );
-
-
-        if (button) {
-
-            return button;
-
-        }
-
-    }
-
-
-    const buttons =
+    return (
+        document.querySelector(
+            '[data-action="refresh"]'
+        ) ||
+        document.querySelector(
+            "#refreshButton"
+        ) ||
+        document.querySelector(
+            ".refresh-btn"
+        ) ||
         Array.from(
-            document.querySelectorAll(
-                "button"
-            )
-        );
-
-
-    return buttons.find(
-        button =>
-            /refresh/i.test(
-                button.textContent || ""
-            )
-    ) || null;
-
-}
-
-
-function setupRefreshButton() {
-
-    const button =
-        findRefreshButton();
-
-
-    if (!button) {
-
-        return;
-
-    }
-
-
-    if (
-        button.dataset.refreshBound ===
-        "true"
-    ) {
-
-        return;
-
-    }
-
-
-    button.dataset.refreshBound =
-        "true";
-
-
-    button.addEventListener(
-        "click",
-        event => {
-
-            event.preventDefault();
-
-            event.stopPropagation();
-
-
-            if (isLoadingData) {
-
-                return;
-
-            }
-
-
-            loadData({
-                manual: true
-            });
-
-        }
+            document.querySelectorAll("button")
+        ).find(
+            button =>
+                /refresh/i.test(
+                    button.textContent || ""
+                )
+        )
     );
-
 }
-
-
-// ============================================================
-// ERROR
-// ============================================================
-
-function renderError(message) {
-
-    const content =
-        $("#content");
-
-
-    if (!content) {
-        return;
-    }
-
-
-    content.innerHTML = `
-
-        <div class="panel">
-
-            <div class="empty">
-
-                ⚠️ ${escapeHtml(message)}
-
-                <br><br>
-
-                Please reload the dashboard
-                after the latest GitHub Pages
-                deployment is complete.
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-// ============================================================
-// LAST SCAN
-// ============================================================
 
 function updateLastScan() {
-
     const element =
-        $("#lastScan");
+        document.getElementById("lastScan");
 
+    if (!element) return;
 
-    if (!element) {
+    const value =
+        signals.scannedAt ||
+        signals.scanDate ||
+        signals.date ||
+        null;
+
+    if (!value) {
+        element.textContent = "Last scan: —";
         return;
     }
 
+    const date = new Date(value);
 
-    if (!signals.scannedAt) {
-
+    if (Number.isNaN(date.getTime())) {
         element.textContent =
-            "Last scan: Not scanned yet";
+            "Last scan: " +
+            String(value);
 
         return;
-
     }
-
-
-    const date =
-        new Date(
-            signals.scannedAt
-        );
-
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        element.textContent =
-            "Last scan: —";
-
-        return;
-
-    }
-
 
     element.textContent =
         "Last scan: " +
@@ -863,2889 +324,1611 @@ function updateLastScan() {
                 timeStyle: "short"
             }
         );
-
 }
 
-
-// ============================================================
-// SIGNAL BADGE
-// ============================================================
-
-function signalBadge(signal) {
-
-    if (signal === "BUY") {
-
-        return `
-
-            <span class="
-                signal-badge
-                signal-buy
-            ">
-                BUY
-            </span>
-
-        `;
-
-    }
-
-
-    if (signal === "SELL") {
-
-        return `
-
-            <span class="
-                signal-badge
-                signal-sell
-            ">
-                SELL
-            </span>
-
-        `;
-
-    }
-
-
-    return "";
-
+function render() {
+    renderNavigation();
+    renderDashboard();
+    renderSignals();
+    renderPortfolio();
+    renderHistory();
+    renderCurrentView();
 }
 
+function renderNavigation() {
+    document
+        .querySelectorAll(
+            "[data-tab]"
+        )
+        .forEach(
+            element => {
+                const tab =
+                    element.dataset.tab;
 
-// ============================================================
-// STOCK ROW
-// ============================================================
+                element.classList.toggle(
+                    "active",
+                    tab === currentTab
+                );
+            }
+        );
+}
 
-function stockRow(item) {
+function renderCurrentView() {
+    document
+        .querySelectorAll(
+            "[data-page]"
+        )
+        .forEach(
+            page => {
+                const pageName =
+                    page.dataset.page;
+
+                page.style.display =
+                    pageName === currentTab
+                        ? ""
+                        : "none";
+            }
+        );
+}
+
+function getBuySignals() {
+    if (
+        signals &&
+        Array.isArray(
+            signals.buy
+        )
+    ) {
+        return signals.buy;
+    }
+
+    if (
+        signals &&
+        Array.isArray(
+            signals.buys
+        )
+    ) {
+        return signals.buys;
+    }
+
+    return [];
+}
+
+function getSellSignals() {
+    if (
+        signals &&
+        Array.isArray(
+            signals.sell
+        )
+    ) {
+        return signals.sell;
+    }
+
+    if (
+        signals &&
+        Array.isArray(
+            signals.sells
+        )
+    ) {
+        return signals.sells;
+    }
+
+    return [];
+}
+
+function renderDashboard() {
+    const buySignals =
+        getBuySignals();
+
+    const sellSignals =
+        getSellSignals();
+
+    const scanned =
+        Number(
+            signals.scanned
+        ) ||
+        Number(
+            signals.universeCount
+        ) ||
+        0;
+
+    const skipped =
+        Number(
+            signals.skipped
+        ) ||
+        0;
+
+    const buyCount =
+        buySignals.length;
+
+    const sellCount =
+        sellSignals.length;
+
+    setText(
+        [
+            "buyCount",
+            "totalBuys",
+            "dashboardBuyCount"
+        ],
+        buyCount
+    );
+
+    setText(
+        [
+            "sellCount",
+            "totalSells",
+            "dashboardSellCount"
+        ],
+        sellCount
+    );
+
+    setText(
+        [
+            "scannedCount",
+            "totalScanned",
+            "dashboardScannedCount"
+        ],
+        scanned
+    );
+
+    setText(
+        [
+            "skippedCount",
+            "totalSkipped",
+            "dashboardSkippedCount"
+        ],
+        skipped
+    );
+
+    setText(
+        [
+            "universeCount",
+            "dashboardUniverseCount"
+        ],
+        Number(
+            signals.universeCount
+        ) ||
+        scanned
+    );
+
+    renderSignalSummary(
+        buySignals,
+        sellSignals
+    );
+}
+
+function setText(
+    ids,
+    value
+) {
+    ids.forEach(
+        id => {
+            const element =
+                document.getElementById(
+                    id
+                );
+
+            if (element) {
+                element.textContent =
+                    String(value);
+            }
+        }
+    );
+}
+
+function renderSignalSummary(
+    buySignals,
+    sellSignals
+) {
+    const container =
+        document.getElementById(
+            "signalSummary"
+        );
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="summary-card">
+            <div class="summary-label">BUY</div>
+            <div class="summary-value green">${buySignals.length}</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">SELL</div>
+            <div class="summary-value red">${sellSignals.length}</div>
+        </div>
+    `;
+}
+
+function renderSignals() {
+    renderBuyTable();
+    renderSellTable();
+}
+
+function renderBuyTable() {
+    const container =
+        document.getElementById(
+            "buyTableBody"
+        ) ||
+        document.getElementById(
+            "buySignalsBody"
+        );
+
+    if (!container) return;
+
+    const rows =
+        getBuySignals();
+
+    if (!rows.length) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="10" class="empty-state">
+                    No BUY signals today
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        rows
+            .map(
+                item =>
+                    signalRow(
+                        item,
+                        "BUY"
+                    )
+            )
+            .join("");
+}
+
+function renderSellTable() {
+    const container =
+        document.getElementById(
+            "sellTableBody"
+        ) ||
+        document.getElementById(
+            "sellSignalsBody"
+        );
+
+    if (!container) return;
+
+    const rows =
+        getSellSignals();
+
+    if (!rows.length) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="10" class="empty-state">
+                    No SELL signals today
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        rows
+            .map(
+                item =>
+                    signalRow(
+                        item,
+                        "SELL"
+                    )
+            )
+            .join("");
+}
+
+function signalRow(
+    item,
+    type
+) {
+    const symbol =
+        item.symbol ||
+        item.ticker ||
+        item.name ||
+        "—";
+
+    const close =
+        Number(
+            item.close ??
+            item.closePrice ??
+            item.price
+        );
+
+    const open =
+        Number(
+            item.open
+        );
+
+    const sma44 =
+        Number(
+            item.sma44 ??
+            item.SMA44
+        );
+
+    const sma100 =
+        Number(
+            item.sma100 ??
+            item.SMA100
+        );
+
+    const sma200 =
+        Number(
+            item.sma200 ??
+            item.SMA200
+        );
 
     const distance =
         Number(
-            item.distanceFrom44
+            item.distanceFrom44 ??
+            item.buyDistanceFrom44
         );
 
+    const rowData =
+        encodeURIComponent(
+            JSON.stringify(
+                item
+            )
+        );
 
     return `
-
         <tr>
-
             <td>
-
+                <strong>${escapeHtml(symbol)}</strong>
+            </td>
+            <td>₹${money(close)}</td>
+            <td>₹${money(sma44)}</td>
+            <td>₹${money(sma100)}</td>
+            <td>₹${money(sma200)}</td>
+            <td>${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
+            <td>${Number.isFinite(open) && Number.isFinite(close) ? (close > open ? "🟢 Green" : "🔴 Red") : "—"}</td>
+            <td>
+                <span class="signal-badge ${type === "BUY" ? "buy" : "sell"}">
+                    ${type}
+                </span>
+            </td>
+            <td>
                 <button
-                    type="button"
-                    class="stock-button"
-                    data-symbol="${escapeHtml(
-                        item.symbol
-                    )}"
+                    class="view-chart-btn"
+                    onclick="openStockChartFromEncoded('${rowData}')"
                 >
-
-                    ${escapeHtml(
-                        item.symbol
-                    )}
-
+                    Chart
                 </button>
-
             </td>
-
-
-            <td>
-
-                ${signalBadge(
-                    item.signal
-                )}
-
-            </td>
-
-
-            <td>
-                ₹${money(item.Close)}
-            </td>
-
-
-            <td>
-                ₹${money(item.sma44)}
-            </td>
-
-
-            <td class="${
-                distance >= 0
-                    ? "green"
-                    : "red"
-            }">
-
-                ${percentage(
-                    distance
-                )}
-
-            </td>
-
-
-            <td>
-                ₹${money(item.sma100)}
-            </td>
-
-
-            <td>
-                ₹${money(item.sma200)}
-            </td>
-
-
-            <td class="muted">
-
-                ${escapeHtml(
-                    item.date || "—"
-                )}
-
-            </td>
-
         </tr>
-
     `;
-
 }
 
+function renderPortfolio() {
+    renderPortfolioStrategy();
+    renderPortfolioSummary();
+    renderOpenPositions();
+    renderClosedTrades();
+}
 
-// ============================================================
-// STOCK TABLE
-// ============================================================
+function renderPortfolioStrategy() {
+    const container =
+        document.getElementById(
+            "portfolioExitStrategy"
+        );
 
-function stockTable(items) {
+    if (!container) return;
 
-    if (
-        !items ||
-        items.length === 0
-    ) {
+    container.innerHTML = `
+        <div class="portfolio-strategy-title">
+            🎯 Portfolio Exit Strategy
+        </div>
 
-        return `
+        <div class="portfolio-strategy-grid">
 
-            <div class="empty">
-
-                No qualifying stocks found.
-
+            <div class="portfolio-strategy-item">
+                <strong>🛑 Basic Stop Loss</strong>
+                <span>-5%</span>
+                <small>
+                    Buy Price से 5% नीचे Close होने पर SELL
+                </small>
             </div>
 
+            <div class="portfolio-strategy-item">
+                <strong>🎯 Target</strong>
+                <span>+20%</span>
+                <small>
+                    Buy Price से 20% ऊपर Close होने पर SELL
+                </small>
+            </div>
+
+            <div class="portfolio-strategy-item">
+                <strong>📉 Trailing Stop Loss</strong>
+                <span>Close &lt; 44 SMA</span>
+                <small>
+                    Daily Close 44 SMA के नीचे होने पर SELL
+                </small>
+            </div>
+
+        </div>
+
+        <div class="portfolio-strategy-note">
+            जो condition पहले trigger होगी, उसी पर पूरा position EXIT होगा.
+        </div>
+    `;
+}
+
+function renderPortfolioSummary() {
+    const openPositions =
+        Array.isArray(
+            portfolio.openPositions
+        )
+            ? portfolio.openPositions
+            : [];
+
+    let invested = 0;
+    let currentValue = 0;
+    let unrealized = 0;
+
+    openPositions.forEach(
+        position => {
+            const quantity =
+                Number(
+                    position.quantity ??
+                    position.qty
+                ) || 0;
+
+            const buyPrice =
+                Number(
+                    position.buyPrice
+                ) || 0;
+
+            const currentPrice =
+                Number(
+                    position.currentPrice ??
+                    position.current ??
+                    position.close ??
+                    position.buyPrice
+                ) || 0;
+
+            invested +=
+                quantity *
+                buyPrice;
+
+            currentValue +=
+                quantity *
+                currentPrice;
+
+            unrealized +=
+                quantity *
+                (
+                    currentPrice -
+                    buyPrice
+                );
+        }
+    );
+
+    const realized =
+        Number(
+            portfolio.realizedPnL
+        ) || 0;
+
+    const totalPnL =
+        realized +
+        unrealized;
+
+    const totalInvested =
+        Number(
+            portfolio.totalInvested
+        ) ||
+        invested;
+
+    const totalCurrentValue =
+        Number(
+            portfolio.totalCurrentValue
+        ) ||
+        currentValue;
+
+    const pnlPercent =
+        totalInvested
+            ? (
+                totalPnL /
+                totalInvested
+            ) *
+            100
+            : 0;
+
+    setText(
+        [
+            "portfolioInvested",
+            "totalInvested"
+        ],
+        "₹" +
+            money(
+                totalInvested
+            )
+    );
+
+    setText(
+        [
+            "portfolioCurrentValue",
+            "totalCurrentValue"
+        ],
+        "₹" +
+            money(
+                totalCurrentValue
+            )
+    );
+
+    setText(
+        [
+            "portfolioPnL",
+            "totalPortfolioPnL"
+        ],
+        "₹" +
+            money(
+                totalPnL
+            )
+    );
+
+    setText(
+        [
+            "portfolioReturn",
+            "totalPortfolioReturn"
+        ],
+        percentage(
+            pnlPercent
+        )
+    );
+
+    setText(
+        [
+            "openPositionsCount",
+            "portfolioOpenCount"
+        ],
+        openPositions.length
+    );
+
+    setText(
+        [
+            "closedTradesCount",
+            "portfolioClosedCount"
+        ],
+        Array.isArray(
+            portfolio.closedTrades
+        )
+            ? portfolio.closedTrades.length
+            : 0
+    );
+}
+
+function renderOpenPositions() {
+    const container =
+        document.getElementById(
+            "portfolioTableBody"
+        ) ||
+        document.getElementById(
+            "openPositionsBody"
+        );
+
+    if (!container) return;
+
+    let rows =
+        Array.isArray(
+            portfolio.openPositions
+        )
+            ? [
+                ...portfolio.openPositions
+            ]
+            : [];
+
+    rows.sort(
+        (
+            a,
+            b
+        ) => {
+
+            const dateA =
+                new Date(
+                    a.buyDate ||
+                    a.entryDate ||
+                    0
+                ).getTime();
+
+            const dateB =
+                new Date(
+                    b.buyDate ||
+                    b.entryDate ||
+                    0
+                ).getTime();
+
+            return (
+                dateB -
+                dateA
+            );
+
+        }
+    );
+
+    if (!rows.length) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="13" class="empty-state">
+                    No open positions
+                </td>
+            </tr>
         `;
 
-    }
-
-
-    return `
-
-        <div class="table-wrap">
-
-            <table class="table">
-
-                <thead>
-
-                    <tr>
-
-                        <th>Stock</th>
-                        <th>Signal</th>
-                        <th>Close</th>
-                        <th>44 SMA</th>
-                        <th>Vs 44</th>
-                        <th>100 SMA</th>
-                        <th>200 SMA</th>
-                        <th>Date</th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    ${items
-                        .map(stockRow)
-                        .join("")}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    `;
-
-}
-
-
-// ============================================================
-// DASHBOARD
-// ============================================================
-
-function dashboardView() {
-
-    const totalPnL =
-        Number(
-            portfolio.totalPnL || 0
-        );
-
-
-    return `
-
-        <div class="kpi-grid">
-
-
-            <div class="kpi">
-
-                <div class="kpi-label">
-                    BUY TRIGGERS
-                </div>
-
-                <div class="kpi-value green">
-
-                    ${signals.buy.length}
-
-                </div>
-
-                <div class="kpi-sub">
-                    44 SMA support
-                </div>
-
-            </div>
-
-
-            <div class="kpi">
-
-                <div class="kpi-label">
-                    SELL TRIGGERS
-                </div>
-
-                <div class="kpi-value red">
-
-                    ${signals.sell.length}
-
-                </div>
-
-                <div class="kpi-sub">
-                    44 SMA breakdown
-                </div>
-
-            </div>
-
-
-            <div class="kpi">
-
-                <div class="kpi-label">
-                    STOCKS SCANNED
-                </div>
-
-                <div class="kpi-value">
-
-                    ${signals.scanned || 0}
-
-                </div>
-
-                <div class="kpi-sub">
-
-                    ${signals.universeCount || 0}
-                    stocks in NIFTY 500
-
-                </div>
-
-            </div>
-
-
-            <div class="kpi">
-
-                <div class="kpi-label">
-                    PORTFOLIO P&L
-                </div>
-
-                <div class="
-                    kpi-value
-                    ${pnlClass(totalPnL)}
-                ">
-
-                    ₹${money(totalPnL)}
-
-                </div>
-
-                <div class="kpi-sub">
-
-                    ${percentage(
-                        portfolio.totalPnLPercent
-                    )}
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-
-        <div class="
-            panel
-            portfolio-summary-panel
-        ">
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    💼 Portfolio
-                </h2>
-
-                <span class="panel-count">
-
-                    ${portfolio.openPositionsCount || 0}
-                    open positions
-
-                </span>
-
-            </div>
-
-
-            <div class="portfolio-summary-grid">
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        INVESTED
-                    </div>
-
-                    <div class="portfolio-stat-value">
-
-                        ₹${money(
-                            portfolio.totalInvested
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        CURRENT VALUE
-                    </div>
-
-                    <div class="portfolio-stat-value">
-
-                        ₹${money(
-                            portfolio.totalCurrentValue
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        UNREALIZED P&L
-                    </div>
-
-                    <div class="
-                        portfolio-stat-value
-                        ${pnlClass(
-                            portfolio.unrealizedPnL
-                        )}
-                    ">
-
-                        ₹${money(
-                            portfolio.unrealizedPnL
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        REALIZED P&L
-                    </div>
-
-                    <div class="
-                        portfolio-stat-value
-                        ${pnlClass(
-                            portfolio.realizedPnL
-                        )}
-                    ">
-
-                        ₹${money(
-                            portfolio.realizedPnL
-                        )}
-
-                    </div>
-
-                </div>
-
-
-            </div>
-
-
-            <button
-                type="button"
-                class="portfolio-open-button"
-                data-tab="portfolio"
-            >
-
-                View Portfolio →
-
-            </button>
-
-        </div>
-
-
-
-        <div class="two-column">
-
-
-            <div class="panel">
-
-                <div class="panel-header">
-
-                    <h2 class="panel-title">
-                        🟢 BUY
-                    </h2>
-
-                    <span class="panel-count">
-
-                        ${signals.buy.length}
-                        stocks
-
-                    </span>
-
-                </div>
-
-
-                ${stockTable(
-                    signals.buy
-                )}
-
-            </div>
-
-
-
-            <div class="panel">
-
-                <div class="panel-header">
-
-                    <h2 class="panel-title">
-                        🔴 SELL
-                    </h2>
-
-                    <span class="panel-count">
-
-                        ${signals.sell.length}
-                        stocks
-
-                    </span>
-
-                </div>
-
-
-                ${stockTable(
-                    signals.sell
-                )}
-
-            </div>
-
-
-        </div>
-
-
-
-        <div class="panel">
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    44 SMA Strategy
-                </h2>
-
-            </div>
-
-
-            <div class="conditions">
-
-
-                <div class="condition ok">
-                    ✓ 44 SMA greater than
-                    44 SMA 10 days before
-                </div>
-
-
-                <div class="condition ok">
-                    ✓ Stock Low touches
-                    44 SMA
-                </div>
-
-
-                <div class="condition ok">
-                    ✓ Stock Close is above
-                    44 SMA
-                </div>
-
-
-                <div class="condition ok">
-                    ✓ 44 SMA is above
-                    100 SMA
-                </div>
-
-
-                <div class="condition ok">
-                    ✓ 100 SMA is above
-                    200 SMA
-                </div>
-
-
-                <div class="condition ok">
-                    ✓ Green candle
-                </div>
-
-
-                <div class="condition no">
-                    SELL = High touches
-                    44 SMA + Close below
-                    44 SMA
-                </div>
-
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-// ============================================================
-// BUY / SELL PAGE
-// ============================================================
-
-function signalPage(type) {
-
-    const items =
-        type === "buy"
-            ? signals.buy
-            : signals.sell;
-
-
-    return `
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-
-                    ${
-                        type === "buy"
-                            ? "🟢 BUY TRIGGERS"
-                            : "🔴 SELL TRIGGERS"
-                    }
-
-                </h2>
-
-
-                <span class="panel-count">
-
-                    ${items.length}
-                    stocks
-
-                </span>
-
-            </div>
-
-
-            <div class="toolbar">
-
-                <input
-                    id="stockSearch"
-                    class="search"
-                    type="search"
-                    placeholder="Search stock..."
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <div id="signalTable">
-
-                ${stockTable(items)}
-
-            </div>
-
-
-        </div>
-
-    `;
-
-}
-
-
-// ============================================================
-// PORTFOLIO SORTING
-// ============================================================
-
-function sortPortfolioPositions(positions) {
-
-    const sorted =
-        [...(positions || [])];
-
-
-    if (portfolioSort === "buyDateAsc") {
-
-        sorted.sort(
-            (a, b) =>
-                String(
-                    a.buyDate || ""
-                ).localeCompare(
-                    String(
-                        b.buyDate || ""
-                    )
-                )
-        );
-
-    }
-
-    else if (
-        portfolioSort ===
-        "buyDateDesc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                String(
-                    b.buyDate || ""
-                ).localeCompare(
-                    String(
-                        a.buyDate || ""
-                    )
-                )
-        );
-
-    }
-
-    else if (
-        portfolioSort ===
-        "returnAsc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                Number(
-                    a.unrealizedPnLPercent ||
-                    0
-                ) -
-                Number(
-                    b.unrealizedPnLPercent ||
-                    0
-                )
-        );
-
-    }
-
-    else if (
-        portfolioSort ===
-        "returnDesc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                Number(
-                    b.unrealizedPnLPercent ||
-                    0
-                ) -
-                Number(
-                    a.unrealizedPnLPercent ||
-                    0
-                )
-        );
-
-    }
-
-
-    return sorted;
-
-}
-
-
-function sortClosedTrades(trades) {
-
-    const sorted =
-        [...(trades || [])];
-
-
-    if (
-        closedTradeSort ===
-        "sellDateAsc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                String(
-                    a.sellDate || ""
-                ).localeCompare(
-                    String(
-                        b.sellDate || ""
-                    )
-                )
-        );
-
-    }
-
-    else if (
-        closedTradeSort ===
-        "sellDateDesc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                String(
-                    b.sellDate || ""
-                ).localeCompare(
-                    String(
-                        a.sellDate || ""
-                    )
-                )
-        );
-
-    }
-
-    else if (
-        closedTradeSort ===
-        "returnAsc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                Number(
-                    a.pnlPercent || 0
-                ) -
-                Number(
-                    b.pnlPercent || 0
-                )
-        );
-
-    }
-
-    else if (
-        closedTradeSort ===
-        "returnDesc"
-    ) {
-
-        sorted.sort(
-            (a, b) =>
-                Number(
-                    b.pnlPercent || 0
-                ) -
-                Number(
-                    a.pnlPercent || 0
-                )
-        );
-
-    }
-
-
-    return sorted;
-
-}
-
-
-function setupPortfolioSort() {
-
-    const select =
-        document.getElementById(
-            "portfolioSort"
-        );
-
-
-    if (select) {
-
-        select.value =
-            portfolioSort;
-
-
-        if (
-            select.dataset.bound !==
-            "true"
-        ) {
-
-            select.dataset.bound =
-                "true";
-
-
-            select.addEventListener(
-                "change",
-                () => {
-
-                    portfolioSort =
-                        select.value;
-
-                    render();
-
-                }
-            );
-
-        }
-
-    }
-
-
-    const closedSelect =
-        document.getElementById(
-            "closedTradeSort"
-        );
-
-
-    if (closedSelect) {
-
-        closedSelect.value =
-            closedTradeSort;
-
-
-        if (
-            closedSelect.dataset.bound !==
-            "true"
-        ) {
-
-            closedSelect.dataset.bound =
-                "true";
-
-
-            closedSelect.addEventListener(
-                "change",
-                () => {
-
-                    closedTradeSort =
-                        closedSelect.value;
-
-                    render();
-
-                }
-            );
-
-        }
-
-    }
-
-}
-
-
-// ============================================================
-// PORTFOLIO PAGE
-// ============================================================
-
-function portfolioPage() {
-
-    const positions =
-        sortPortfolioPositions(
-            portfolio.openPositions || []
-        );
-
-
-    const trades =
-        sortClosedTrades(
-            portfolio.closedTrades || []
-        );
-
-
-    const totalPnL =
-        Number(
-            portfolio.totalPnL || 0
-        );
-
-
-    return `
-
-        <!-- =================================================
-             PORTFOLIO OVERVIEW
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-
-                <div>
-
-                    <h2 class="panel-title">
-                        💼 My Portfolio
-                    </h2>
-
-
-                    <div class="portfolio-subtitle">
-
-                        ₹${money(
-                            portfolio.allocationPerStock ||
-                            5000
-                        )}
-                        allocated to every BUY signal
-
-                    </div>
-
-                </div>
-
-
-                <span class="panel-count">
-
-                    ${positions.length}
-                    open
-
-                </span>
-
-            </div>
-
-
-            <div class="portfolio-summary-grid">
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        TOTAL INVESTED
-                    </div>
-
-
-                    <div class="portfolio-stat-value">
-
-                        ₹${money(
-                            portfolio.totalInvested
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        CURRENT VALUE
-                    </div>
-
-
-                    <div class="portfolio-stat-value">
-
-                        ₹${money(
-                            portfolio.totalCurrentValue
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        TOTAL P&L
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        ${pnlClass(totalPnL)}
-                    ">
-
-                        ${
-                            totalPnL >= 0
-                                ? "+"
-                                : ""
-                        }₹${money(
-                            Math.abs(totalPnL)
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        TOTAL RETURN
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        ${pnlClass(totalPnL)}
-                    ">
-
-                        ${percentage(
-                            portfolio.totalPnLPercent
-                        )}
-
-                    </div>
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-
-
-        <!-- =================================================
-             P&L BREAKDOWN
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    P&L Breakdown
-                </h2>
-
-            </div>
-
-
-            <div class="portfolio-summary-grid">
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        REALIZED P&L
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        ${pnlClass(
-                            portfolio.realizedPnL
-                        )}
-                    ">
-
-                        ${
-                            Number(
-                                portfolio.realizedPnL ||
-                                0
-                            ) >= 0
-                                ? "+"
-                                : ""
-                        }₹${money(
-                            Math.abs(
-                                Number(
-                                    portfolio.realizedPnL ||
-                                    0
-                                )
-                            )
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        UNREALIZED P&L
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        ${pnlClass(
-                            portfolio.unrealizedPnL
-                        )}
-                    ">
-
-                        ${
-                            Number(
-                                portfolio.unrealizedPnL ||
-                                0
-                            ) >= 0
-                                ? "+"
-                                : ""
-                        }₹${money(
-                            Math.abs(
-                                Number(
-                                    portfolio.unrealizedPnL ||
-                                    0
-                                )
-                            )
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        WINNING TRADES
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        green
-                    ">
-
-                        ${portfolio.winningTrades || 0}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        LOSING TRADES
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        red
-                    ">
-
-                        ${portfolio.losingTrades || 0}
-
-                    </div>
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-
-
-        <!-- =================================================
-             OPEN POSITIONS
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    📈 Open Positions
-                </h2>
-
-
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    gap:10px;
-                    flex-wrap:wrap;
-                ">
-
-
-                    <select
-                        id="portfolioSort"
-                        class="search"
-                        style="
-                            min-width:190px;
-                            width:auto;
-                            cursor:pointer;
-                        "
-                    >
-
-
-                        <option value="buyDateDesc">
-                            Buy Date — Newest First
-                        </option>
-
-
-                        <option value="buyDateAsc">
-                            Buy Date — Oldest First
-                        </option>
-
-
-                        <option value="returnDesc">
-                            Return — Highest First
-                        </option>
-
-
-                        <option value="returnAsc">
-                            Return — Lowest First
-                        </option>
-
-
-                    </select>
-
-
-                    <span class="panel-count">
-
-                        ${positions.length}
-                        stocks
-
-                    </span>
-
-
-                </div>
-
-            </div>
-
-
-            ${
-                positions.length === 0
-
-                    ? `
-
-                        <div class="empty">
-
-                            No open positions.
-
-                        </div>
-
-                    `
-
-                    : `
-
-                        <div class="table-wrap">
-
-                            <table class="
-                                table
-                                portfolio-table
-                            ">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Stock</th>
-                                        <th>Qty</th>
-                                        <th>Buy Price</th>
-                                        <th>Current</th>
-                                        <th>Invested</th>
-                                        <th>Value</th>
-                                        <th>P&L</th>
-                                        <th>Return</th>
-                                        <th>Buy Date</th>
-
-                                    </tr>
-
-                                </thead>
-
-
-                                <tbody>
-
-                                    ${positions
-                                        .map(
-                                            portfolioRow
-                                        )
-                                        .join("")}
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    `
-            }
-
-        </div>
-
-
-
-        <!-- =================================================
-             CLOSED TRADES
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    📕 Closed Trades
-                </h2>
-
-
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    gap:10px;
-                    flex-wrap:wrap;
-                ">
-
-
-                    <select
-                        id="closedTradeSort"
-                        class="search"
-                        style="
-                            min-width:190px;
-                            width:auto;
-                            cursor:pointer;
-                        "
-                    >
-
-
-                        <option value="sellDateDesc">
-                            Sell Date — Newest First
-                        </option>
-
-
-                        <option value="sellDateAsc">
-                            Sell Date — Oldest First
-                        </option>
-
-
-                        <option value="returnDesc">
-                            Return — Highest First
-                        </option>
-
-
-                        <option value="returnAsc">
-                            Return — Lowest First
-                        </option>
-
-
-                    </select>
-
-
-                    <span class="panel-count">
-
-                        ${trades.length}
-                        trades
-
-                    </span>
-
-
-                </div>
-
-            </div>
-
-
-            ${
-                trades.length === 0
-
-                    ? `
-
-                        <div class="empty">
-
-                            No closed trades yet.
-
-                        </div>
-
-                    `
-
-                    : `
-
-                        <div class="table-wrap">
-
-                            <table class="
-                                table
-                                portfolio-table
-                            ">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Stock</th>
-                                        <th>Qty</th>
-                                        <th>Buy Date</th>
-                                        <th>Sell Date</th>
-                                        <th>Buy</th>
-                                        <th>Sell</th>
-                                        <th>Invested</th>
-                                        <th>Sell Value</th>
-                                        <th>P&L</th>
-                                        <th>Return</th>
-                                        <th>Result</th>
-
-                                    </tr>
-
-                                </thead>
-
-
-                                <tbody>
-
-                                    ${trades
-                                        .map(
-                                            closedTradeRow
-                                        )
-                                        .join("")}
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    `
-            }
-
-        </div>
-
-
-
-        <!-- =================================================
-             TRADE STATISTICS
-        ================================================== -->
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    📊 Portfolio Statistics
-                </h2>
-
-            </div>
-
-
-            <div class="portfolio-summary-grid">
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        OPEN POSITIONS
-                    </div>
-
-
-                    <div class="portfolio-stat-value">
-
-                        ${portfolio.openPositionsCount || 0}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        TOTAL CLOSED TRADES
-                    </div>
-
-
-                    <div class="portfolio-stat-value">
-
-                        ${portfolio.totalTrades || 0}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        WINNING
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        green
-                    ">
-
-                        ${portfolio.winningTrades || 0}
-
-                    </div>
-
-                </div>
-
-
-                <div class="portfolio-stat">
-
-                    <div class="portfolio-stat-label">
-                        LOSING
-                    </div>
-
-
-                    <div class="
-                        portfolio-stat-value
-                        red
-                    ">
-
-                        ${portfolio.losingTrades || 0}
-
-                    </div>
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-// ============================================================
-// OPEN POSITION ROW
-// ============================================================
-
-function portfolioRow(position) {
-
-    const pnl =
-        Number(
-            position.unrealizedPnL || 0
-        );
-
-
-    return `
-
-        <tr>
-
-
-            <td>
-
-                <button
-                    type="button"
-                    class="stock-button"
-                    data-symbol="${escapeHtml(
-                        position.symbol
-                    )}"
-                >
-
-                    ${escapeHtml(
-                        position.symbol
-                    )}
-
-                </button>
-
-            </td>
-
-
-            <td>
-
-                ${money(
-                    position.quantity
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    position.buyPrice
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    position.currentPrice
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    position.invested
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    position.currentValue
-                )}
-
-            </td>
-
-
-            <td class="
-                ${pnlClass(pnl)}
-            ">
-
-                ${
-                    pnl >= 0
-                        ? "+"
-                        : "-"
-                }₹${money(
-                    Math.abs(pnl)
-                )}
-
-            </td>
-
-
-            <td class="
-                ${pnlClass(pnl)}
-            ">
-
-                ${percentage(
-                    position.unrealizedPnLPercent
-                )}
-
-            </td>
-
-
-            <td class="muted">
-
-                ${escapeHtml(
-                    position.buyDate || "—"
-                )}
-
-            </td>
-
-
-        </tr>
-
-    `;
-
-}
-
-
-// ============================================================
-// CLOSED TRADE ROW
-// ============================================================
-
-function closedTradeRow(trade) {
-
-    const pnl =
-        Number(
-            trade.pnl || 0
-        );
-
-
-    return `
-
-        <tr>
-
-
-            <td>
-
-                <button
-                    type="button"
-                    class="stock-button"
-                    data-symbol="${escapeHtml(
-                        trade.symbol
-                    )}"
-                >
-
-                    ${escapeHtml(
-                        trade.symbol
-                    )}
-
-                </button>
-
-
-                <div style="
-                    margin-top:4px;
-                    font-size:11px;
-                    line-height:1.35;
-                    color:#7d8fa8;
-                ">
-
-                    Buy: ${escapeHtml(
-                        trade.buyDate || "—"
-                    )}
-
-                    <br>
-
-                    Sell: ${escapeHtml(
-                        trade.sellDate || "—"
-                    )}
-
-                </div>
-
-            </td>
-
-
-            <td>
-
-                ${money(
-                    trade.quantity
-                )}
-
-            </td>
-
-
-            <td style="white-space:nowrap;">
-
-                ${escapeHtml(
-                    trade.buyDate || "—"
-                )}
-
-            </td>
-
-
-            <td style="white-space:nowrap;">
-
-                ${escapeHtml(
-                    trade.sellDate || "—"
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    trade.buyPrice
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    trade.sellPrice
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    trade.invested
-                )}
-
-            </td>
-
-
-            <td>
-
-                ₹${money(
-                    trade.sellValue
-                )}
-
-            </td>
-
-
-            <td class="
-                ${pnlClass(pnl)}
-            ">
-
-                ${
-                    pnl >= 0
-                        ? "+"
-                        : "-"
-                }₹${money(
-                    Math.abs(pnl)
-                )}
-
-            </td>
-
-
-            <td class="
-                ${pnlClass(pnl)}
-            ">
-
-                ${percentage(
-                    trade.pnlPercent
-                )}
-
-            </td>
-
-
-            <td>
-
-                <span class="
-                    signal-badge
-                    ${
-                        pnl >= 0
-                            ? "signal-buy"
-                            : "signal-sell"
-                    }
-                ">
-
-                    ${escapeHtml(
-                        trade.result || "—"
-                    )}
-
-                </span>
-
-            </td>
-
-
-        </tr>
-
-    `;
-
-}
-
-
-// ============================================================
-// HISTORY
-// ============================================================
-
-function historyPage() {
-
-    return `
-
-        <div class="panel">
-
-
-            <div class="panel-header">
-
-                <h2 class="panel-title">
-                    Signal History
-                </h2>
-
-
-                <span class="panel-count">
-
-                    ${history.length}
-                    records
-
-                </span>
-
-            </div>
-
-
-            <div class="toolbar">
-
-                <input
-                    id="historySearch"
-                    class="search"
-                    type="search"
-                    placeholder="Search stock..."
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <div id="historyTable">
-
-                ${stockTable(history)}
-
-            </div>
-
-
-        </div>
-
-    `;
-
-}
-
-
-// ============================================================
-// RENDER
-// ============================================================
-
-function render() {
-
-    const content =
-        $("#content");
-
-
-    if (!content) {
         return;
     }
 
-
-    const pageTitle =
-        $("#pageTitle");
-
-
-    if (
-        currentTab ===
-        "dashboard"
-    ) {
-
-        if (pageTitle) {
-
-            pageTitle.textContent =
-                "Dashboard";
-
-        }
-
-        content.innerHTML =
-            dashboardView();
-
-    }
-
-
-    else if (
-        currentTab ===
-        "buy"
-    ) {
-
-        if (pageTitle) {
-
-            pageTitle.textContent =
-                "BUY";
-
-        }
-
-        content.innerHTML =
-            signalPage("buy");
-
-    }
-
-
-    else if (
-        currentTab ===
-        "sell"
-    ) {
-
-        if (pageTitle) {
-
-            pageTitle.textContent =
-                "SELL";
-
-        }
-
-        content.innerHTML =
-            signalPage("sell");
-
-    }
-
-
-    else if (
-        currentTab ===
-        "portfolio"
-    ) {
-
-        if (pageTitle) {
-
-            pageTitle.textContent =
-                "Portfolio";
-
-        }
-
-        content.innerHTML =
-            portfolioPage();
-
-    }
-
-
-    else if (
-        currentTab ===
-        "history"
-    ) {
-
-        if (pageTitle) {
-
-            pageTitle.textContent =
-                "History";
-
-        }
-
-        content.innerHTML =
-            historyPage();
-
-    }
-
-
-    updateActiveSidebar();
-
-    setupSearch();
-
-    setupStockButtons();
-
-    setupPortfolioSort();
-
-    setupRefreshButton();
-
+    container.innerHTML =
+        rows
+            .map(
+                position =>
+                    portfolioRow(
+                        position
+                    )
+            )
+            .join("");
 }
 
+function portfolioRow(
+    position
+) {
+    const symbol =
+        position.symbol ||
+        position.ticker ||
+        "—";
 
-// ============================================================
-// SIDEBAR ACTIVE STATE
-// ============================================================
+    const quantity =
+        Number(
+            position.quantity ??
+            position.qty
+        ) || 0;
 
-function updateActiveSidebar() {
+    const buyPrice =
+        Number(
+            position.buyPrice
+        ) || 0;
 
-    document
-        .querySelectorAll(
-            ".nav-item"
+    const currentPrice =
+        Number(
+            position.currentPrice ??
+            position.current ??
+            position.close ??
+            buyPrice
+        ) || 0;
+
+    const currentSMA44 =
+        Number(
+            position.currentSMA44 ??
+            position.sma44
+        );
+
+    const stopLossPrice =
+        Number(
+            position.stopLossPrice
+        );
+
+    const targetPrice =
+        Number(
+            position.targetPrice
+        );
+
+    const invested =
+        quantity *
+        buyPrice;
+
+    const value =
+        quantity *
+        currentPrice;
+
+    const pnl =
+        value -
+        invested;
+
+    const returnPercent =
+        buyPrice
+            ? (
+                (
+                    currentPrice -
+                    buyPrice
+                ) /
+                buyPrice
+            ) *
+            100
+            : 0;
+
+    const buyDate =
+        position.buyDate ||
+        position.entryDate ||
+        "—";
+
+    const exitStatus =
+        position.exitStatus ||
+        "HOLD";
+
+    let statusClass =
+        "hold";
+
+    if (
+        /STOP LOSS/i.test(
+            exitStatus
         )
-        .forEach(
-            button => {
+    ) {
+        statusClass =
+            "red";
+    } else if (
+        /TARGET/i.test(
+            exitStatus
+        )
+    ) {
+        statusClass =
+            "green";
+    } else if (
+        /44 SMA/i.test(
+            exitStatus
+        )
+    ) {
+        statusClass =
+            "orange";
+    }
 
-                button.classList.toggle(
-                    "active",
-                    button.dataset.tab ===
-                    currentTab
-                );
+    return `
+        <tr>
+            <td>
+                <strong>${escapeHtml(symbol)}</strong>
+            </td>
 
-            }
-        );
+            <td>
+                ${quantity}
+            </td>
 
+            <td>
+                ₹${money(buyPrice)}
+            </td>
+
+            <td>
+                ₹${money(currentPrice)}
+            </td>
+
+            <td>
+                ₹${money(invested)}
+            </td>
+
+            <td>
+                ₹${money(value)}
+            </td>
+
+            <td class="${pnlClass(pnl)}">
+                ₹${money(pnl)}
+            </td>
+
+            <td class="${pnlClass(returnPercent)}">
+                ${percentage(returnPercent)}
+            </td>
+
+            <td>
+                ${
+                    Number.isFinite(
+                        currentSMA44
+                    )
+                        ? "₹" +
+                          money(
+                              currentSMA44
+                          )
+                        : "—"
+                }
+            </td>
+
+            <td>
+                ${
+                    Number.isFinite(
+                        stopLossPrice
+                    )
+                        ? "₹" +
+                          money(
+                              stopLossPrice
+                          )
+                        : "—"
+                }
+            </td>
+
+            <td>
+                ${
+                    Number.isFinite(
+                        targetPrice
+                    )
+                        ? "₹" +
+                          money(
+                              targetPrice
+                          )
+                        : "—"
+                }
+            </td>
+
+            <td class="${statusClass}">
+                <strong>
+                    ${escapeHtml(exitStatus)}
+                </strong>
+            </td>
+
+            <td>
+                ${escapeHtml(formatDate(buyDate))}
+            </td>
+        </tr>
+    `;
 }
 
+function renderClosedTrades() {
+    const container =
+        document.getElementById(
+            "closedTradesBody"
+        ) ||
+        document.getElementById(
+            "closedTradeTableBody"
+        );
 
-// ============================================================
-// CHANGE TAB
-// ============================================================
+    if (!container) return;
 
-function goToTab(tab) {
+    let rows =
+        Array.isArray(
+            portfolio.closedTrades
+        )
+            ? [
+                ...portfolio.closedTrades
+            ]
+            : [];
 
-    if (!tab) {
+    rows.sort(
+        (
+            a,
+            b
+        ) => {
+
+            const dateA =
+                new Date(
+                    a.sellDate ||
+                    a.exitDate ||
+                    0
+                ).getTime();
+
+            const dateB =
+                new Date(
+                    b.sellDate ||
+                    b.exitDate ||
+                    0
+                ).getTime();
+
+            return (
+                dateB -
+                dateA
+            );
+
+        }
+    );
+
+    if (!rows.length) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="10" class="empty-state">
+                    No closed trades
+                </td>
+            </tr>
+        `;
+
         return;
     }
 
+    container.innerHTML =
+        rows
+            .map(
+                trade =>
+                    closedTradeRow(
+                        trade
+                    )
+            )
+            .join("");
+}
 
-    const validTabs = [
+function closedTradeRow(
+    trade
+) {
+    const symbol =
+        trade.symbol ||
+        trade.ticker ||
+        "—";
 
-        "dashboard",
-        "buy",
-        "sell",
-        "portfolio",
-        "history"
+    const quantity =
+        Number(
+            trade.quantity ??
+            trade.qty
+        ) || 0;
 
-    ];
+    const buyPrice =
+        Number(
+            trade.buyPrice
+        ) || 0;
 
+    const sellPrice =
+        Number(
+            trade.sellPrice ??
+            trade.exitPrice
+        ) || 0;
+
+    const invested =
+        quantity *
+        buyPrice;
+
+    const proceeds =
+        quantity *
+        sellPrice;
+
+    const pnl =
+        Number(
+            trade.pnl
+        );
+
+    const calculatedPnL =
+        Number.isFinite(
+            pnl
+        )
+            ? pnl
+            : proceeds -
+              invested;
+
+    const returnPercent =
+        invested
+            ? (
+                calculatedPnL /
+                invested
+            ) *
+            100
+            : 0;
+
+    const buyDate =
+        trade.buyDate ||
+        trade.entryDate ||
+        "—";
+
+    const sellDate =
+        trade.sellDate ||
+        trade.exitDate ||
+        "—";
+
+    const result =
+        trade.exitReason ||
+        trade.result ||
+        (
+            calculatedPnL >= 0
+                ? "WIN"
+                : "LOSS"
+        );
+
+    return `
+        <tr>
+            <td>
+                <strong>${escapeHtml(symbol)}</strong>
+            </td>
+
+            <td>
+                ${quantity}
+            </td>
+
+            <td>
+                ₹${money(buyPrice)}
+            </td>
+
+            <td>
+                ₹${money(sellPrice)}
+            </td>
+
+            <td>
+                ₹${money(invested)}
+            </td>
+
+            <td>
+                ₹${money(proceeds)}
+            </td>
+
+            <td class="${pnlClass(calculatedPnL)}">
+                ₹${money(calculatedPnL)}
+            </td>
+
+            <td class="${pnlClass(returnPercent)}">
+                ${percentage(returnPercent)}
+            </td>
+
+            <td>
+                ${escapeHtml(formatDate(buyDate))}
+            </td>
+
+            <td>
+                <strong class="${pnlClass(calculatedPnL)}">
+                    ${escapeHtml(result)}
+                </strong>
+                <br>
+                <small>
+                    ${escapeHtml(formatDate(sellDate))}
+                </small>
+            </td>
+        </tr>
+    `;
+}
+
+function formatDate(
+    value
+) {
+    if (!value) return "—";
+
+    const date =
+        new Date(
+            value
+        );
 
     if (
-        !validTabs.includes(tab)
+        Number.isNaN(
+            date.getTime()
+        )
     ) {
-
-        return;
-
+        return String(value);
     }
 
-
-    currentTab =
-        tab;
-
-
-    render();
-
-
-    window.scrollTo(
+    return date.toLocaleDateString(
+        "en-IN",
         {
-            top: 0,
-            behavior: "smooth"
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
         }
     );
-
 }
 
-
-// ============================================================
-// IMPORTANT:
-// ONE NAVIGATION HANDLER
-// ============================================================
-
-document.addEventListener(
-    "click",
-    event => {
-
-        const target =
-            event.target.closest(
-                "[data-tab]"
-            );
-
-
-        if (!target) {
-            return;
-        }
-
-
-        const tab =
-            target.dataset.tab;
-
-
-        if (!tab) {
-            return;
-        }
-
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        goToTab(tab);
-
-    }
-);
-
-
-// ============================================================
-// SEARCH
-// ============================================================
-
-function setupSearch() {
-
-    const search =
-        $("#stockSearch");
-
-
-    if (search) {
-
-        search.addEventListener(
-            "input",
-            () => {
-
-                const query =
-                    search.value
-                        .trim()
-                        .toUpperCase();
-
-
-                const items =
-                    currentTab === "buy"
-                        ? signals.buy
-                        : signals.sell;
-
-
-                const filtered =
-                    items.filter(
-                        item =>
-                            String(
-                                item.symbol
-                            )
-                            .toUpperCase()
-                            .includes(
-                                query
-                            )
-                    );
-
-
-                const table =
-                    $("#signalTable");
-
-
-                if (table) {
-
-                    table.innerHTML =
-                        stockTable(
-                            filtered
-                        );
-
-                }
-
-
-                setupStockButtons();
-
-            }
+function renderHistory() {
+    const container =
+        document.getElementById(
+            "historyTableBody"
+        ) ||
+        document.getElementById(
+            "historyBody"
         );
 
-    }
+    if (!container) return;
 
-
-    const historySearch =
-        $("#historySearch");
-
-
-    if (historySearch) {
-
-        historySearch.addEventListener(
-            "input",
-            () => {
-
-                const query =
-                    historySearch.value
-                        .trim()
-                        .toUpperCase();
-
-
-                const filtered =
-                    history.filter(
-                        item =>
-                            String(
-                                item.symbol
-                            )
-                            .toUpperCase()
-                            .includes(
-                                query
-                            )
-                    );
-
-
-                const table =
-                    $("#historyTable");
-
-
-                if (table) {
-
-                    table.innerHTML =
-                        stockTable(
-                            filtered
-                        );
-
-                }
-
-
-                setupStockButtons();
-
-            }
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// STOCK BUTTONS
-// ============================================================
-
-function setupStockButtons() {
-
-    document
-        .querySelectorAll(
-            ".stock-button"
+    const rows =
+        Array.isArray(
+            history
         )
-        .forEach(
-            button => {
+            ? history
+            : [];
 
-                button.addEventListener(
-                    "click",
-                    () => {
+    if (!rows.length) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="10" class="empty-state">
+                    No scan history available
+                </td>
+            </tr>
+        `;
 
-                        const symbol =
-                            button.dataset.symbol;
+        return;
+    }
 
+    container.innerHTML =
+        rows
+            .slice()
+            .reverse()
+            .map(
+                item =>
+                    historyRow(
+                        item
+                    )
+            )
+            .join("");
+}
 
-                        const item =
-                            findStock(
-                                symbol
-                            );
+function historyRow(
+    item
+) {
+    const symbol =
+        item.symbol ||
+        item.ticker ||
+        "—";
 
+    const signal =
+        String(
+            item.signal ||
+            item.action ||
+            ""
+        ).toUpperCase();
 
-                        if (item) {
+    const close =
+        Number(
+            item.close
+        );
 
-                            openStockChart(
-                                item
-                            );
+    const sma44 =
+        Number(
+            item.sma44 ??
+            item.SMA44
+        );
 
-                        }
+    const sma100 =
+        Number(
+            item.sma100 ??
+            item.SMA100
+        );
 
-                    }
+    const sma200 =
+        Number(
+            item.sma200 ??
+            item.SMA200
+        );
+
+    const date =
+        item.date ||
+        item.scannedAt ||
+        "—";
+
+    return `
+        <tr>
+            <td>${escapeHtml(formatDate(date))}</td>
+            <td><strong>${escapeHtml(symbol)}</strong></td>
+            <td>
+                <span class="signal-badge ${
+                    signal === "BUY"
+                        ? "buy"
+                        : signal === "SELL"
+                            ? "sell"
+                            : ""
+                }">
+                    ${escapeHtml(signal || "—")}
+                </span>
+            </td>
+            <td>₹${money(close)}</td>
+            <td>₹${money(sma44)}</td>
+            <td>₹${money(sma100)}</td>
+            <td>₹${money(sma200)}</td>
+        </tr>
+    `;
+}
+
+function renderError(
+    message
+) {
+    const containers = [
+        document.getElementById(
+            "errorMessage"
+        ),
+        document.getElementById(
+            "dashboardError"
+        )
+    ].filter(Boolean);
+
+    if (!containers.length) {
+        console.error(
+            message
+        );
+
+        return;
+    }
+
+    containers.forEach(
+        container => {
+            container.textContent =
+                message;
+
+            container.style.display =
+                "";
+        }
+    );
+}
+
+function setupNavigation() {
+    document.addEventListener(
+        "click",
+        event => {
+
+            const target =
+                event.target.closest(
+                    "[data-tab]"
                 );
 
-            }
-        );
+            if (!target) return;
 
-}
+            const tab =
+                target.dataset.tab;
 
+            if (!tab) return;
 
-// ============================================================
-// FIND STOCK
-// ============================================================
+            currentTab =
+                tab;
 
-function findStock(symbol) {
+            renderNavigation();
+            renderCurrentView();
 
-    const all = [
+            window.scrollTo(
+                {
+                    top: 0,
+                    behavior: "smooth"
+                }
+            );
 
-        ...signals.buy,
-
-        ...signals.sell,
-
-        ...history,
-
-        ...(portfolio.openPositions || []),
-
-        ...(portfolio.closedTrades || [])
-
-    ];
-
-
-    return all.find(
-        item =>
-            item.symbol ===
-            symbol
+        }
     );
-
 }
 
+function setupRefresh() {
+    document.addEventListener(
+        "click",
+        event => {
 
-// ============================================================
-// CHART DATA
-// ============================================================
+            const target =
+                event.target.closest(
+                    '[data-action="refresh"]'
+                );
 
-async function loadChartData(
+            if (!target) return;
+
+            loadData({
+                manual: true
+            });
+
+        }
+    );
+}
+
+function setupPortfolioSorting() {
+    document.addEventListener(
+        "click",
+        event => {
+
+            const target =
+                event.target.closest(
+                    "[data-portfolio-sort]"
+                );
+
+            if (!target) return;
+
+            portfolioSort =
+                target.dataset.portfolioSort ||
+                portfolioSort;
+
+            renderOpenPositions();
+
+        }
+    );
+}
+
+function setupClosedTradeSorting() {
+    document.addEventListener(
+        "click",
+        event => {
+
+            const target =
+                event.target.closest(
+                    "[data-closed-sort]"
+                );
+
+            if (!target) return;
+
+            closedTradeSort =
+                target.dataset.closedSort ||
+                closedTradeSort;
+
+            renderClosedTrades();
+
+        }
+    );
+}
+
+function getChartRowsFromItem(
+    item
+) {
+    if (!item) return [];
+
+    if (
+        Array.isArray(
+            item.chart
+        )
+    ) {
+        return item.chart;
+    }
+
+    if (
+        item.chart &&
+        Array.isArray(
+            item.chart.data
+        )
+    ) {
+        return item.chart.data;
+    }
+
+    if (
+        Array.isArray(
+            item.chartData
+        )
+    ) {
+        return item.chartData;
+    }
+
+    if (
+        item.chartData &&
+        Array.isArray(
+            item.chartData.data
+        )
+    ) {
+        return item.chartData.data;
+    }
+
+    if (
+        Array.isArray(
+            item.data
+        )
+    ) {
+        return item.data;
+    }
+
+    return [];
+}
+
+async function openStockChart(
     symbol
 ) {
+    if (!symbol) return;
 
-    const response =
-        await fetch(
-            `./data/charts/${encodeURIComponent(
-                symbol
-            )}.json?${Date.now()}`,
-            {
-                cache: "no-store"
-            }
-        );
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            `Chart data unavailable for ${symbol}`
-        );
-
-    }
-
-
-    return await response.json();
-
-}
-
-
-// ============================================================
-// CHART MODAL
-// ============================================================
-
-function createChartModal() {
-
-    let modal =
+    const modal =
         document.getElementById(
             "stockChartModal"
         );
 
-
-    if (modal) {
-        return modal;
-    }
-
-
-    modal =
-        document.createElement(
-            "div"
-        );
-
-
-    modal.id =
-        "stockChartModal";
-
-
-    modal.style.cssText = `
-
-        position:fixed;
-        inset:0;
-        z-index:99999;
-
-        background:
-            rgba(0,0,0,.84);
-
-        display:none;
-
-        align-items:center;
-        justify-content:center;
-
-        padding:16px;
-
-        box-sizing:border-box;
-
-    `;
-
-
-    modal.innerHTML = `
-
-        <div
-            style="
-                width:min(1250px,100%);
-                height:min(850px,96vh);
-
-                background:#0b111b;
-
-                border:1px solid #26364d;
-
-                border-radius:16px;
-
-                overflow:hidden;
-
-                display:flex;
-
-                flex-direction:column;
-
-                box-shadow:
-                    0 25px 80px
-                    rgba(0,0,0,.65);
-            "
-        >
-
-
-            <div
-                style="
-                    min-height:64px;
-
-                    display:flex;
-
-                    align-items:center;
-
-                    justify-content:space-between;
-
-                    padding:0 18px;
-
-                    border-bottom:
-                        1px solid #26364d;
-
-                    background:#0e1724;
-                "
-            >
-
-                <div>
-
-                    <div
-                        id="chartStockTitle"
-                        style="
-                            color:#fff;
-                            font-size:20px;
-                            font-weight:700;
-                        "
-                    >
-                        Stock Chart
-                    </div>
-
-
-                    <div
-                        id="chartStockSubtitle"
-                        style="
-                            color:#91a4bd;
-                            font-size:12px;
-                            margin-top:3px;
-                        "
-                    >
-                    </div>
-
-                </div>
-
-
-                <button
-                    id="chartCloseButton"
-                    type="button"
-                    style="
-                        border:0;
-                        background:#1b2737;
-                        color:#fff;
-
-                        width:40px;
-                        height:40px;
-
-                        border-radius:10px;
-
-                        font-size:24px;
-
-                        cursor:pointer;
-                    "
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <div
-                id="chartStats"
-                style="
-                    min-height:52px;
-
-                    display:flex;
-
-                    align-items:center;
-
-                    gap:22px;
-
-                    padding:8px 18px;
-
-                    box-sizing:border-box;
-
-                    border-bottom:
-                        1px solid #1c2a3d;
-
-                    background:#0b111b;
-
-                    color:#91a4bd;
-
-                    font-size:13px;
-
-                    flex-wrap:wrap;
-                "
-            >
-            </div>
-
-
-            <div
-                style="
-                    flex:1;
-
-                    min-height:0;
-
-                    position:relative;
-
-                    background:#0b111b;
-                "
-            >
-
-                <canvas
-                    id="stockChartCanvas"
-                    style="
-                        width:100%;
-                        height:100%;
-                        display:block;
-                    "
-                >
-                </canvas>
-
-
-                <div
-                    id="chartLoading"
-                    style="
-                        position:absolute;
-
-                        inset:0;
-
-                        display:none;
-
-                        align-items:center;
-
-                        justify-content:center;
-
-                        color:#91a4bd;
-
-                        background:
-                            rgba(11,17,27,.9);
-
-                        font-size:14px;
-                    "
-                >
-                    Loading chart...
-                </div>
-
-            </div>
-
-
-            <div
-                style="
-                    min-height:48px;
-
-                    display:flex;
-
-                    align-items:center;
-
-                    gap:18px;
-
-                    padding:0 18px;
-
-                    border-top:
-                        1px solid #26364d;
-
-                    background:#0e1724;
-
-                    color:#9badc5;
-
-                    font-size:12px;
-                "
-            >
-
-                <span>
-                    <b style="color:#f0b90b">
-                        ●
-                    </b>
-                    44 SMA
-                </span>
-
-
-                <span>
-                    <b style="color:#5aa9ff">
-                        ●
-                    </b>
-                    100 SMA
-                </span>
-
-
-                <span>
-                    <b style="color:#d88cff">
-                        ●
-                    </b>
-                    200 SMA
-                </span>
-
-
-                <span>
-                    🟢 Bullish candle
-                </span>
-
-
-                <span>
-                    🔴 Bearish candle
-                </span>
-
-            </div>
-
-
-        </div>
-
-    `;
-
-
-    document.body.appendChild(
-        modal
-    );
-
-
-    document
-        .getElementById(
-            "chartCloseButton"
-        )
-        .addEventListener(
-            "click",
-            closeChart
-        );
-
-
-    modal.addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target ===
-                modal
-            ) {
-
-                closeChart();
-
-            }
-
-        }
-    );
-
-
-    return modal;
-
-}
-
-
-// ============================================================
-// OPEN CHART
-// ============================================================
-
-async function openStockChart(
-    item
-) {
-
-    const modal =
-        createChartModal();
-
+    if (!modal) return;
 
     const title =
         document.getElementById(
-            "chartStockTitle"
+            "stockChartTitle"
         );
 
-
-    const subtitle =
-        document.getElementById(
-            "chartStockSubtitle"
-        );
-
-
-    const stats =
-        document.getElementById(
-            "chartStats"
-        );
-
-
-    const loading =
-        document.getElementById(
-            "chartLoading"
-        );
-
-
-    title.textContent =
-        `${item.symbol} — ${
-            item.signal || "STOCK"
-        }`;
-
-
-    subtitle.textContent =
-        "Daily candlestick chart";
-
-
-    stats.innerHTML = `
-
-        <span>
-            Close:
-            <strong style="color:#fff">
-                ₹${money(item.Close)}
-            </strong>
-        </span>
-
-
-        <span>
-            44 SMA:
-            <strong style="color:#f0b90b">
-                ₹${money(item.sma44)}
-            </strong>
-        </span>
-
-
-        <span>
-            100 SMA:
-            <strong style="color:#5aa9ff">
-                ₹${money(item.sma100)}
-            </strong>
-        </span>
-
-
-        <span>
-            200 SMA:
-            <strong style="color:#d88cff">
-                ₹${money(item.sma200)}
-            </strong>
-        </span>
-
-
-        <span>
-            Date:
-            <strong style="color:#fff">
-                ${escapeHtml(
-                    item.date || "—"
-                )}
-            </strong>
-        </span>
-
-    `;
-
+    if (title) {
+        title.textContent =
+            symbol +
+            " — 44 SMA Chart";
+    }
 
     modal.style.display =
         "flex";
 
-
     document.body.style.overflow =
         "hidden";
 
-
-    loading.textContent =
-        "Loading chart...";
-
-
-    loading.style.display =
-        "flex";
-
-
-    try {
-
-        const chart =
-            await loadChartData(
-                item.symbol
-            );
-
-
-        const rows =
-            chart.data || [];
-
-
-        if (!rows.length) {
-
-            throw new Error(
-                "No chart data available"
-            );
-
-        }
-
-
-        currentChartRows =
-            rows.slice(
-                Math.max(
-                    0,
-                    rows.length - 130
-                )
-            );
-
-
-        loading.style.display =
-            "none";
-
-
-        drawStockChart(
-            currentChartRows
+    const loading =
+        document.getElementById(
+            "stockChartLoading"
         );
 
+    if (loading) {
+        loading.style.display =
+            "";
+    }
+
+    try {
+        const timestamp =
+            Date.now();
+
+        const response =
+            await fetch(
+                "./data/charts/" +
+                encodeURIComponent(
+                    symbol
+                ) +
+                ".json?" +
+                timestamp,
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Chart data unavailable"
+            );
+        }
+
+        const data =
+            await response.json();
+
+        const rows =
+            getChartRowsFromItem(
+                data
+            );
+
+        currentChartRows =
+            rows;
+
+        if (loading) {
+            loading.style.display =
+                "none";
+        }
+
+        if (!rows.length) {
+            showChartMessage(
+                "No chart data available."
+            );
+
+            return;
+        }
+
+        hideChartMessage();
+
+        requestAnimationFrame(
+            () => {
+                drawStockChart(
+                    rows
+                );
+            }
+        );
 
     } catch (error) {
-
         console.error(
+            "Chart error:",
             error
         );
 
+        if (loading) {
+            loading.style.display =
+                "none";
+        }
 
-        loading.textContent =
-            "Chart data is not available for this stock yet.";
-
-
-        loading.style.display =
-            "flex";
-
+        showChartMessage(
+            "Chart data unavailable."
+        );
     }
-
 }
 
+function openStockChartFromEncoded(
+    encoded
+) {
+    try {
+        const item =
+            JSON.parse(
+                decodeURIComponent(
+                    encoded
+                )
+            );
 
-// ============================================================
-// CLOSE CHART
-// ============================================================
+        const symbol =
+            item.symbol ||
+            item.ticker ||
+            item.name;
+
+        if (!symbol) return;
+
+        const embeddedRows =
+            getChartRowsFromItem(
+                item
+            );
+
+        if (
+            embeddedRows.length
+        ) {
+            const modal =
+                document.getElementById(
+                    "stockChartModal"
+                );
+
+            if (!modal) return;
+
+            const title =
+                document.getElementById(
+                    "stockChartTitle"
+                );
+
+            if (title) {
+                title.textContent =
+                    symbol +
+                    " — 44 SMA Chart";
+            }
+
+            modal.style.display =
+                "flex";
+
+            document.body.style.overflow =
+                "hidden";
+
+            currentChartRows =
+                embeddedRows;
+
+            hideChartMessage();
+
+            requestAnimationFrame(
+                () => {
+                    drawStockChart(
+                        embeddedRows
+                    );
+                }
+            );
+
+            return;
+        }
+
+        openStockChart(
+            symbol
+        );
+
+    } catch (error) {
+        console.error(
+            "Invalid chart data:",
+            error
+        );
+    }
+}
+
+function showChartMessage(
+    message
+) {
+    const element =
+        document.getElementById(
+            "stockChartMessage"
+        );
+
+    if (!element) return;
+
+    element.textContent =
+        message;
+
+    element.style.display =
+        "";
+}
+
+function hideChartMessage() {
+    const element =
+        document.getElementById(
+            "stockChartMessage"
+        );
+
+    if (!element) return;
+
+    element.style.display =
+        "none";
+}
 
 function closeChart() {
-
     const modal =
         document.getElementById(
             "stockChartModal"
         );
 
-
     if (modal) {
-
         modal.style.display =
             "none";
-
     }
-
 
     document.body.style.overflow =
         "";
 
-
     currentChartRows =
         null;
-
 }
-
-
-// ============================================================
-// DRAW CHART
-// ============================================================
 
 function drawStockChart(
     rows
 ) {
-
     const canvas =
         document.getElementById(
             "stockChartCanvas"
         );
-
 
     if (
         !canvas ||
         !rows ||
         !rows.length
     ) {
-
         return;
-
     }
-
 
     const rect =
         canvas.getBoundingClientRect();
 
-
     const dpr =
         window.devicePixelRatio ||
         1;
-
 
     const width =
         Math.max(
@@ -3753,27 +1936,22 @@ function drawStockChart(
             rect.width
         );
 
-
     const height =
         Math.max(
             350,
             rect.height
         );
 
-
     canvas.width =
         width * dpr;
 
-
     canvas.height =
         height * dpr;
-
 
     const ctx =
         canvas.getContext(
             "2d"
         );
-
 
     ctx.setTransform(
         dpr,
@@ -3784,10 +1962,8 @@ function drawStockChart(
         0
     );
 
-
     ctx.fillStyle =
         "#0b111b";
-
 
     ctx.fillRect(
         0,
@@ -3796,27 +1972,22 @@ function drawStockChart(
         height
     );
 
-
     const left = 62;
     const right = 20;
     const top = 20;
     const bottom = 42;
-
 
     const chartWidth =
         width -
         left -
         right;
 
-
     const chartHeight =
         height -
         top -
         bottom;
 
-
     const prices = [];
-
 
     rows.forEach(
         row => {
@@ -3827,78 +1998,65 @@ function drawStockChart(
                 row.sma44,
                 row.sma100,
                 row.sma200
-            ]
-                .forEach(
-                    value => {
+            ].forEach(
+                value => {
 
-                        if (
-                            Number.isFinite(
-                                Number(value)
-                            )
-                        ) {
-
-                            prices.push(
-                                Number(value)
-                            );
-
-                        }
-
+                    if (
+                        Number.isFinite(
+                            Number(value)
+                        )
+                    ) {
+                        prices.push(
+                            Number(value)
+                        );
                     }
-                );
+
+                }
+            );
 
         }
     );
 
-
     if (!prices.length) {
         return;
     }
-
 
     let minPrice =
         Math.min(
             ...prices
         );
 
-
     let maxPrice =
         Math.max(
             ...prices
         );
 
-
     let padding =
         (
             maxPrice -
             minPrice
-        ) * 0.08;
-
+        ) *
+        0.08;
 
     if (!padding) {
-
         padding =
-            maxPrice * 0.02;
-
+            maxPrice *
+            0.02;
     }
-
 
     minPrice -=
         padding;
 
-
     maxPrice +=
         padding;
-
 
     const priceRange =
         maxPrice -
         minPrice;
 
-
     function priceY(
         price
     ) {
-
         return (
             top +
             (
@@ -3910,19 +2068,15 @@ function drawStockChart(
             ) *
             chartHeight
         );
-
     }
-
 
     const step =
         chartWidth /
         rows.length;
 
-
     function xPosition(
         index
     ) {
-
         return (
             left +
             (
@@ -3931,27 +2085,19 @@ function drawStockChart(
             ) *
             step
         );
-
     }
 
-
-    // GRID
-
     ctx.lineWidth = 1;
-
     ctx.strokeStyle =
         "#182536";
 
-
     const gridLines = 6;
-
 
     for (
         let i = 0;
         i <= gridLines;
         i++
     ) {
-
         const y =
             top +
             (
@@ -3960,15 +2106,12 @@ function drawStockChart(
             ) *
             chartHeight;
 
-
         ctx.beginPath();
-
 
         ctx.moveTo(
             left,
             y
         );
-
 
         ctx.lineTo(
             width -
@@ -3976,9 +2119,7 @@ function drawStockChart(
             y
         );
 
-
         ctx.stroke();
-
 
         const price =
             maxPrice -
@@ -3988,18 +2129,14 @@ function drawStockChart(
             ) *
             priceRange;
 
-
         ctx.fillStyle =
             "#7d8fa8";
-
 
         ctx.font =
             "11px Arial";
 
-
         ctx.textAlign =
             "right";
-
 
         ctx.fillText(
             "₹" +
@@ -4007,21 +2144,17 @@ function drawStockChart(
             left - 8,
             y + 4
         );
-
     }
-
-
-    // CANDLES
 
     const candleWidth =
         Math.max(
             2,
             Math.min(
                 12,
-                step * 0.65
+                step *
+                0.65
             )
         );
-
 
     rows.forEach(
         (
@@ -4030,17 +2163,24 @@ function drawStockChart(
         ) => {
 
             const open =
-                Number(row.open);
+                Number(
+                    row.open
+                );
 
             const high =
-                Number(row.high);
+                Number(
+                    row.high
+                );
 
             const low =
-                Number(row.low);
+                Number(
+                    row.low
+                );
 
             const close =
-                Number(row.close);
-
+                Number(
+                    row.close
+                );
 
             if (
                 ![
@@ -4052,65 +2192,61 @@ function drawStockChart(
                     Number.isFinite
                 )
             ) {
-
                 return;
-
             }
 
-
             const x =
-                xPosition(index);
-
+                xPosition(
+                    index
+                );
 
             const yHigh =
-                priceY(high);
-
+                priceY(
+                    high
+                );
 
             const yLow =
-                priceY(low);
-
+                priceY(
+                    low
+                );
 
             const yOpen =
-                priceY(open);
-
+                priceY(
+                    open
+                );
 
             const yClose =
-                priceY(close);
-
+                priceY(
+                    close
+                );
 
             const bullish =
-                close >= open;
-
+                close >=
+                open;
 
             ctx.strokeStyle =
                 bullish
                     ? "#36d98b"
                     : "#ff5d6c";
 
-
             ctx.fillStyle =
                 bullish
                     ? "#36d98b"
                     : "#ff5d6c";
 
-
             ctx.beginPath();
-
 
             ctx.moveTo(
                 x,
                 yHigh
             );
 
-
             ctx.lineTo(
                 x,
                 yLow
             );
 
-
             ctx.stroke();
-
 
             const bodyTop =
                 Math.min(
@@ -4118,13 +2254,11 @@ function drawStockChart(
                     yClose
                 );
 
-
             const bodyBottom =
                 Math.max(
                     yOpen,
                     yClose
                 );
-
 
             const bodyHeight =
                 Math.max(
@@ -4133,25 +2267,16 @@ function drawStockChart(
                     bodyTop
                 );
 
-
             ctx.fillRect(
-
                 x -
-                candleWidth / 2,
-
+                candleWidth /
+                2,
                 bodyTop,
-
                 candleWidth,
-
                 bodyHeight
-
             );
-
         }
     );
-
-
-    // SMA LINES
 
     drawLine(
         ctx,
@@ -4162,7 +2287,6 @@ function drawStockChart(
         xPosition
     );
 
-
     drawLine(
         ctx,
         rows,
@@ -4171,7 +2295,6 @@ function drawStockChart(
         priceY,
         xPosition
     );
-
 
     drawLine(
         ctx,
@@ -4182,20 +2305,14 @@ function drawStockChart(
         xPosition
     );
 
-
-    // DATES
-
     ctx.fillStyle =
         "#7d8fa8";
-
 
     ctx.font =
         "10px Arial";
 
-
     ctx.textAlign =
         "center";
-
 
     const labelCount =
         Math.min(
@@ -4203,54 +2320,51 @@ function drawStockChart(
             rows.length
         );
 
-
     for (
         let i = 0;
         i < labelCount;
         i++
     ) {
-
         const index =
             Math.floor(
                 (
                     i /
                     Math.max(
                         1,
-                        labelCount - 1
+                        labelCount -
+                        1
                     )
                 ) *
                 (
-                    rows.length - 1
+                    rows.length -
+                    1
                 )
             );
-
 
         const row =
             rows[index];
 
-
         const x =
-            xPosition(index);
-
+            xPosition(
+                index
+            );
 
         const date =
             String(
-                row.date || ""
+                row.date ||
+                ""
             );
-
 
         ctx.fillText(
             date.slice(5),
             x,
-            height - 15
+            height -
+            15
         );
-
     }
-
 
     ctx.strokeStyle =
         "#26364d";
-
 
     ctx.strokeRect(
         left,
@@ -4258,13 +2372,7 @@ function drawStockChart(
         chartWidth,
         chartHeight
     );
-
 }
-
-
-// ============================================================
-// DRAW SMA LINE
-// ============================================================
 
 function drawLine(
     ctx,
@@ -4274,21 +2382,16 @@ function drawLine(
     priceY,
     xPosition
 ) {
-
     ctx.strokeStyle =
         lineColor;
-
 
     ctx.lineWidth =
         1.5;
 
-
     ctx.beginPath();
-
 
     let started =
         false;
-
 
     rows.forEach(
         (
@@ -4301,28 +2404,25 @@ function drawLine(
                     row[key]
                 );
 
-
             if (
                 !Number.isFinite(
                     value
                 )
             ) {
-
                 return;
-
             }
 
-
             const x =
-                xPosition(index);
-
+                xPosition(
+                    index
+                );
 
             const y =
-                priceY(value);
-
+                priceY(
+                    value
+                );
 
             if (!started) {
-
                 ctx.moveTo(
                     x,
                     y
@@ -4330,53 +2430,31 @@ function drawLine(
 
                 started =
                     true;
-
             } else {
-
                 ctx.lineTo(
                     x,
                     y
                 );
-
             }
-
         }
     );
 
-
     if (started) {
-
         ctx.stroke();
-
     }
-
 }
-
-
-// ============================================================
-// ESC CLOSE
-// ============================================================
 
 document.addEventListener(
     "keydown",
     event => {
-
         if (
             event.key ===
             "Escape"
         ) {
-
             closeChart();
-
         }
-
     }
 );
-
-
-// ============================================================
-// CHART RESIZE
-// ============================================================
 
 window.addEventListener(
     "resize",
@@ -4387,26 +2465,23 @@ window.addEventListener(
                 "stockChartModal"
             );
 
-
         if (
             modal &&
             modal.style.display ===
-            "flex" &&
+                "flex" &&
             currentChartRows
         ) {
-
             drawStockChart(
                 currentChartRows
             );
-
         }
 
     }
 );
 
-
-// ============================================================
-// START
-// ============================================================
+setupNavigation();
+setupRefresh();
+setupPortfolioSorting();
+setupClosedTradeSorting();
 
 loadData();
