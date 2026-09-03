@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260903-7">
+    <link rel="stylesheet" href="style.css?v=20260903-8">
 </head>
 <body>
 
@@ -75,7 +75,6 @@
             <div data-page="dashboard" class="page-panel">
                 <div class="kpi-grid">
                     <div class="fancy-card buy-gradient">
-                        <div class="card-glow green-glow"></div>
                         <div class="card-head">
                             <span>BUY OPPORTUNITIES</span>
                             <span class="pill-badge green-pill">BULLISH</span>
@@ -85,7 +84,6 @@
                     </div>
 
                     <div class="fancy-card sell-gradient">
-                        <div class="card-glow red-glow"></div>
                         <div class="card-head">
                             <span>SELL TRIGGERS</span>
                             <span class="pill-badge red-pill">BEARISH</span>
@@ -149,6 +147,46 @@
 
             <!-- PAGE 4: PORTFOLIO -->
             <div data-page="portfolio" class="page-panel" style="display:none;">
+                
+                <!-- PORTFOLIO SUMMARY METRICS GRID -->
+                <div class="kpi-grid mb-24">
+                    <div class="fancy-card dark-gradient">
+                        <div class="card-head">
+                            <span>TOTAL INVESTED</span>
+                            <span class="pill-badge blue-pill">CAPITAL</span>
+                        </div>
+                        <h2 id="portInvested">₹0</h2>
+                        <span class="card-sub">Open positions cost</span>
+                    </div>
+
+                    <div class="fancy-card dark-gradient">
+                        <div class="card-head">
+                            <span>CURRENT VALUE</span>
+                            <span class="pill-badge purple-pill">LTP VALUE</span>
+                        </div>
+                        <h2 id="portCurrentVal">₹0</h2>
+                        <span class="card-sub">Current portfolio value</span>
+                    </div>
+
+                    <div class="fancy-card dark-gradient">
+                        <div class="card-head">
+                            <span>UNREALIZED P&L</span>
+                            <span id="portPnlBadge" class="pill-badge green-pill">P&L</span>
+                        </div>
+                        <h2 id="portTotalPnl">₹0</h2>
+                        <span class="card-sub">Total profit / loss</span>
+                    </div>
+
+                    <div class="fancy-card dark-gradient">
+                        <div class="card-head">
+                            <span>TOTAL RETURN</span>
+                            <span id="portReturnBadge" class="pill-badge green-pill">RETURN %</span>
+                        </div>
+                        <h2 id="portTotalReturn">0.00%</h2>
+                        <span class="card-sub">Net ROI percentage</span>
+                    </div>
+                </div>
+
                 <div id="portfolioExitStrategy" class="strategy-banner"></div>
 
                 <h3 class="section-title mt-24">Open Positions</h3>
@@ -203,12 +241,11 @@
             <button class="close-btn" onclick="closeChart()">✕</button>
         </div>
         <div class="chart-modal-body">
-            <div id="stockChartLoading" class="chart-loader" style="display:none;">Loading Chart Data...</div>
             <canvas id="stockChartCanvas"></canvas>
         </div>
     </div>
 </div>
 
-<script src="app.js?v=20260903-7"></script>
+<script src="app.js?v=20260903-8"></script>
 </body>
 </html>
