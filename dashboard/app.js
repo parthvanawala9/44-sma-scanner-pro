@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - JS LOGIC
+// 44 SMA SCANNER PRO - SCRIPT
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -80,11 +80,11 @@ function renderNavigation() {
     const titleElem = document.getElementById("pageTitle");
     if (titleElem) {
         const titleMap = {
-            dashboard: "Dashboard Overview",
+            dashboard: "Dashboard Intelligence",
             buy: "BUY Signals Today",
             sell: "SELL Signals Today",
-            portfolio: "Portfolio Tracker",
-            history: "Scan History Logs"
+            portfolio: "Portfolio Monitor",
+            history: "Historical Scan Logs"
         };
         titleElem.textContent = titleMap[currentTab] || "Dashboard";
     }
@@ -115,13 +115,13 @@ function renderDashboardView() {
     const summaryWrapper = document.getElementById("signalSummary");
     if (summaryWrapper) {
         summaryWrapper.innerHTML = `
-            <div style="flex:1; padding:15px; background:rgba(46,204,113,0.1); border-radius:8px; border:1px solid #2ecc71;">
-                <strong style="color:#2ecc71;">BUY OPPORTUNITIES</strong>
-                <p style="font-size:20px; font-weight:700; margin-top:5px;">${buys.length} Stocks</p>
+            <div style="flex:1; padding:18px; background:rgba(16,185,129,0.1); border-radius:12px; border:1px solid #10b981;">
+                <span style="color:#10b981; font-weight:800; font-size:11px;">BUY BREAKOUTS</span>
+                <p style="font-size:24px; font-weight:800; margin-top:4px;">${buys.length} Stocks</p>
             </div>
-            <div style="flex:1; padding:15px; background:rgba(231,76,60,0.1); border-radius:8px; border:1px solid #e74c3c;">
-                <strong style="color:#e74c3c;">SELL / EXIT TRIGGERS</strong>
-                <p style="font-size:20px; font-weight:700; margin-top:5px;">${sells.length} Stocks</p>
+            <div style="flex:1; padding:18px; background:rgba(239,68,68,0.1); border-radius:12px; border:1px solid #ef4444;">
+                <span style="color:#ef4444; font-weight:800; font-size:11px;">SELL TRIGGERS</span>
+                <p style="font-size:24px; font-weight:800; margin-top:4px;">${sells.length} Stocks</p>
             </div>
         `;
     }
@@ -168,9 +168,21 @@ function signalRow(item, type) {
             <td>${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
             <td>${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
             <td><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
-            <td><button class="btn-chart">Chart</button></td>
+            <td><button class="btn-chart" onclick="openStockChart('${escapeHtml(symbol)}')">Chart</button></td>
         </tr>
     `;
+}
+
+function openStockChart(symbol) {
+    const modal = document.getElementById("stockChartModal");
+    const title = document.getElementById("stockChartTitle");
+    if (title) title.textContent = symbol + " — 44 SMA Chart";
+    if (modal) modal.style.display = "flex";
+}
+
+function closeChart() {
+    const modal = document.getElementById("stockChartModal");
+    if (modal) modal.style.display = "none";
 }
 
 function renderPortfolioTable() {
