@@ -1,6 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO
-// DASHBOARD + PORTFOLIO (Fixed Logic)
+// 44 SMA SCANNER PRO — TERMINAL LOGIC
 // ============================================================
 
 let signals = {
@@ -25,25 +24,16 @@ let portfolio = {
     totalInvested: 0,
     totalCurrentValue: 0,
     totalPnL: 0,
-    totalPnLPercent: 0,
-    openPositionsCount: 0,
-    totalTrades: 0,
-    winningTrades: 0,
-    losingTrades: 0
+    totalPnLPercent: 0
 };
 
 let currentTab = "dashboard";
-let currentChartRows = null;
-let portfolioSort = "buyDateDesc";
-let closedTradeSort = "sellDateDesc";
 let isLoadingData = false;
-
-const $ = selector => document.querySelector(selector);
 
 function money(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) return "—";
-    return number.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    return "₹" + number.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
 function percentage(value) {
@@ -55,8 +45,8 @@ function percentage(value) {
 
 function pnlClass(value) {
     const number = Number(value);
-    if (number > 0) return "green";
-    if (number < 0) return "red";
+    if (number > 0) return "text-green";
+    if (number < 0) return "text-red";
     return "";
 }
 
@@ -69,19 +59,14 @@ function escapeHtml(value) {
         .replace(/'/g, "&#039;");
 }
 
-async function loadData(options = {}) {
+async function loadData() {
     if (isLoadingData) return;
     isLoadingData = true;
 
-    const refreshButton = findRefreshButton();
-    const originalRefreshText = refreshButton ? refreshButton.textContent : null;
-
+    const refreshButton = document.querySelector('[data-action="refresh"]');
     if (refreshButton) {
         refreshButton.disabled = true;
-        refreshButton.dataset.loading = "true";
-        refreshButton.textContent = "↻ Loading...";
-        refreshButton.style.opacity = "0.7";
-        refreshButton.style.cursor = "wait";
+        refreshButton.classList.add("loading");
     }
 
     try {
@@ -98,94 +83,53 @@ async function loadData(options = {}) {
         try {
             const historyResponse = await fetch("./data/history.json?" + timestamp, { cache: "no-store" });
             if (historyResponse.ok) {
-                const historyData = await historyResponse.json();
-                history = Array.isArray(historyData) ? historyData : [];
+                history = await historyResponse.json();
             }
-        } catch (e) {
-            history = [];
-        }
+        } catch (e) { history = []; }
 
         try {
             const portfolioResponse = await fetch("./data/portfolio.json?" + timestamp, { cache: "no-store" });
             if (portfolioResponse.ok) {
-                const portfolioData = await portfolioResponse.json();
-                if (portfolioData && typeof portfolioData === "object" && !Array.isArray(portfolioData)) {
-                    portfolio = portfolioData;
-                } else {
-                    portfolio = createEmptyPortfolio();
-                }
+                portfolio = await portfolioResponse.json();
             }
-        } catch (e) {
-            portfolio = createEmptyPortfolio();
-        }
+        } catch (e) { portfolio = createEmptyPortfolio(); }
 
-        normalizePortfolio();
         updateLastScan();
         render();
 
     } catch (error) {
-        console.error("Dashboard data error:", error);
-        renderError("Unable to load dashboard data.");
+        console.error("Dashboard error:", error);
     } finally {
         isLoadingData = false;
-        const button = findRefreshButton();
-        if (button) {
-            button.disabled = false;
-            button.dataset.loading = "false";
-            button.textContent = originalRefreshText || "↻ Refresh Data";
-            button.style.opacity = "";
-            button.style.cursor = "";
+        if (refreshButton) {
+            refreshButton.disabled = false;
+            refreshButton.classList.remove("loading");
         }
     }
 }
 
 function createEmptyPortfolio() {
-    return {
-        allocationPerStock: 5000,
-        openPositions: [],
-        closedTrades: [],
-        pendingOrders: [],
-        realizedPnL: 0,
-        unrealizedPnL: 0,
-        totalInvested: 0,
-        totalCurrentValue: 0,
-        totalPnL: 0,
-        totalPnLPercent: 0,
-        openPositionsCount: 0,
-        totalTrades: 0,
-        winningTrades: 0,
-        losingTrades: 0
-    };
-}
-
-function normalizePortfolio() {
-    if (!portfolio || typeof portfolio !== "object") portfolio = createEmptyPortfolio();
-    if (!Array.isArray(portfolio.openPositions)) portfolio.openPositions = [];
-    if (!Array.isArray(portfolio.closedTrades)) portfolio.closedTrades = [];
-}
-
-function findRefreshButton() {
-    return document.querySelector('[data-action="refresh"]') || document.querySelector("#refreshButton");
+    return { allocationPerStock: 5000, openPositions: [], closedTrades: [] };
 }
 
 function updateLastScan() {
     const element = document.getElementById("lastScan");
     if (!element) return;
-    const value = signals.scannedAt || signals.scanDate || signals.date || null;
+    const value = signals.scannedAt || signals.scanDate || signals.date;
     if (!value) {
         element.textContent = "Last scan: —";
         return;
     }
     const date = new Date(value);
-    element.textContent = Number.isNaN(date.getTime()) ? "Last scan: " + String(value) : "Last scan: " + date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+    element.textContent = Number.isNaN(date.getTime()) 
+        ? "Last scan: " + String(value) 
+        : "Last scan: " + date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function render() {
     renderNavigation();
-    renderDashboard();
-    renderSignals();
-    renderPortfolio();
-    renderHistory();
+    renderMetrics();
+    renderTables();
     renderCurrentView();
 }
 
@@ -195,43 +139,60 @@ function renderNavigation() {
     });
     const pageTitle = document.getElementById("pageTitle");
     if (pageTitle) {
-        pageTitle.textContent = currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
+        const titleMap = {
+            dashboard: "Dashboard Overview",
+            buy: "BUY Signals",
+            sell: "SELL Signals",
+            portfolio: "Portfolio Manager",
+            history: "Scan History"
+        };
+        pageTitle.textContent = titleMap[currentTab] || "Dashboard";
     }
 }
 
 function renderCurrentView() {
     document.querySelectorAll("[data-page]").forEach(page => {
-        page.style.display = page.dataset.page === currentTab ? "" : "none";
+        page.style.display = page.dataset.page === currentTab ? "block" : "none";
     });
 }
 
-function getBuySignals() { return Array.isArray(signals.buy) ? signals.buy : (Array.isArray(signals.buys) ? signals.buys : []); }
-function getSellSignals() { return Array.isArray(signals.sell) ? signals.sell : (Array.isArray(signals.sells) ? signals.sells : []); }
+function getBuySignals() { return Array.isArray(signals.buy) ? signals.buy : []; }
+function getSellSignals() { return Array.isArray(signals.sell) ? signals.sell : []; }
 
-function renderDashboard() {
+function renderMetrics() {
     const buySignals = getBuySignals();
     const sellSignals = getSellSignals();
-    renderSignalSummary(buySignals, sellSignals);
+    const scanned = Number(signals.scanned || signals.universeCount || 0);
+
+    const buyElem = document.getElementById("dashBuyCount");
+    const sellElem = document.getElementById("dashSellCount");
+    const scanElem = document.getElementById("dashScannedCount");
+
+    if (buyElem) buyElem.textContent = buySignals.length;
+    if (sellElem) sellElem.textContent = sellSignals.length;
+    if (scanElem) scanElem.textContent = scanned;
+
+    const summaryContainer = document.getElementById("signalSummary");
+    if (summaryContainer) {
+        summaryContainer.innerHTML = `
+            <div class="summary-pill buy">
+                <span>BUY OPPORTUNITIES</span>
+                <strong>${buySignals.length} Stocks</strong>
+            </div>
+            <div class="summary-pill sell">
+                <span>SELL / EXIT TRIGGERS</span>
+                <strong>${sellSignals.length} Stocks</strong>
+            </div>
+        `;
+    }
 }
 
-function renderSignalSummary(buySignals, sellSignals) {
-    const container = document.getElementById("signalSummary");
-    if (!container) return;
-    container.innerHTML = `
-        <div class="summary-card">
-            <div class="summary-label">BUY SIGNALS</div>
-            <div class="summary-value green">${buySignals.length}</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">SELL SIGNALS</div>
-            <div class="summary-value red">${sellSignals.length}</div>
-        </div>
-    `;
-}
-
-function renderSignals() {
+function renderTables() {
     renderBuyTable();
     renderSellTable();
+    renderPortfolioTable();
+    renderClosedTable();
+    renderHistoryTable();
 }
 
 function renderBuyTable() {
@@ -239,7 +200,7 @@ function renderBuyTable() {
     if (!container) return;
     const rows = getBuySignals();
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="9" class="empty-state">No BUY signals today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="9" class="empty-state">No BUY signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "BUY")).join("");
@@ -250,7 +211,7 @@ function renderSellTable() {
     if (!container) return;
     const rows = getSellSignals();
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="9" class="empty-state">No SELL signals today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="9" class="empty-state">No SELL signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
@@ -268,85 +229,107 @@ function signalRow(item, type) {
 
     return `
         <tr>
-            <td><strong>${escapeHtml(symbol)}</strong></td>
-            <td>₹${money(close)}</td>
-            <td>₹${money(sma44)}</td>
-            <td>₹${money(sma100)}</td>
-            <td>₹${money(sma200)}</td>
+            <td><strong class="symbol-code">${escapeHtml(symbol)}</strong></td>
+            <td>${money(close)}</td>
+            <td>${money(sma44)}</td>
+            <td>${money(sma100)}</td>
+            <td>${money(sma200)}</td>
             <td>${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
-            <td>${Number.isFinite(open) && Number.isFinite(close) ? (close > open ? "🟢 Green" : "🔴 Red") : "—"}</td>
-            <td><span class="signal-badge ${type === "BUY" ? "buy" : "sell"}">${type}</span></td>
-            <td><button class="view-chart-btn" onclick="openStockChartFromEncoded('${rowData}')">Chart</button></td>
+            <td>${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
+            <td><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
+            <td><button class="btn btn-sm" onclick="openStockChartFromEncoded('${rowData}')">Chart</button></td>
         </tr>
     `;
 }
 
-function renderPortfolio() {
-    renderPortfolioStrategy();
-    renderOpenPositions();
-    renderClosedTrades();
-}
-
-function renderPortfolioStrategy() {
-    const container = document.getElementById("portfolioExitStrategy");
-    if (!container) return;
-    container.innerHTML = `
-        <div class="portfolio-strategy-title">🎯 Portfolio Exit Strategy</div>
-        <div class="portfolio-strategy-grid">
-            <div class="portfolio-strategy-item"><strong>🛑 Basic SL:</strong> -5%</div>
-            <div class="portfolio-strategy-item"><strong>🎯 Target:</strong> +20%</div>
-            <div class="portfolio-strategy-item"><strong>📉 Trailing SL:</strong> Close < 44 SMA</div>
-        </div>
-    `;
-}
-
-function renderOpenPositions() {
+function renderPortfolioTable() {
     const container = document.getElementById("portfolioTableBody");
     if (!container) return;
     const rows = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="13" class="empty-state">No open positions</td></tr>`;
+        container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
         return;
     }
-    container.innerHTML = rows.map(pos => `
-        <tr>
-            <td><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
-            <td>${pos.quantity || 0}</td>
-            <td>₹${money(pos.buyPrice)}</td>
-            <td>₹${money(pos.currentPrice || pos.buyPrice)}</td>
-            <td>₹${money((pos.quantity || 0) * (pos.buyPrice || 0))}</td>
-            <td>₹${money((pos.quantity || 0) * (pos.currentPrice || pos.buyPrice || 0))}</td>
-            <td class="${pnlClass((pos.currentPrice - pos.buyPrice) * pos.quantity)}">₹${money((pos.currentPrice - pos.buyPrice) * pos.quantity)}</td>
-            <td>${percentage(((pos.currentPrice - pos.buyPrice) / pos.buyPrice) * 100)}</td>
-            <td>₹${money(pos.currentSMA44)}</td>
-            <td>₹${money(pos.stopLossPrice)}</td>
-            <td>₹${money(pos.targetPrice)}</td>
-            <td>${escapeHtml(pos.exitStatus || "HOLD")}</td>
-            <td>${formatDate(pos.buyDate)}</td>
-        </tr>
-    `).join("");
+    container.innerHTML = rows.map(pos => {
+        const qty = pos.quantity || 0;
+        const buyP = pos.buyPrice || 0;
+        const currP = pos.currentPrice || buyP;
+        const invested = qty * buyP;
+        const currVal = qty * currP;
+        const pnl = currVal - invested;
+        const pnlPct = buyP ? ((currP - buyP) / buyP) * 100 : 0;
+
+        return `
+            <tr>
+                <td><strong class="symbol-code">${escapeHtml(pos.symbol || "—")}</strong></td>
+                <td>${qty}</td>
+                <td>${money(buyP)}</td>
+                <td>${money(currP)}</td>
+                <td>${money(invested)}</td>
+                <td>${money(currVal)}</td>
+                <td class="${pnlClass(pnl)}">${money(pnl)}</td>
+                <td class="${pnlClass(pnlPct)}">${percentage(pnlPct)}</td>
+                <td>${money(pos.currentSMA44)}</td>
+                <td>${money(pos.stopLossPrice)}</td>
+                <td>${money(pos.targetPrice)}</td>
+                <td><span class="badge badge-outline">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
+                <td>${formatDate(pos.buyDate)}</td>
+            </tr>
+        `;
+    }).join("");
 }
 
-function renderClosedTrades() {
+function renderClosedTable() {
     const container = document.getElementById("closedTradesBody");
     if (!container) return;
     const rows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="10" class="empty-state">No closed trades</td></tr>`;
+        container.innerHTML = `<tr><td colspan="10" class="empty-state">No closed trades recorded</td></tr>`;
         return;
     }
-    container.innerHTML = rows.map(t => `
+    container.innerHTML = rows.map(t => {
+        const qty = t.quantity || 0;
+        const buyP = t.buyPrice || 0;
+        const sellP = t.sellPrice || 0;
+        const invested = qty * buyP;
+        const proceeds = qty * sellP;
+        const pnl = t.pnl ?? (proceeds - invested);
+        const retPct = invested ? (pnl / invested) * 100 : 0;
+
+        return `
+            <tr>
+                <td><strong class="symbol-code">${escapeHtml(t.symbol || "—")}</strong></td>
+                <td>${qty}</td>
+                <td>${money(buyP)}</td>
+                <td>${money(sellP)}</td>
+                <td>${money(invested)}</td>
+                <td>${money(proceeds)}</td>
+                <td class="${pnlClass(pnl)}">${money(pnl)}</td>
+                <td class="${pnlClass(retPct)}">${percentage(retPct)}</td>
+                <td>${formatDate(t.buyDate)}</td>
+                <td><span class="badge ${pnl >= 0 ? "badge-green" : "badge-red"}">${escapeHtml(t.result || (pnl >= 0 ? "WIN" : "LOSS"))}</span></td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function renderHistoryTable() {
+    const container = document.getElementById("historyTableBody");
+    if (!container) return;
+    const rows = Array.isArray(history) ? history : [];
+    if (!rows.length) {
+        container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history logs</td></tr>`;
+        return;
+    }
+    container.innerHTML = rows.slice().reverse().map(item => `
         <tr>
-            <td><strong>${escapeHtml(t.symbol || "—")}</strong></td>
-            <td>${t.quantity || 0}</td>
-            <td>₹${money(t.buyPrice)}</td>
-            <td>₹${money(t.sellPrice)}</td>
-            <td>₹${money(t.quantity * t.buyPrice)}</td>
-            <td>₹${money(t.quantity * t.sellPrice)}</td>
-            <td class="${pnlClass(t.pnl)}">₹${money(t.pnl)}</td>
-            <td>${percentage((t.pnl / (t.quantity * t.buyPrice)) * 100)}</td>
-            <td>${formatDate(t.buyDate)}</td>
-            <td>${escapeHtml(t.result || "CLOSED")}</td>
+            <td>${formatDate(item.date)}</td>
+            <td><strong class="symbol-code">${escapeHtml(item.symbol || "—")}</strong></td>
+            <td><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
+            <td>${money(item.close)}</td>
+            <td>${money(item.sma44)}</td>
+            <td>${money(item.sma100)}</td>
+            <td>${money(item.sma200)}</td>
         </tr>
     `).join("");
 }
@@ -355,31 +338,6 @@ function formatDate(value) {
     if (!value) return "—";
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function renderHistory() {
-    const container = document.getElementById("historyTableBody");
-    if (!container) return;
-    const rows = Array.isArray(history) ? history : [];
-    if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history available</td></tr>`;
-        return;
-    }
-    container.innerHTML = rows.slice().reverse().map(item => `
-        <tr>
-            <td>${formatDate(item.date)}</td>
-            <td><strong>${escapeHtml(item.symbol || "—")}</strong></td>
-            <td><span class="signal-badge ${item.signal === "BUY" ? "buy" : "sell"}">${escapeHtml(item.signal || "—")}</span></td>
-            <td>₹${money(item.close)}</td>
-            <td>₹${money(item.sma44)}</td>
-            <td>₹${money(item.sma100)}</td>
-            <td>₹${money(item.sma200)}</td>
-        </tr>
-    `).join("");
-}
-
-function renderError(message) {
-    console.error(message);
 }
 
 function setupNavigation() {
@@ -395,7 +353,7 @@ function setupNavigation() {
 function setupRefresh() {
     document.addEventListener("click", event => {
         if (event.target.closest('[data-action="refresh"]')) {
-            loadData({ manual: true });
+            loadData();
         }
     });
 }
@@ -415,7 +373,6 @@ function closeChart() {
     if (modal) modal.style.display = "none";
 }
 
-// Auto Load on page ready
 document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
     setupRefresh();
