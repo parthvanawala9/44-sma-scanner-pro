@@ -279,6 +279,64 @@ body {
     font-size: 11px;
 }
 
+/* MODAL STYLING FOR CHARTS */
+.chart-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.chart-modal {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 85%;
+    max-width: 900px;
+    padding: 20px;
+}
+
+.chart-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.chart-modal-body {
+    position: relative;
+    width: 100%;
+}
+
+.chart-loader {
+    text-align: center;
+    padding: 40px;
+    color: var(--blue);
+    font-weight: 700;
+}
+
+#stockChartCanvas {
+    width: 100%;
+    height: 360px;
+    background: #080b11;
+    border-radius: 8px;
+    display: block;
+}
+
 .text-green { color: var(--green) !important; }
 .text-red { color: var(--red) !important; }
 .mt-12 { margin-top: 12px; }
