@@ -150,6 +150,43 @@ body {
     cursor: pointer;
 }
 
+/* SORTING CONTROLS BAR */
+.sort-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.sort-bar label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.sort-bar select {
+    background: var(--panel-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+}
+
+.panel-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inline-sort {
+    margin-bottom: 0;
+}
+
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
