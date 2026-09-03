@@ -491,8 +491,11 @@ def update_portfolio(
         -> BUY at today's CLOSE
 
     SELL:
-        Today's SELL signal
-        -> SELL at today's CLOSE
+        An existing position is sold at today's CLOSE when
+        ANY of these is true:
+          1. Close <= 5% below Buy Price
+          2. Close >= 20% above Buy Price
+          3. Close < 44 SMA (trailing stop)
 
     No pending orders.
     No next-day OPEN execution.
@@ -515,21 +518,30 @@ def update_portfolio(
 
     # ========================================================
     # 1. SELL FIRST
+    #
+    # Portfolio exits are evaluated independently from the
+    # scanner-wide SELL list.
+    #
+    # Existing position exits:
+    #   - Close <= 95% of Buy Price  -> 5% Stop Loss
+    #   - Close >= 120% of Buy Price -> 20% Target
+    #   - Close < 44 SMA             -> 44 SMA Trailing Stop
+    #
+    # Any one condition is enough to exit.
     # ========================================================
 
-    for item in sells:
+    for position in list(
+        portfolio.get("openPositions", [])
+    ):
 
-        symbol = item.get("symbol")
+        symbol = position.get("symbol")
 
         if not symbol:
             continue
 
-        position = find_position(
-            portfolio,
-            symbol,
-        )
+        item = result_map.get(symbol)
 
-        if not position:
+        if not item:
             continue
 
         try:
@@ -538,24 +550,8 @@ def update_portfolio(
                 item.get("Close")
             )
 
-            if (
-                not math.isfinite(
-                    sell_price
-                )
-                or sell_price <= 0
-            ):
-                continue
-
-        except Exception:
-            continue
-
-        try:
-
-            quantity = int(
-                position.get(
-                    "quantity",
-                    0,
-                )
+            sma44 = float(
+                item.get("sma44")
             )
 
             buy_price = float(
@@ -565,13 +561,67 @@ def update_portfolio(
                 )
             )
 
+            quantity = int(
+                position.get(
+                    "quantity",
+                    0,
+                )
+            )
+
         except Exception:
             continue
 
         if (
-            quantity <= 0
+            not math.isfinite(sell_price)
+            or sell_price <= 0
+            or not math.isfinite(sma44)
             or buy_price <= 0
+            or quantity <= 0
         ):
+
+            continue
+
+        stop_loss_price = (
+            buy_price * 0.95
+        )
+
+        target_price = (
+            buy_price * 1.20
+        )
+
+        stop_loss_hit = (
+            sell_price <= stop_loss_price
+        )
+
+        target_hit = (
+            sell_price >= target_price
+        )
+
+        trailing_stop_hit = (
+            sell_price < sma44
+        )
+
+        exit_reasons = []
+
+        if stop_loss_hit:
+
+            exit_reasons.append(
+                "5% STOP LOSS"
+            )
+
+        if target_hit:
+
+            exit_reasons.append(
+                "20% TARGET"
+            )
+
+        if trailing_stop_hit:
+
+            exit_reasons.append(
+                "44 SMA TRAILING STOP"
+            )
+
+        if not exit_reasons:
 
             continue
 
@@ -600,12 +650,14 @@ def update_portfolio(
 
         closed_trade = {
 
-            "symbol": symbol,
+            "symbol":
+                symbol,
 
-            "ticker": position.get(
-                "ticker",
-                f"{symbol}.NS",
-            ),
+            "ticker":
+                position.get(
+                    "ticker",
+                    f"{symbol}.NS",
+                ),
 
             "signalDate":
                 position.get(
@@ -663,7 +715,6 @@ def update_portfolio(
             "sellValue":
                 sell_value,
 
-            # Keep compatibility with older data
             "saleValue":
                 sell_value,
 
@@ -672,6 +723,11 @@ def update_portfolio(
 
             "pnlPercent":
                 pnl_percent,
+
+            "exitReason":
+                " + ".join(
+                    exit_reasons
+                ),
 
             "execution":
                 "SAME_DAY_CLOSE",
@@ -700,7 +756,8 @@ def update_portfolio(
             f"{symbol} | "
             f"Close {sell_price:.2f} | "
             f"Qty {quantity} | "
-            f"PnL {pnl:.2f}"
+            f"PnL {pnl:.2f} | "
+            f"Exit: {' + '.join(exit_reasons)}"
         )
 
     # ========================================================
@@ -806,6 +863,23 @@ def update_portfolio(
             "unrealizedPnLPercent":
                 0,
 
+            "currentSMA44":
+                float(
+                    item.get(
+                        "sma44",
+                        0,
+                    )
+                ),
+
+            "stopLossPrice":
+                buy_price * 0.95,
+
+            "targetPrice":
+                buy_price * 1.20,
+
+            "exitStatus":
+                "HOLD",
+
             "execution":
                 "SAME_DAY_CLOSE",
         }
@@ -903,6 +977,70 @@ def update_portfolio(
             if invested
             else 0
         )
+
+        try:
+
+            current_sma44 = float(
+                item.get("sma44")
+            )
+
+            buy_price = float(
+                position.get(
+                    "buyPrice",
+                    0,
+                )
+            )
+
+            position["currentSMA44"] = (
+                current_sma44
+            )
+
+            position["stopLossPrice"] = (
+                buy_price * 0.95
+            )
+
+            position["targetPrice"] = (
+                buy_price * 1.20
+            )
+
+            if (
+                close_price
+                <= position["stopLossPrice"]
+            ):
+
+                position["exitStatus"] = (
+                    "5% STOP LOSS"
+                )
+
+            elif (
+                close_price
+                >= position["targetPrice"]
+            ):
+
+                position["exitStatus"] = (
+                    "20% TARGET"
+                )
+
+            elif (
+                close_price
+                < current_sma44
+            ):
+
+                position["exitStatus"] = (
+                    "44 SMA TRAILING STOP"
+                )
+
+            else:
+
+                position["exitStatus"] = (
+                    "HOLD"
+                )
+
+        except Exception:
+
+            position["exitStatus"] = (
+                "HOLD"
+            )
 
     # ========================================================
     # 4. TOTALS
@@ -1043,11 +1181,18 @@ def process_stock(
     5. 100 SMA above 200 SMA
     6. Green candle
 
-    SELL:
+    SELL SIGNAL (scanner-wide):
 
-    1. High touches/exceeds 44 SMA
-    2. Close below 44 SMA
-    3. Red candle
+    1. Close below 44 SMA
+
+    PORTFOLIO EXIT (already-held stocks only):
+
+    1. Basic Stop Loss = -5% from Buy Price
+    2. Target = +20% from Buy Price
+    3. Trailing Stop Loss = Close below 44 SMA
+
+    Any one of these three conditions can close an existing
+    position. Execution remains SAME_DAY_CLOSE.
     """
 
     if df is None or df.empty:
@@ -1217,16 +1362,13 @@ def process_stock(
         # SELL
         # ====================================================
 
+        # Scanner-wide SELL signal is the 44 SMA trailing-stop
+        # condition. The -5% stop loss and +20% target are
+        # portfolio-only exits for stocks already held.
         sell_checks = {
-
-            "High touches 44 SMA":
-                high_price >= sma44,
 
             "Close below 44 SMA":
                 close_price < sma44,
-
-            "Red candle":
-                close_price < open_price,
         }
 
         sell = all(
@@ -1331,7 +1473,7 @@ def main():
 
     print("=" * 70)
     print("44 SMA SCANNER PRO")
-    print("SAME-DAY CLOSING PRICE PORTFOLIO")
+    print("SAME-DAY CLOSE | -5% SL | +20% TARGET | 44 SMA TRAILING EXIT")
     print("=" * 70)
 
     print(
@@ -1611,6 +1753,13 @@ def main():
 
         "portfolioExecution":
             "SAME_DAY_CLOSE",
+
+        "portfolioExitStrategy": {
+            "stopLossPercent": -5,
+            "targetPercent": 20,
+            "trailingStop":
+                "CLOSE_BELOW_44_SMA",
+        },
     }
 
     with open(
