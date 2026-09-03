@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260903-9">
+    <link rel="stylesheet" href="style.css?v=20260903-10">
 </head>
 <body>
 
@@ -170,15 +170,15 @@
             <!-- PAGE 4: PORTFOLIO -->
             <div data-page="portfolio" class="page-panel" style="display:none;">
                 
-                <!-- PORTFOLIO SUMMARY METRICS GRID -->
-                <div class="kpi-grid mb-24">
+                <!-- PORTFOLIO SUMMARY METRICS GRID (WITH REALIZED P&L) -->
+                <div class="kpi-grid-5 mb-24">
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
                             <span>TOTAL INVESTED</span>
-                            <span class="pill-badge blue-pill">CAPITAL</span>
+                            <span class="pill-badge blue-pill">OPEN COST</span>
                         </div>
                         <h2 id="portInvested">₹0</h2>
-                        <span class="card-sub">Open positions cost</span>
+                        <span class="card-sub">Active holdings</span>
                     </div>
 
                     <div class="fancy-card dark-gradient">
@@ -187,25 +187,34 @@
                             <span class="pill-badge purple-pill">LTP VALUE</span>
                         </div>
                         <h2 id="portCurrentVal">₹0</h2>
-                        <span class="card-sub">Current portfolio value</span>
+                        <span class="card-sub">Current holdings</span>
                     </div>
 
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
                             <span>UNREALIZED P&L</span>
-                            <span id="portPnlBadge" class="pill-badge green-pill">P&L</span>
+                            <span id="portUnrealizedPnlBadge" class="pill-badge green-pill">OPEN</span>
                         </div>
-                        <h2 id="portTotalPnl">₹0</h2>
-                        <span class="card-sub">Total profit / loss</span>
+                        <h2 id="portUnrealizedPnl">₹0</h2>
+                        <span class="card-sub">Open P&L</span>
+                    </div>
+
+                    <div class="fancy-card dark-gradient">
+                        <div class="card-head">
+                            <span>REALIZED P&L</span>
+                            <span id="portRealizedPnlBadge" class="pill-badge blue-pill">CLOSED</span>
+                        </div>
+                        <h2 id="portRealizedPnl">₹0</h2>
+                        <span class="card-sub">Booked profit/loss</span>
                     </div>
 
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
                             <span>TOTAL RETURN</span>
-                            <span id="portReturnBadge" class="pill-badge green-pill">RETURN %</span>
+                            <span id="portReturnBadge" class="pill-badge green-pill">ROI</span>
                         </div>
                         <h2 id="portTotalReturn">0.00%</h2>
-                        <span class="card-sub">Net ROI percentage</span>
+                        <span class="card-sub">Net ROI %</span>
                     </div>
                 </div>
 
@@ -298,11 +307,12 @@
             <button class="close-btn" onclick="closeChart()">✕</button>
         </div>
         <div class="chart-modal-body">
+            <div id="stockChartLoading" class="chart-loader" style="display:none;">Loading Chart Data...</div>
             <canvas id="stockChartCanvas"></canvas>
         </div>
     </div>
 </div>
 
-<script src="app.js?v=20260903-9"></script>
+<script src="app.js?v=20260903-10"></script>
 </body>
 </html>
