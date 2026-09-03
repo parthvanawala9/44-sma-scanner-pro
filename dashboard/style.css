@@ -35,7 +35,6 @@ body {
     overflow: hidden;
 }
 
-/* SIDEBAR FIXED */
 .sidebar {
     width: 240px;
     min-width: 240px;
@@ -64,18 +63,8 @@ body {
     font-weight: 800;
 }
 
-.logo-area h2 {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-}
-
-.logo-area span {
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--blue);
-    font-weight: 700;
-}
+.logo-area h2 { font-size: 22px; font-weight: 800; }
+.logo-area span { font-size: 9px; letter-spacing: 2px; color: var(--blue); font-weight: 700; }
 
 .sidebar-nav {
     margin-top: 24px;
@@ -96,7 +85,6 @@ body {
     color: var(--text-muted);
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s ease;
 }
 
 .nav-btn:hover, .nav-btn.active {
@@ -104,13 +92,11 @@ body {
     color: #fff;
 }
 
-.nav-btn.active {
-    border-left: 3px solid var(--blue);
-}
+.nav-btn.active { border-left: 3px solid var(--blue); }
 
 .dot { width: 8px; height: 8px; border-radius: 50%; }
-.green-dot { background-color: var(--green); box-shadow: 0 0 8px var(--green); }
-.red-dot { background-color: var(--red); box-shadow: 0 0 8px var(--red); }
+.green-dot { background-color: var(--green); }
+.red-dot { background-color: var(--red); }
 
 .strategy-card {
     background-color: var(--panel-bg);
@@ -119,11 +105,10 @@ body {
     padding: 12px 14px;
 }
 
-.strategy-title { font-size: 10px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
-.strategy-val { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.strategy-title { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+.strategy-val { font-size: 13px; font-weight: 700; margin-top: 2px; }
 .strategy-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-/* MAIN BODY & PC FULLSCREEN FIX */
 .main-body {
     flex: 1;
     display: flex;
@@ -163,10 +148,8 @@ body {
     border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* FANCY CARDS DESIGN */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -174,17 +157,11 @@ body {
 }
 
 .fancy-card {
-    position: relative;
     background-color: var(--panel-bg);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px;
-    overflow: hidden;
 }
-
-.buy-gradient { background: linear-gradient(145deg, rgba(16, 185, 129, 0.08), var(--panel-bg)); border-color: rgba(16, 185, 129, 0.3); }
-.sell-gradient { background: linear-gradient(145deg, rgba(239, 68, 68, 0.08), var(--panel-bg)); border-color: rgba(239, 68, 68, 0.3); }
-.dark-gradient { background: var(--panel-bg); }
 
 .card-head {
     display: flex;
@@ -208,26 +185,13 @@ body {
 .purple-pill { background: rgba(139, 92, 246, 0.2); color: var(--purple); }
 
 .fancy-card h2 {
-    font-size: 32px;
+    font-size: 26px;
     font-weight: 800;
     margin: 10px 0 4px;
 }
 
 .card-sub { font-size: 11px; color: var(--text-muted); }
 
-.fancy-panel {
-    background-color: var(--panel-bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-}
-
-.summary-wrapper {
-    display: flex;
-    gap: 16px;
-}
-
-/* NO SCROLLBAR NO FIT ISSUE TABLE */
 .table-container {
     background-color: var(--panel-bg);
     border: 1px solid var(--border);
@@ -279,55 +243,10 @@ body {
     font-size: 11px;
 }
 
-/* CHART MODAL FULL FIX */
-.chart-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-}
-
-.chart-modal {
-    background: var(--panel-bg);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    width: 80%;
-    max-width: 900px;
-    padding: 20px;
-}
-
-.chart-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.close-btn {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-#stockChartCanvas {
-    width: 100%;
-    height: 380px;
-    background: #080b11;
-    border-radius: 8px;
-}
-
 .text-green { color: var(--green) !important; }
 .text-red { color: var(--red) !important; }
 .mt-12 { margin-top: 12px; }
-.mt-16 { margin-top: 16px; }
 .mt-24 { margin-top: 24px; }
 .mt-28 { margin-top: 28px; }
+.mb-24 { margin-bottom: 24px; }
 .empty-state { text-align: center; color: var(--text-muted); padding: 24px !important; }
