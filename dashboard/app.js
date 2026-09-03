@@ -1,14 +1,14 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-SECTION SORTING
+// 44 SMA SCANNER PRO - SCRIPT WITH WORKING CHART & REALIZED PNL
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
 let history = [];
-let portfolio = { openPositions: [], closedTrades: [] };
+let portfolio = { openPositions: [], closedTrades: [], realizedPnL: 0 };
 let currentTab = "dashboard";
 let isLoadingData = false;
+let currentChartRows = null;
 
-// Sorting state trackers
 let sortConfig = {
     buy: "newest",
     sell: "newest",
@@ -50,7 +50,7 @@ async function loadData() {
         try {
             const portRes = await fetch("./data/portfolio.json?" + ts, { cache: "no-store" });
             if (portRes.ok) portfolio = await portRes.json();
-        } catch (e) { portfolio = { openPositions: [], closedTrades: [] }; }
+        } catch (e) { portfolio = { openPositions: [], closedTrades: [], realizedPnL: 0 }; }
 
         updateLastScan();
         render();
@@ -76,7 +76,7 @@ function changeSort(section, value) {
     render();
 }
 
-function sortDataList(list, type, sectionType) {
+function sortDataList(list, type) {
     if (!Array.isArray(list)) return [];
     let arr = [...list];
 
@@ -183,7 +183,7 @@ function renderBuyTable() {
     const container = document.getElementById("buyTableBody");
     if (!container) return;
     const rawRows = getBuySignals();
-    const rows = sortDataList(rawRows, sortConfig.buy, "buy");
+    const rows = sortDataList(rawRows, sortConfig.buy);
 
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="9" class="empty-state">No BUY signals generated today</td></tr>`;
@@ -196,7 +196,7 @@ function renderSellTable() {
     const container = document.getElementById("sellTableBody");
     if (!container) return;
     const rawRows = getSellSignals();
-    const rows = sortDataList(rawRows, sortConfig.sell, "sell");
+    const rows = sortDataList(rawRows, sortConfig.sell);
 
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="9" class="empty-state">No SELL signals generated today</td></tr>`;
@@ -213,6 +213,7 @@ function signalRow(item, type) {
     const sma100 = Number(item.sma100 ?? item.SMA100);
     const sma200 = Number(item.sma200 ?? item.SMA200);
     const distance = Number(item.distanceFrom44 ?? item.buyDistanceFrom44);
+    const rowData = encodeURIComponent(JSON.stringify(item));
 
     return `
         <tr>
@@ -224,26 +225,122 @@ function signalRow(item, type) {
             <td>${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
             <td>${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
             <td><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
-            <td><button class="btn-chart" onclick="openStockChart('${escapeHtml(symbol)}')">Chart</button></td>
+            <td><button class="btn-chart" onclick="openStockChartFromEncoded('${rowData}')">Chart</button></td>
         </tr>
     `;
 }
 
-function openStockChart(symbol) {
+// FULLY FUNCTIONAL STOCK CHART LOGIC
+async function openStockChart(symbol) {
+    if (!symbol) return;
     const modal = document.getElementById("stockChartModal");
     const title = document.getElementById("stockChartTitle");
+    const loading = document.getElementById("stockChartLoading");
+
     if (title) title.textContent = symbol + " — 44 SMA Chart";
     if (modal) modal.style.display = "flex";
+    if (loading) loading.style.display = "block";
+
+    try {
+        const ts = Date.now();
+        const res = await fetch("./data/charts/" + encodeURIComponent(symbol) + ".json?" + ts, { cache: "no-store" });
+        if (!res.ok) throw new Error("Chart unavailable");
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : (data.chart || data.data || []);
+        
+        currentChartRows = rows;
+        if (loading) loading.style.display = "none";
+        drawStockChart(rows);
+    } catch (e) {
+        if (loading) loading.style.display = "none";
+        console.error("Chart error:", e);
+    }
+}
+
+function openStockChartFromEncoded(encoded) {
+    try {
+        const item = JSON.parse(decodeURIComponent(encoded));
+        const symbol = item.symbol || item.ticker;
+        const embeddedRows = item.chart || item.chartData || item.data;
+
+        if (Array.isArray(embeddedRows) && embeddedRows.length) {
+            const modal = document.getElementById("stockChartModal");
+            const title = document.getElementById("stockChartTitle");
+            if (title) title.textContent = symbol + " — 44 SMA Chart";
+            if (modal) modal.style.display = "flex";
+            currentChartRows = embeddedRows;
+            drawStockChart(embeddedRows);
+            return;
+        }
+
+        openStockChart(symbol);
+    } catch (e) { console.error(e); }
 }
 
 function closeChart() {
     const modal = document.getElementById("stockChartModal");
     if (modal) modal.style.display = "none";
+    currentChartRows = null;
+}
+
+function drawStockChart(rows) {
+    const canvas = document.getElementById("stockChartCanvas");
+    if (!canvas || !rows || !rows.length) return;
+
+    const ctx = canvas.getContext("2d");
+    canvas.width = canvas.parentElement.clientWidth || 800;
+    canvas.height = 360;
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.fillStyle = "#080b11";
+    ctx.fillRect(0, 0, width, height);
+
+    const prices = [];
+    rows.forEach(r => {
+        if (r.high) prices.push(Number(r.high));
+        if (r.low) prices.push(Number(r.low));
+    });
+
+    if (!prices.length) return;
+    const minP = Math.min(...prices) * 0.98;
+    const maxP = Math.max(...prices) * 1.02;
+    const pRange = maxP - minP;
+
+    const step = width / rows.length;
+
+    rows.forEach((r, i) => {
+        const open = Number(r.open);
+        const close = Number(r.close);
+        const high = Number(r.high);
+        const low = Number(r.low);
+
+        const x = i * step + step / 2;
+        const yHigh = height - ((high - minP) / pRange) * height;
+        const yLow = height - ((low - minP) / pRange) * height;
+        const yOpen = height - ((open - minP) / pRange) * height;
+        const yClose = height - ((close - minP) / pRange) * height;
+
+        const isGreen = close >= open;
+        ctx.strokeStyle = isGreen ? "#10b981" : "#ef4444";
+        ctx.fillStyle = isGreen ? "#10b981" : "#ef4444";
+
+        ctx.beginPath();
+        ctx.moveTo(x, yHigh);
+        ctx.lineTo(x, yLow);
+        ctx.stroke();
+
+        const bodyTop = Math.min(yOpen, yClose);
+        const bodyH = Math.max(2, Math.abs(yClose - yOpen));
+        ctx.fillRect(x - Math.max(1, step * 0.3), bodyTop, Math.max(2, step * 0.6), bodyH);
+    });
 }
 
 function renderPortfolioSummaryAndTable() {
     const container = document.getElementById("portfolioTableBody");
     const rawRows = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
+    const closedRows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
 
     let totalInvested = 0;
     let totalCurrentValue = 0;
@@ -257,20 +354,39 @@ function renderPortfolioSummaryAndTable() {
         totalCurrentValue += qty * currentPrice;
     });
 
-    const totalPnL = totalCurrentValue - totalInvested;
+    const unrealizedPnL = totalCurrentValue - totalInvested;
+
+    // Calculate Realized P&L from Closed Trades
+    let realizedPnL = Number(portfolio.realizedPnL) || 0;
+    if (!realizedPnL && closedRows.length) {
+        closedRows.forEach(t => {
+            const q = Number(t.quantity) || 0;
+            const b = Number(t.buyPrice) || 0;
+            const s = Number(t.sellPrice) || 0;
+            realizedPnL += t.pnl ?? ((s - b) * q);
+        });
+    }
+
+    const totalPnL = unrealizedPnL + realizedPnL;
     const totalReturnPercent = totalInvested ? (totalPnL / totalInvested) * 100 : 0;
 
     const invElem = document.getElementById("portInvested");
     const currElem = document.getElementById("portCurrentVal");
-    const pnlElem = document.getElementById("portTotalPnl");
+    const unPnlElem = document.getElementById("portUnrealizedPnl");
+    const rePnlElem = document.getElementById("portRealizedPnl");
     const retElem = document.getElementById("portTotalReturn");
 
     if (invElem) invElem.textContent = money(totalInvested);
     if (currElem) currElem.textContent = money(totalCurrentValue);
     
-    if (pnlElem) {
-        pnlElem.textContent = money(totalPnL);
-        pnlElem.className = totalPnL >= 0 ? "text-green" : "text-red";
+    if (unPnlElem) {
+        unPnlElem.textContent = money(unrealizedPnL);
+        unPnlElem.className = unrealizedPnL >= 0 ? "text-green" : "text-red";
+    }
+
+    if (rePnlElem) {
+        rePnlElem.textContent = money(realizedPnL);
+        rePnlElem.className = realizedPnL >= 0 ? "text-green" : "text-red";
     }
 
     if (retElem) {
@@ -280,7 +396,7 @@ function renderPortfolioSummaryAndTable() {
 
     if (!container) return;
 
-    const rows = sortDataList(rawRows, sortConfig.open, "open");
+    const rows = sortDataList(rawRows, sortConfig.open);
 
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
@@ -320,7 +436,7 @@ function renderClosedTable() {
     const container = document.getElementById("closedTradesBody");
     if (!container) return;
     const rawRows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
-    const rows = sortDataList(rawRows, sortConfig.closed, "closed");
+    const rows = sortDataList(rawRows, sortConfig.closed);
 
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="10" class="empty-state">No closed trades recorded</td></tr>`;
@@ -346,7 +462,7 @@ function renderHistoryTable() {
     const container = document.getElementById("historyTableBody");
     if (!container) return;
     const rawRows = Array.isArray(history) ? history : [];
-    const rows = sortDataList(rawRows, sortConfig.history, "history");
+    const rows = sortDataList(rawRows, sortConfig.history);
 
     if (!rows.length) {
         container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history logs</td></tr>`;
@@ -370,6 +486,10 @@ function formatDate(val) {
     const dt = new Date(val);
     return Number.isNaN(dt.getTime()) ? String(val) : dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeChart();
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("click", e => {
