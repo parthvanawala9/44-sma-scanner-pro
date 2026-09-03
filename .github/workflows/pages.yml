@@ -55,6 +55,7 @@ jobs:
           cp dashboard/index.html site/index.html
           cp dashboard/app.js site/app.js
           cp dashboard/style.css site/style.css
+          cp dashboard/mobile.css site/mobile.css
 
 
           # --------------------------------------------------
