@@ -357,6 +357,10 @@ body {
     .data-table td { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 11px; white-space: normal; }
     .data-table td:last-child { border-bottom: none; }
     .data-table td::before { content: attr(data-label); font-weight: 700; color: var(--text-muted); font-size: 10px; text-transform: uppercase; }
+    
+    /* MOBILE HIDE EXTRA COLUMNS FOR ZERO SWIPE */
+    .mobile-hide { display: none !important; }
+
     .chart-modal { width: 95%; padding: 12px; }
     #stockChartCanvas { height: 260px; }
 }
