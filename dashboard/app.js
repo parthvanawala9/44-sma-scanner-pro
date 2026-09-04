@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - DUAL RESPONSIVE SCRIPT
+// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-KEY CLOSE PRICE FALLBACK
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -16,9 +16,32 @@ let sortConfig = {
     history: "newest"
 };
 
+// MULTI-KEY PRICE EXTRACTOR (Guarantees Close Price Rendering)
+function extractPrice(item) {
+    if (typeof item === "number" || typeof item === "string") {
+        const parsed = Number(item);
+        if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+    if (!item || typeof item !== "object") return 0;
+
+    const possibleKeys = [
+        "close", "closePrice", "close_price", "price", 
+        "ltp", "lastPrice", "last_price", "currentPrice", 
+        "current_price", "c", "p"
+    ];
+
+    for (const key of possibleKeys) {
+        const val = Number(item[key]);
+        if (Number.isFinite(val) && val > 0) {
+            return val;
+        }
+    }
+    return 0;
+}
+
 function money(val) {
-    const num = Number(val);
-    if (!Number.isFinite(num) || num === 0) return "—";
+    const num = extractPrice(val);
+    if (num <= 0) return "—";
     return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
@@ -86,11 +109,11 @@ function sortDataList(list, type) {
         const dateA = new Date(a.buyDate || a.entryDate || a.date || a.sellDate || 0).getTime();
         const dateB = new Date(b.buyDate || b.entryDate || b.date || b.sellDate || 0).getTime();
 
-        const priceA = Number(a.close ?? a.price ?? a.ltp ?? a.currentPrice ?? 0);
-        const priceB = Number(b.close ?? b.price ?? b.ltp ?? b.currentPrice ?? 0);
+        const priceA = extractPrice(a);
+        const priceB = extractPrice(b);
 
-        const pnlA = Number(a.pnl ?? ((Number(a.currentPrice ?? a.buyPrice) - Number(a.buyPrice)) * Number(a.quantity)) ?? 0);
-        const pnlB = Number(b.pnl ?? ((Number(b.currentPrice ?? b.buyPrice) - Number(b.buyPrice)) * Number(b.quantity)) ?? 0);
+        const pnlA = Number(a.pnl ?? ((extractPrice(a) - Number(a.buyPrice)) * Number(a.quantity)) ?? 0);
+        const pnlB = Number(b.pnl ?? ((extractPrice(b) - Number(b.buyPrice)) * Number(b.quantity)) ?? 0);
 
         switch (type) {
             case "nameAsc": return nameA.localeCompare(nameB);
@@ -202,21 +225,23 @@ function renderSellTable() {
 
 function signalRow(item, type) {
     const symbol = item.symbol || item.ticker || "—";
-    const close = Number(item.close ?? item.price ?? item.ltp ?? item.currentPrice ?? 0);
-    const open = Number(item.open ?? item.openPrice ?? close);
+    const closeVal = extractPrice(item);
+    const openVal = Number(item.open ?? item.openPrice ?? closeVal);
+    
     const sma44 = Number(item.sma44 ?? item.SMA44 ?? 0);
     const sma100 = Number(item.sma100 ?? item.SMA100 ?? 0);
     const sma200 = Number(item.sma200 ?? item.SMA200 ?? 0);
+    
     const rowData = encodeURIComponent(JSON.stringify(item));
 
     return `
         <tr>
             <td data-label="Symbol"><strong>${escapeHtml(symbol)}</strong></td>
-            <td data-label="Close">${money(close)}</td>
+            <td data-label="Close">${money(closeVal)}</td>
             <td data-label="44 SMA" class="mobile-hide">${money(sma44)}</td>
             <td data-label="100 SMA" class="mobile-hide">${money(sma100)}</td>
             <td data-label="200 SMA" class="mobile-hide">${money(sma200)}</td>
-            <td data-label="Candle" class="mobile-hide">${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
+            <td data-label="Candle" class="mobile-hide">${closeVal >= openVal ? '🟢 Green' : '🔴 Red'}</td>
             <td data-label="Signal"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
             <td data-label="Action"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
         </tr>
@@ -272,7 +297,7 @@ async function openStockChart(symbol, itemData = null) {
 }
 
 function generateFallbackChartData(item) {
-    const baseClose = Number(item?.close || item?.price || item?.ltp || 1000);
+    const baseClose = extractPrice(item) || 1000;
     const sma44Val = Number(item?.sma44 || baseClose * 0.98);
     const sma100Val = Number(item?.sma100 || baseClose * 0.94);
     const sma200Val = Number(item?.sma200 || baseClose * 0.90);
@@ -341,7 +366,6 @@ function drawStockChart(rows, itemData) {
 
     const step = width / rows.length;
 
-    // 1. Draw Candlesticks
     rows.forEach((r, i) => {
         const open = Number(r.open || r.close);
         const close = Number(r.close);
@@ -394,14 +418,11 @@ function drawStockChart(rows, itemData) {
         ctx.stroke();
     }
 
-    // 2. Draw Moving Averages
-    drawSmaLine("sma44", "#10b981", 2);  // 44 SMA = Green
-    drawSmaLine("sma100", "#ef4444", 2); // 100 SMA = Red
-    drawSmaLine("sma200", "#38bdf8", 2); // 200 SMA = Cyan/Black
+    drawSmaLine("sma44", "#10b981", 2);
+    drawSmaLine("sma100", "#ef4444", 2);
+    drawSmaLine("sma200", "#38bdf8", 2);
 
-    // 3. Draw Chart Legend (Top-Left)
     ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
-    
     ctx.fillStyle = "#10b981";
     ctx.fillRect(14, 14, 12, 3);
     ctx.fillText("44 SMA (Green)", 32, 19);
@@ -426,7 +447,7 @@ function renderPortfolioSummaryAndTable() {
     rawRows.forEach(pos => {
         const qty = Number(pos.quantity) || 0;
         const buyPrice = Number(pos.buyPrice) || 0;
-        const currentPrice = Number(pos.currentPrice ?? pos.buyPrice) || 0;
+        const currentPrice = extractPrice(pos) || buyPrice;
 
         totalInvested += qty * buyPrice;
         totalCurrentValue += qty * currentPrice;
@@ -483,7 +504,7 @@ function renderPortfolioSummaryAndTable() {
     container.innerHTML = rows.map(pos => {
         const qty = Number(pos.quantity) || 0;
         const buyP = Number(pos.buyPrice) || 0;
-        const currP = Number(pos.currentPrice ?? buyP) || 0;
+        const currP = extractPrice(pos) || buyP;
         const invested = qty * buyP;
         const currVal = qty * currP;
         const pnl = currVal - invested;
@@ -549,7 +570,7 @@ function renderHistoryTable() {
         <tr>
             <td data-label="Date">${formatDate(item.date)}</td>
             <td data-label="Symbol"><strong>${escapeHtml(item.symbol || "—")}</strong></td>
-            <td data-label="Close">${money(item.close ?? item.price ?? item.ltp)}</td>
+            <td data-label="Close">${money(item)}</td>
             <td data-label="44 SMA" class="mobile-hide">${money(item.sma44)}</td>
             <td data-label="100 SMA" class="mobile-hide">${money(item.sma100)}</td>
             <td data-label="200 SMA" class="mobile-hide">${money(item.sma200)}</td>
