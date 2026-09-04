@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>44 SMA Scanner Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260903-11">
+    <link rel="stylesheet" href="style.css?v=20260904-1">
 </head>
 <body>
 
@@ -63,7 +63,7 @@
             <div class="topbar-right">
                 <span id="lastScan" class="last-scan-badge">Last scan: —</span>
                 <button id="refreshButton" class="refresh-btn" data-action="refresh">
-                    <span class="spin-icon">↻</span> Refresh Data
+                    <span class="spin-icon">↻</span> Refresh
                 </button>
             </div>
         </header>
@@ -172,25 +172,25 @@
                 <div class="kpi-grid-5 mb-24">
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
-                            <span>TOTAL INVESTED</span>
-                            <span class="pill-badge blue-pill">OPEN COST</span>
+                            <span>INVESTED</span>
+                            <span class="pill-badge blue-pill">OPEN</span>
                         </div>
                         <h2 id="portInvested">₹0</h2>
-                        <span class="card-sub">Active holdings</span>
+                        <span class="card-sub">Active cost</span>
                     </div>
 
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
-                            <span>CURRENT VALUE</span>
-                            <span class="pill-badge purple-pill">LTP VALUE</span>
+                            <span>CURRENT</span>
+                            <span class="pill-badge purple-pill">LTP</span>
                         </div>
                         <h2 id="portCurrentVal">₹0</h2>
-                        <span class="card-sub">Current holdings</span>
+                        <span class="card-sub">Current value</span>
                     </div>
 
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
-                            <span>UNREALIZED P&L</span>
+                            <span>UNREALIZED</span>
                             <span id="portUnrealizedPnlBadge" class="pill-badge green-pill">OPEN</span>
                         </div>
                         <h2 id="portUnrealizedPnl">₹0</h2>
@@ -199,8 +199,8 @@
 
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
-                            <span>REALIZED P&L</span>
-                            <span id="portRealizedPnlBadge" class="pill-badge blue-pill">CLOSED</span>
+                            <span>REALIZED</span>
+                            <span id="portRealizedPnlBadge" class="pill-badge blue-pill">BOOKED</span>
                         </div>
                         <h2 id="portRealizedPnl">₹0</h2>
                         <span class="card-sub">Booked profit/loss</span>
@@ -208,7 +208,7 @@
 
                     <div class="fancy-card dark-gradient">
                         <div class="card-head">
-                            <span>TOTAL RETURN</span>
+                            <span>RETURN</span>
                             <span id="portReturnBadge" class="pill-badge green-pill">ROI</span>
                         </div>
                         <h2 id="portTotalReturn">0.00%</h2>
@@ -301,16 +301,16 @@
 <div id="stockChartModal" class="chart-modal-backdrop" style="display:none;">
     <div class="chart-modal">
         <div class="chart-modal-header">
-            <h3 id="stockChartTitle">Stock Chart Analysis</h3>
+            <h3 id="stockChartTitle">Stock Chart</h3>
             <button class="close-btn" onclick="closeChart()">✕</button>
         </div>
         <div class="chart-modal-body">
-            <div id="stockChartLoading" class="chart-loader" style="display:none;">Loading Chart Data...</div>
+            <div id="stockChartLoading" class="chart-loader" style="display:none;">Loading...</div>
             <canvas id="stockChartCanvas"></canvas>
         </div>
     </div>
 </div>
 
-<script src="app.js?v=20260903-11"></script>
+<script src="app.js?v=20260904-1"></script>
 </body>
 </html>
