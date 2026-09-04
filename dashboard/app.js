@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-KEY CLOSE PRICE FALLBACK (FIXED)
+// 44 SMA SCANNER PRO - SCRIPT WITH COMPLETE OHLC & SMA CHART DISPLAY
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -16,11 +16,10 @@ let sortConfig = {
     history: "newest"
 };
 
-// MULTI-KEY PRICE EXTRACTOR (FIXED: Handles String, Commas & Object Mapping)
+// MULTI-KEY PRICE EXTRACTOR (Handles String, Commas & Object Mapping)
 function extractPrice(item) {
     if (item === null || item === undefined) return 0;
 
-    // अगर सीधे नम्बर या स्ट्रिंग पास हुई हो
     if (typeof item === "number") return Number.isFinite(item) && item > 0 ? item : 0;
     if (typeof item === "string") {
         const cleanStr = item.replace(/,/g, "").trim();
@@ -30,7 +29,6 @@ function extractPrice(item) {
 
     if (typeof item !== "object") return 0;
 
-    // ऑब्जेक्ट में से सही Key ढूँढना
     const possibleKeys = [
         "close", "closePrice", "close_price", "price", 
         "ltp", "lastPrice", "last_price", "currentPrice", 
@@ -233,7 +231,6 @@ function renderSellTable() {
     container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
 }
 
-// FIXED: Signal Row Rendering Logic
 function signalRow(item, type) {
     const symbol = item.symbol || item.ticker || "—";
     const closeVal = extractPrice(item);
@@ -276,7 +273,7 @@ async function openStockChart(symbol, itemData = null) {
     const title = document.getElementById("stockChartTitle");
     const loading = document.getElementById("stockChartLoading");
 
-    if (title) title.textContent = symbol + " — Technical Chart";
+    if (title) title.textContent = symbol + " — Technical Analysis";
     if (modal) modal.style.display = "flex";
     if (loading) loading.style.display = "block";
 
@@ -305,7 +302,43 @@ async function openStockChart(symbol, itemData = null) {
         rows = generateFallbackChartData(itemData);
     }
 
+    renderChartHeaderDetails(itemData, rows);
     drawStockChart(rows, itemData);
+}
+
+// FULL PRICE & SMA INFO DISPLAY INSIDE MODAL
+function renderChartHeaderDetails(itemData, rows) {
+    const canvas = document.getElementById("stockChartCanvas");
+    if (!canvas) return;
+
+    let infoBox = document.getElementById("chartPriceInfoBox");
+    if (!infoBox) {
+        infoBox = document.createElement("div");
+        infoBox.id = "chartPriceInfoBox";
+        canvas.parentElement.insertBefore(infoBox, canvas);
+    }
+
+    const lastRow = rows.length ? rows[rows.length - 1] : {};
+    const closeP = extractPrice(itemData) || Number(lastRow.close || 0);
+    const openP = Number(itemData?.open ?? lastRow.open ?? closeP);
+    const highP = Number(itemData?.high ?? lastRow.high ?? Math.max(openP, closeP));
+    const lowP = Number(itemData?.low ?? lastRow.low ?? Math.min(openP, closeP));
+
+    const sma44Val = Number(itemData?.sma44 ?? itemData?.SMA44 ?? lastRow.sma44 ?? 0);
+    const sma100Val = Number(itemData?.sma100 ?? itemData?.SMA100 ?? lastRow.sma100 ?? 0);
+    const sma200Val = Number(itemData?.sma200 ?? itemData?.SMA200 ?? lastRow.sma200 ?? 0);
+
+    infoBox.innerHTML = `
+        <div style="display:flex; flex-wrap:wrap; gap:10px; padding:12px; background:#0f172a; border-radius:8px; margin-bottom:12px; border:1px solid #334155; font-size:12px; color:#e2e8f0;">
+            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">CLOSE</span><strong style="color:#38bdf8; font-size:14px;">${money(closeP)}</strong></div>
+            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">OPEN</span><strong>${money(openP)}</strong></div>
+            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">HIGH</span><strong style="color:#10b981;">${money(highP)}</strong></div>
+            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">LOW</span><strong style="color:#ef4444;">${money(lowP)}</strong></div>
+            <div style="flex:1; min-width:90px;"><span style="color:#10b981; display:block; font-size:10px;">44 SMA</span><strong>${money(sma44Val)}</strong></div>
+            <div style="flex:1; min-width:90px;"><span style="color:#ef4444; display:block; font-size:10px;">100 SMA</span><strong>${money(sma100Val)}</strong></div>
+            <div style="flex:1; min-width:90px;"><span style="color:#38bdf8; display:block; font-size:10px;">200 SMA</span><strong>${money(sma200Val)}</strong></div>
+        </div>
+    `;
 }
 
 function generateFallbackChartData(item) {
@@ -433,19 +466,6 @@ function drawStockChart(rows, itemData) {
     drawSmaLine("sma44", "#10b981", 2);
     drawSmaLine("sma100", "#ef4444", 2);
     drawSmaLine("sma200", "#38bdf8", 2);
-
-    ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillStyle = "#10b981";
-    ctx.fillRect(14, 14, 12, 3);
-    ctx.fillText("44 SMA (Green)", 32, 19);
-
-    ctx.fillStyle = "#ef4444";
-    ctx.fillRect(150, 14, 12, 3);
-    ctx.fillText("100 SMA (Red)", 168, 19);
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillRect(280, 14, 12, 3);
-    ctx.fillText("200 SMA (Black/Cyan)", 298, 19);
 }
 
 function renderPortfolioSummaryAndTable() {
