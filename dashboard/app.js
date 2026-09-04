@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT
+// 44 SMA SCANNER PRO - SCRIPT WITH MOBILE CARD DATA-LABELS
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -216,15 +216,15 @@ function signalRow(item, type) {
 
     return `
         <tr>
-            <td><strong>${escapeHtml(symbol)}</strong></td>
-            <td>${money(close)}</td>
-            <td>${money(sma44)}</td>
-            <td>${money(sma100)}</td>
-            <td>${money(sma200)}</td>
-            <td>${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
-            <td>${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
-            <td><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
-            <td><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
+            <td data-label="Symbol"><strong>${escapeHtml(symbol)}</strong></td>
+            <td data-label="Close">${money(close)}</td>
+            <td data-label="44 SMA">${money(sma44)}</td>
+            <td data-label="100 SMA">${money(sma100)}</td>
+            <td data-label="200 SMA">${money(sma200)}</td>
+            <td data-label="Distance">${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
+            <td data-label="Candle">${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
+            <td data-label="Signal"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
+            <td data-label="Action"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
         </tr>
     `;
 }
@@ -429,19 +429,19 @@ function renderPortfolioSummaryAndTable() {
 
         return `
             <tr>
-                <td><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
-                <td>${qty}</td>
-                <td>${money(buyP)}</td>
-                <td>${money(currP)}</td>
-                <td>${money(invested)}</td>
-                <td>${money(currVal)}</td>
-                <td class="${pnl >= 0 ? 'text-green' : 'text-red'}">${money(pnl)}</td>
-                <td class="${pnlPct >= 0 ? 'text-green' : 'text-red'}">${percentage(pnlPct)}</td>
-                <td>${money(pos.currentSMA44)}</td>
-                <td>${money(pos.stopLossPrice)}</td>
-                <td>${money(pos.targetPrice)}</td>
-                <td><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
-                <td>${formatDate(pos.buyDate)}</td>
+                <td data-label="Symbol"><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
+                <td data-label="Qty">${qty}</td>
+                <td data-label="Buy Price">${money(buyP)}</td>
+                <td data-label="LTP">${money(currP)}</td>
+                <td data-label="Invested">${money(invested)}</td>
+                <td data-label="Current Value">${money(currVal)}</td>
+                <td data-label="PnL" class="${pnl >= 0 ? 'text-green' : 'text-red'}">${money(pnl)}</td>
+                <td data-label="Return" class="${pnlPct >= 0 ? 'text-green' : 'text-red'}">${percentage(pnlPct)}</td>
+                <td data-label="44 SMA">${money(pos.currentSMA44)}</td>
+                <td data-label="SL (-5%)">${money(pos.stopLossPrice)}</td>
+                <td data-label="Target (+20%)">${money(pos.targetPrice)}</td>
+                <td data-label="Status"><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
+                <td data-label="Buy Date">${formatDate(pos.buyDate)}</td>
             </tr>
         `;
     }).join("");
@@ -459,16 +459,16 @@ function renderClosedTable() {
     }
     container.innerHTML = rows.map(t => `
         <tr>
-            <td><strong>${escapeHtml(t.symbol || "—")}</strong></td>
-            <td>${t.quantity || 0}</td>
-            <td>${money(t.buyPrice)}</td>
-            <td>${money(t.sellPrice)}</td>
-            <td>${money(t.quantity * t.buyPrice)}</td>
-            <td>${money(t.quantity * t.sellPrice)}</td>
-            <td class="${t.pnl >= 0 ? 'text-green' : 'text-red'}">${money(t.pnl)}</td>
-            <td>${percentage((t.pnl / (t.quantity * t.buyPrice)) * 100)}</td>
-            <td>${formatDate(t.buyDate)}</td>
-            <td><span class="badge ${t.pnl >= 0 ? 'badge-green' : 'badge-red'}">${escapeHtml(t.result || "CLOSED")}</span></td>
+            <td data-label="Symbol"><strong>${escapeHtml(t.symbol || "—")}</strong></td>
+            <td data-label="Qty">${t.quantity || 0}</td>
+            <td data-label="Buy Price">${money(t.buyPrice)}</td>
+            <td data-label="Sell Price">${money(t.sellPrice)}</td>
+            <td data-label="Invested">${money(t.quantity * t.buyPrice)}</td>
+            <td data-label="Proceeds">${money(t.quantity * t.sellPrice)}</td>
+            <td data-label="PnL" class="${t.pnl >= 0 ? 'text-green' : 'text-red'}">${money(t.pnl)}</td>
+            <td data-label="Return">${percentage((t.pnl / (t.quantity * t.buyPrice)) * 100)}</td>
+            <td data-label="Buy Date">${formatDate(t.buyDate)}</td>
+            <td data-label="Result"><span class="badge ${t.pnl >= 0 ? 'badge-green' : 'badge-red'}">${escapeHtml(t.result || "CLOSED")}</span></td>
         </tr>
     `).join("");
 }
@@ -485,13 +485,13 @@ function renderHistoryTable() {
     }
     container.innerHTML = rows.map(item => `
         <tr>
-            <td>${formatDate(item.date)}</td>
-            <td><strong>${escapeHtml(item.symbol || "—")}</strong></td>
-            <td><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
-            <td>${money(item.close)}</td>
-            <td>${money(item.sma44)}</td>
-            <td>${money(item.sma100)}</td>
-            <td>${money(item.sma200)}</td>
+            <td data-label="Date">${formatDate(item.date)}</td>
+            <td data-label="Symbol"><strong>${escapeHtml(item.symbol || "—")}</strong></td>
+            <td data-label="Signal"><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
+            <td data-label="Close">${money(item.close)}</td>
+            <td data-label="44 SMA">${money(item.sma44)}</td>
+            <td data-label="100 SMA">${money(item.sma100)}</td>
+            <td data-label="200 SMA">${money(item.sma200)}</td>
         </tr>
     `).join("");
 }
