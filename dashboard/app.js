@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - LOGIC & WORKING CHART ENGINE
+// 44 SMA SCANNER PRO - SCRIPT
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -166,13 +166,13 @@ function renderDashboardView() {
     const summaryWrapper = document.getElementById("signalSummary");
     if (summaryWrapper) {
         summaryWrapper.innerHTML = `
-            <div style="flex:1; padding:18px; background:rgba(16,185,129,0.1); border-radius:12px; border:1px solid #10b981;">
-                <span style="color:#10b981; font-weight:800; font-size:11px;">BUY BREAKOUTS</span>
-                <p style="font-size:24px; font-weight:800; margin-top:4px;">${buys.length} Stocks</p>
+            <div style="flex:1; padding:14px; background:rgba(16,185,129,0.1); border-radius:10px; border:1px solid #10b981;">
+                <span style="color:#10b981; font-weight:800; font-size:10px;">BUY BREAKOUTS</span>
+                <p style="font-size:20px; font-weight:800; margin-top:4px;">${buys.length} Stocks</p>
             </div>
-            <div style="flex:1; padding:18px; background:rgba(239,68,68,0.1); border-radius:12px; border:1px solid #ef4444;">
-                <span style="color:#ef4444; font-weight:800; font-size:11px;">SELL TRIGGERS</span>
-                <p style="font-size:24px; font-weight:800; margin-top:4px;">${sells.length} Stocks</p>
+            <div style="flex:1; padding:14px; background:rgba(239,68,68,0.1); border-radius:10px; border:1px solid #ef4444;">
+                <span style="color:#ef4444; font-weight:800; font-size:10px;">SELL TRIGGERS</span>
+                <p style="font-size:20px; font-weight:800; margin-top:4px;">${sells.length} Stocks</p>
             </div>
         `;
     }
@@ -239,7 +239,6 @@ function handleChartClick(encoded) {
     }
 }
 
-// WORKING STOCK CHART ENGINE
 async function openStockChart(symbol, itemData = null) {
     if (!symbol) return;
     const modal = document.getElementById("stockChartModal");
@@ -272,7 +271,6 @@ async function openStockChart(symbol, itemData = null) {
     if (loading) loading.style.display = "none";
 
     if (!rows || !rows.length) {
-        // Fallback demo candlestick array if json file missing
         rows = generateFallbackChartData(itemData);
     }
 
@@ -281,17 +279,16 @@ async function openStockChart(symbol, itemData = null) {
 
 function generateFallbackChartData(item) {
     const baseClose = Number(item?.close || 1000);
-    const sma44Val = Number(item?.sma44 || baseClose * 0.98);
     const arr = [];
-    let price = baseClose * 0.92;
+    let price = baseClose * 0.95;
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 25; i++) {
         const open = price;
         const close = price + (Math.random() - 0.48) * (baseClose * 0.02);
         const high = Math.max(open, close) + Math.random() * (baseClose * 0.01);
         const low = Math.min(open, close) - Math.random() * (baseClose * 0.01);
         price = close;
-        arr.push({ open, close, high, low, sma44: sma44Val });
+        arr.push({ open, close, high, low });
     }
     return arr;
 }
@@ -308,7 +305,7 @@ function drawStockChart(rows) {
     const ctx = canvas.getContext("2d");
     const parentWidth = canvas.parentElement.clientWidth || 800;
     canvas.width = parentWidth;
-    canvas.height = 360;
+    canvas.height = 340;
 
     const width = canvas.width;
     const height = canvas.height;
