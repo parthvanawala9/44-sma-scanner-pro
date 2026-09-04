@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT
+// 44 SMA SCANNER PRO - DUAL RESPONSIVE SCRIPT
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -181,7 +181,7 @@ function renderBuyTable() {
     const rows = sortDataList(rawRows, sortConfig.buy);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="4" class="empty-state">No BUY signals generated today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" class="empty-state">No BUY signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "BUY")).join("");
@@ -194,7 +194,7 @@ function renderSellTable() {
     const rows = sortDataList(rawRows, sortConfig.sell);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="4" class="empty-state">No SELL signals generated today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" class="empty-state">No SELL signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
@@ -202,14 +202,21 @@ function renderSellTable() {
 
 function signalRow(item, type) {
     const symbol = item.symbol || item.ticker || "—";
-    // Check all possible keys for close price
     const close = Number(item.close ?? item.price ?? item.ltp ?? item.currentPrice ?? 0);
+    const open = Number(item.open ?? item.openPrice ?? close);
+    const sma44 = Number(item.sma44 ?? item.SMA44 ?? 0);
+    const sma100 = Number(item.sma100 ?? item.SMA100 ?? 0);
+    const sma200 = Number(item.sma200 ?? item.SMA200 ?? 0);
     const rowData = encodeURIComponent(JSON.stringify(item));
 
     return `
         <tr>
             <td data-label="Symbol"><strong>${escapeHtml(symbol)}</strong></td>
             <td data-label="Close">${money(close)}</td>
+            <td data-label="44 SMA" class="mobile-hide">${money(sma44)}</td>
+            <td data-label="100 SMA" class="mobile-hide">${money(sma100)}</td>
+            <td data-label="200 SMA" class="mobile-hide">${money(sma200)}</td>
+            <td data-label="Candle" class="mobile-hide">${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
             <td data-label="Signal"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
             <td data-label="Action"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
         </tr>
@@ -469,7 +476,7 @@ function renderPortfolioSummaryAndTable() {
     const rows = sortDataList(rawRows, sortConfig.open);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="12" class="empty-state">No active open positions</td></tr>`;
+        container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
         return;
     }
 
@@ -492,6 +499,7 @@ function renderPortfolioSummaryAndTable() {
                 <td data-label="Current Value">${money(currVal)}</td>
                 <td data-label="PnL" class="${pnl >= 0 ? 'text-green' : 'text-red'}">${money(pnl)}</td>
                 <td data-label="Return" class="${pnlPct >= 0 ? 'text-green' : 'text-red'}">${percentage(pnlPct)}</td>
+                <td data-label="44 SMA" class="mobile-hide">${money(pos.currentSMA44)}</td>
                 <td data-label="SL (-5%)">${money(pos.stopLossPrice)}</td>
                 <td data-label="Target (+20%)">${money(pos.targetPrice)}</td>
                 <td data-label="Status"><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
@@ -534,7 +542,7 @@ function renderHistoryTable() {
     const rows = sortDataList(rawRows, sortConfig.history);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="4" class="empty-state">No scan history logs</td></tr>`;
+        container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history logs</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => `
@@ -542,6 +550,9 @@ function renderHistoryTable() {
             <td data-label="Date">${formatDate(item.date)}</td>
             <td data-label="Symbol"><strong>${escapeHtml(item.symbol || "—")}</strong></td>
             <td data-label="Close">${money(item.close ?? item.price ?? item.ltp)}</td>
+            <td data-label="44 SMA" class="mobile-hide">${money(item.sma44)}</td>
+            <td data-label="100 SMA" class="mobile-hide">${money(item.sma100)}</td>
+            <td data-label="200 SMA" class="mobile-hide">${money(item.sma200)}</td>
             <td data-label="Signal"><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
         </tr>
     `).join("");
