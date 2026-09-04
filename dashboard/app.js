@@ -329,14 +329,14 @@ function renderChartHeaderDetails(itemData, rows) {
     const sma200Val = Number(itemData?.sma200 ?? itemData?.SMA200 ?? lastRow.sma200 ?? 0);
 
     infoBox.innerHTML = `
-        <div style="display:flex; flex-wrap:wrap; gap:10px; padding:12px; background:#0f172a; border-radius:8px; margin-bottom:12px; border:1px solid #334155; font-size:12px; color:#e2e8f0;">
-            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">CLOSE</span><strong style="color:#38bdf8; font-size:14px;">${money(closeP)}</strong></div>
-            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">OPEN</span><strong>${money(openP)}</strong></div>
-            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">HIGH</span><strong style="color:#10b981;">${money(highP)}</strong></div>
-            <div style="flex:1; min-width:80px;"><span style="color:#94a3b8; display:block; font-size:10px;">LOW</span><strong style="color:#ef4444;">${money(lowP)}</strong></div>
-            <div style="flex:1; min-width:90px;"><span style="color:#10b981; display:block; font-size:10px;">44 SMA</span><strong>${money(sma44Val)}</strong></div>
-            <div style="flex:1; min-width:90px;"><span style="color:#ef4444; display:block; font-size:10px;">100 SMA</span><strong>${money(sma100Val)}</strong></div>
-            <div style="flex:1; min-width:90px;"><span style="color:#38bdf8; display:block; font-size:10px;">200 SMA</span><strong>${money(sma200Val)}</strong></div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap:8px; padding:10px; background:#0f172a; border-radius:8px; margin-bottom:10px; border:1px solid #334155; font-size:11px; color:#e2e8f0; text-align:center;">
+            <div><span style="color:#94a3b8; display:block; font-size:10px;">CLOSE</span><strong style="color:#38bdf8; font-size:13px;">${money(closeP)}</strong></div>
+            <div><span style="color:#94a3b8; display:block; font-size:10px;">OPEN</span><strong>${money(openP)}</strong></div>
+            <div><span style="color:#94a3b8; display:block; font-size:10px;">HIGH</span><strong style="color:#10b981;">${money(highP)}</strong></div>
+            <div><span style="color:#94a3b8; display:block; font-size:10px;">LOW</span><strong style="color:#ef4444;">${money(lowP)}</strong></div>
+            <div><span style="color:#10b981; display:block; font-size:10px;">44 SMA</span><strong>${money(sma44Val)}</strong></div>
+            <div><span style="color:#ef4444; display:block; font-size:10px;">100 SMA</span><strong>${money(sma100Val)}</strong></div>
+            <div><span style="color:#38bdf8; display:block; font-size:10px;">200 SMA</span><strong>${money(sma200Val)}</strong></div>
         </div>
     `;
 }
