@@ -111,7 +111,7 @@ body {
 .strategy-val { font-size: 12px; font-weight: 700; margin-top: 2px; }
 .strategy-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
-/* MAIN CONTENT FIT TO PC SCREEN */
+/* MAIN CONTENT */
 .main-body {
     flex: 1;
     display: flex;
@@ -232,12 +232,11 @@ body {
 
 .card-sub { font-size: 10px; color: var(--text-muted); }
 
-/* FIT TABLE PROPERLY (NO SWIPE BAR ON PC) */
+/* PC TABLE LAYOUT */
 .table-container {
     background-color: var(--panel-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
-    overflow-x: auto;
     width: 100%;
 }
 
@@ -340,7 +339,7 @@ body {
 .empty-state { text-align: center; color: var(--text-muted); padding: 20px !important; }
 
 /* ============================================================
-   MOBILE & TABLET RESPONSIVE STYLES
+   MOBILE NO-SWIPE RESPONSIVE CARD VIEW (RESPONSIVE FIX)
    ============================================================ */
 @media screen and (max-width: 768px) {
     body {
@@ -357,7 +356,7 @@ body {
         width: 100%;
         min-width: 100%;
         height: auto;
-        padding: 12px 16px;
+        padding: 10px 14px;
         border-right: none;
         border-bottom: 1px solid var(--border);
     }
@@ -365,13 +364,13 @@ body {
     .sidebar-nav {
         flex-direction: row;
         overflow-x: auto;
-        margin-top: 10px;
-        padding-bottom: 6px;
+        margin-top: 8px;
+        padding-bottom: 4px;
     }
 
     .nav-btn {
         white-space: nowrap;
-        padding: 8px 12px;
+        padding: 8px 10px;
         font-size: 11px;
     }
 
@@ -380,15 +379,15 @@ body {
     }
 
     .main-body {
-        padding: 16px;
+        padding: 12px;
         height: auto;
-        overflow: visible;
+        overflow-x: hidden;
     }
 
     .topbar {
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        gap: 8px;
     }
 
     .topbar-right {
@@ -398,12 +397,52 @@ body {
 
     .kpi-grid, .kpi-grid-5 {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 8px;
     }
 
-    .data-table th, .data-table td {
-        padding: 8px 6px;
+    /* MOBILE CARD CONVERSION (NO RIGHT SWIPE) */
+    .table-container {
+        background: transparent;
+        border: none;
+    }
+
+    .data-table, .data-table thead, .data-table tbody, .data-table th, .data-table td, .data-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .data-table thead {
+        display: none; /* Mobile par headers hide honge */
+    }
+
+    .data-table tr {
+        background-color: var(--panel-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 12px;
+    }
+
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 11px;
+        white-space: normal;
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--text-muted);
         font-size: 10px;
+        text-transform: uppercase;
     }
 
     .chart-modal {
@@ -412,6 +451,6 @@ body {
     }
 
     #stockChartCanvas {
-        height: 280px;
+        height: 260px;
     }
 }
