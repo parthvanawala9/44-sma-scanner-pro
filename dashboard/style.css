@@ -248,8 +248,8 @@ body {
 
 .data-table th {
     background-color: #0f141d;
-    padding: 8px 10px;
-    font-size: 10px;
+    padding: 10px 14px;
+    font-size: 11px;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border);
     text-transform: uppercase;
@@ -257,9 +257,9 @@ body {
 }
 
 .data-table td {
-    padding: 8px 10px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border);
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
@@ -277,11 +277,11 @@ body {
     background: var(--blue);
     color: #fff;
     border: none;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 4px;
     font-weight: 700;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 /* CHART MODAL */
