@@ -16,23 +16,31 @@ let sortConfig = {
     history: "newest"
 };
 
-// MULTI-KEY PRICE EXTRACTOR (Guarantees Close Price Rendering)
+// MULTI-KEY PRICE EXTRACTOR (FIXED: Handles String, Commas & Object Mapping)
 function extractPrice(item) {
-    if (typeof item === "number" || typeof item === "string") {
-        const parsed = Number(item);
-        if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    }
-    if (!item || typeof item !== "object") return 0;
+    if (item === null || item === undefined) return 0;
 
+    // अगर सीधे नम्बर या स्ट्रिंग पास हुई हो
+    if (typeof item === "number") return Number.isFinite(item) && item > 0 ? item : 0;
+    if (typeof item === "string") {
+        const cleanStr = item.replace(/,/g, "").trim();
+        const parsed = parseFloat(cleanStr);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+
+    if (typeof item !== "object") return 0;
+
+    // ऑब्जेक्ट में से सही Key ढूँढना
     const possibleKeys = [
         "close", "closePrice", "close_price", "price", 
         "ltp", "lastPrice", "last_price", "currentPrice", 
-        "current_price", "c", "p", "Close", "ClosePrice"
+        "current_price", "c", "p", "Close", "ClosePrice", "CLOSE"
     ];
 
     for (const key of possibleKeys) {
         if (item[key] !== undefined && item[key] !== null) {
-            const val = Number(item[key]);
+            const rawVal = String(item[key]).replace(/,/g, "").trim();
+            const val = parseFloat(rawVal);
             if (Number.isFinite(val) && val > 0) {
                 return val;
             }
@@ -54,7 +62,7 @@ function percentage(val) {
 }
 
 function escapeHtml(val) {
-    return String(val ?? "").replace(/</g, "&lt;").replace/>/g, "&gt;");
+    return String(val ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 async function loadData() {
