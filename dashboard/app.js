@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-SMA CHART DRAWING
+// 44 SMA SCANNER PRO - SCRIPT
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -89,9 +89,6 @@ function sortDataList(list, type) {
         const priceA = Number(a.close ?? a.price ?? 0);
         const priceB = Number(b.close ?? b.price ?? 0);
 
-        const distA = Number(a.distanceFrom44 ?? a.buyDistanceFrom44 ?? 0);
-        const distB = Number(b.distanceFrom44 ?? b.buyDistanceFrom44 ?? 0);
-
         const pnlA = Number(a.pnl ?? ((Number(a.currentPrice ?? a.buyPrice) - Number(a.buyPrice)) * Number(a.quantity)) ?? 0);
         const pnlB = Number(b.pnl ?? ((Number(b.currentPrice ?? b.buyPrice) - Number(b.buyPrice)) * Number(b.quantity)) ?? 0);
 
@@ -100,7 +97,6 @@ function sortDataList(list, type) {
             case "nameDesc": return nameB.localeCompare(nameA);
             case "priceHigh": return priceB - priceA;
             case "priceLow": return priceA - priceB;
-            case "distHigh": return distB - distA;
             case "pnlHigh": return pnlB - pnlA;
             case "pnlLow": return pnlA - pnlB;
             case "dateOldest": case "oldest": return dateA - dateB;
@@ -185,7 +181,7 @@ function renderBuyTable() {
     const rows = sortDataList(rawRows, sortConfig.buy);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="9" class="empty-state">No BUY signals generated today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" class="empty-state">No BUY signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "BUY")).join("");
@@ -198,7 +194,7 @@ function renderSellTable() {
     const rows = sortDataList(rawRows, sortConfig.sell);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="9" class="empty-state">No SELL signals generated today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" class="empty-state">No SELL signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
@@ -211,7 +207,6 @@ function signalRow(item, type) {
     const sma44 = Number(item.sma44 ?? item.SMA44);
     const sma100 = Number(item.sma100 ?? item.SMA100);
     const sma200 = Number(item.sma200 ?? item.SMA200);
-    const distance = Number(item.distanceFrom44 ?? item.buyDistanceFrom44);
     const rowData = encodeURIComponent(JSON.stringify(item));
 
     return `
@@ -221,7 +216,6 @@ function signalRow(item, type) {
             <td data-label="44 SMA">${money(sma44)}</td>
             <td data-label="100 SMA">${money(sma100)}</td>
             <td data-label="200 SMA">${money(sma200)}</td>
-            <td data-label="Distance">${Number.isFinite(distance) ? distance.toFixed(2) + "%" : "—"}</td>
             <td data-label="Candle">${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
             <td data-label="Signal"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
             <td data-label="Action"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
@@ -293,7 +287,6 @@ function generateFallbackChartData(item) {
         const low = Math.min(open, close) - Math.random() * (baseClose * 0.01);
         price = close;
 
-        // Smooth moving average progression
         const factor = i / 30;
         arr.push({
             open, close, high, low,
@@ -310,7 +303,6 @@ function closeChart() {
     if (modal) modal.style.display = "none";
 }
 
-// MULTI-SMA CANVAS DRAWING LOGIC
 function drawStockChart(rows, itemData) {
     const canvas = document.getElementById("stockChartCanvas");
     if (!canvas || !rows || !rows.length) return;
@@ -326,7 +318,6 @@ function drawStockChart(rows, itemData) {
     ctx.fillStyle = "#080b11";
     ctx.fillRect(0, 0, width, height);
 
-    // Collect all price values to compute Y Scale
     const allPrices = [];
     rows.forEach(r => {
         if (r.high) allPrices.push(Number(r.high));
@@ -377,13 +368,10 @@ function drawStockChart(rows, itemData) {
         ctx.fillRect(x - Math.max(1, step * 0.3), bodyTop, Math.max(2, step * 0.6), bodyH);
     });
 
-    // Helper to draw SMA Line
-    function drawSmaLine(key, color, widthPx, isDashed = false) {
+    function drawSmaLine(key, color, widthPx) {
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = widthPx;
-        if (isDashed) ctx.setLineDash([4, 4]);
-        else ctx.setLineDash([]);
 
         let started = false;
         rows.forEach((r, i) => {
@@ -404,28 +392,24 @@ function drawStockChart(rows, itemData) {
             }
         });
         ctx.stroke();
-        ctx.setLineDash([]);
     }
 
     // 2. Draw Moving Averages
     drawSmaLine("sma44", "#10b981", 2);  // 44 SMA = Green
     drawSmaLine("sma100", "#ef4444", 2); // 100 SMA = Red
-    drawSmaLine("sma200", "#38bdf8", 2); // 200 SMA = High-Vis Black/Cyan Line
+    drawSmaLine("sma200", "#38bdf8", 2); // 200 SMA = Cyan/Black
 
     // 3. Draw Chart Legend (Top-Left)
     ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
     
-    // 44 SMA Legend
     ctx.fillStyle = "#10b981";
     ctx.fillRect(14, 14, 12, 3);
     ctx.fillText("44 SMA (Green)", 32, 19);
 
-    // 100 SMA Legend
     ctx.fillStyle = "#ef4444";
     ctx.fillRect(150, 14, 12, 3);
     ctx.fillText("100 SMA (Red)", 168, 19);
 
-    // 200 SMA Legend
     ctx.fillStyle = "#38bdf8";
     ctx.fillRect(280, 14, 12, 3);
     ctx.fillText("200 SMA (Black/Cyan)", 298, 19);
