@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH MOBILE CARD DATA-LABELS
+// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-SMA CHART DRAWING
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -245,7 +245,7 @@ async function openStockChart(symbol, itemData = null) {
     const title = document.getElementById("stockChartTitle");
     const loading = document.getElementById("stockChartLoading");
 
-    if (title) title.textContent = symbol + " — 44 SMA Chart";
+    if (title) title.textContent = symbol + " — Technical Chart";
     if (modal) modal.style.display = "flex";
     if (loading) loading.style.display = "block";
 
@@ -274,21 +274,33 @@ async function openStockChart(symbol, itemData = null) {
         rows = generateFallbackChartData(itemData);
     }
 
-    drawStockChart(rows);
+    drawStockChart(rows, itemData);
 }
 
 function generateFallbackChartData(item) {
     const baseClose = Number(item?.close || 1000);
-    const arr = [];
-    let price = baseClose * 0.95;
+    const sma44Val = Number(item?.sma44 || baseClose * 0.98);
+    const sma100Val = Number(item?.sma100 || baseClose * 0.94);
+    const sma200Val = Number(item?.sma200 || baseClose * 0.90);
 
-    for (let i = 0; i < 25; i++) {
+    const arr = [];
+    let price = baseClose * 0.93;
+
+    for (let i = 0; i < 30; i++) {
         const open = price;
         const close = price + (Math.random() - 0.48) * (baseClose * 0.02);
         const high = Math.max(open, close) + Math.random() * (baseClose * 0.01);
         const low = Math.min(open, close) - Math.random() * (baseClose * 0.01);
         price = close;
-        arr.push({ open, close, high, low });
+
+        // Smooth moving average progression
+        const factor = i / 30;
+        arr.push({
+            open, close, high, low,
+            sma44: sma44Val * (0.97 + 0.03 * factor),
+            sma100: sma100Val * (0.98 + 0.02 * factor),
+            sma200: sma200Val * (0.99 + 0.01 * factor)
+        });
     }
     return arr;
 }
@@ -298,14 +310,15 @@ function closeChart() {
     if (modal) modal.style.display = "none";
 }
 
-function drawStockChart(rows) {
+// MULTI-SMA CANVAS DRAWING LOGIC
+function drawStockChart(rows, itemData) {
     const canvas = document.getElementById("stockChartCanvas");
     if (!canvas || !rows || !rows.length) return;
 
     const ctx = canvas.getContext("2d");
     const parentWidth = canvas.parentElement.clientWidth || 800;
     canvas.width = parentWidth;
-    canvas.height = 340;
+    canvas.height = 360;
 
     const width = canvas.width;
     const height = canvas.height;
@@ -313,19 +326,31 @@ function drawStockChart(rows) {
     ctx.fillStyle = "#080b11";
     ctx.fillRect(0, 0, width, height);
 
-    const prices = [];
+    // Collect all price values to compute Y Scale
+    const allPrices = [];
     rows.forEach(r => {
-        if (r.high) prices.push(Number(r.high));
-        if (r.low) prices.push(Number(r.low));
+        if (r.high) allPrices.push(Number(r.high));
+        if (r.low) allPrices.push(Number(r.low));
+        if (r.sma44) allPrices.push(Number(r.sma44));
+        if (r.sma100) allPrices.push(Number(r.sma100));
+        if (r.sma200) allPrices.push(Number(r.sma200));
     });
 
-    if (!prices.length) return;
-    const minP = Math.min(...prices) * 0.98;
-    const maxP = Math.max(...prices) * 1.02;
+    if (itemData) {
+        if (itemData.sma44) allPrices.push(Number(itemData.sma44));
+        if (itemData.sma100) allPrices.push(Number(itemData.sma100));
+        if (itemData.sma200) allPrices.push(Number(itemData.sma200));
+    }
+
+    if (!allPrices.length) return;
+
+    const minP = Math.min(...allPrices) * 0.98;
+    const maxP = Math.max(...allPrices) * 1.02;
     const pRange = maxP - minP;
 
     const step = width / rows.length;
 
+    // 1. Draw Candlesticks
     rows.forEach((r, i) => {
         const open = Number(r.open || r.close);
         const close = Number(r.close);
@@ -351,6 +376,59 @@ function drawStockChart(rows) {
         const bodyH = Math.max(2, Math.abs(yClose - yOpen));
         ctx.fillRect(x - Math.max(1, step * 0.3), bodyTop, Math.max(2, step * 0.6), bodyH);
     });
+
+    // Helper to draw SMA Line
+    function drawSmaLine(key, color, widthPx, isDashed = false) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = widthPx;
+        if (isDashed) ctx.setLineDash([4, 4]);
+        else ctx.setLineDash([]);
+
+        let started = false;
+        rows.forEach((r, i) => {
+            let val = Number(r[key]);
+            if (!val && i === rows.length - 1 && itemData) {
+                val = Number(itemData[key]);
+            }
+
+            if (val) {
+                const x = i * step + step / 2;
+                const y = height - ((val - minP) / pRange) * height;
+                if (!started) {
+                    ctx.moveTo(x, y);
+                    started = true;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // 2. Draw Moving Averages
+    drawSmaLine("sma44", "#10b981", 2);  // 44 SMA = Green
+    drawSmaLine("sma100", "#ef4444", 2); // 100 SMA = Red
+    drawSmaLine("sma200", "#38bdf8", 2); // 200 SMA = High-Vis Black/Cyan Line
+
+    // 3. Draw Chart Legend (Top-Left)
+    ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+    
+    // 44 SMA Legend
+    ctx.fillStyle = "#10b981";
+    ctx.fillRect(14, 14, 12, 3);
+    ctx.fillText("44 SMA (Green)", 32, 19);
+
+    // 100 SMA Legend
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(150, 14, 12, 3);
+    ctx.fillText("100 SMA (Red)", 168, 19);
+
+    // 200 SMA Legend
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(280, 14, 12, 3);
+    ctx.fillText("200 SMA (Black/Cyan)", 298, 19);
 }
 
 function renderPortfolioSummaryAndTable() {
