@@ -18,7 +18,7 @@ let sortConfig = {
 
 function money(val) {
     const num = Number(val);
-    if (!Number.isFinite(num)) return "—";
+    if (!Number.isFinite(num) || num === 0) return "—";
     return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
@@ -86,8 +86,8 @@ function sortDataList(list, type) {
         const dateA = new Date(a.buyDate || a.entryDate || a.date || a.sellDate || 0).getTime();
         const dateB = new Date(b.buyDate || b.entryDate || b.date || b.sellDate || 0).getTime();
 
-        const priceA = Number(a.close ?? a.price ?? 0);
-        const priceB = Number(b.close ?? b.price ?? 0);
+        const priceA = Number(a.close ?? a.price ?? a.ltp ?? a.currentPrice ?? 0);
+        const priceB = Number(b.close ?? b.price ?? b.ltp ?? b.currentPrice ?? 0);
 
         const pnlA = Number(a.pnl ?? ((Number(a.currentPrice ?? a.buyPrice) - Number(a.buyPrice)) * Number(a.quantity)) ?? 0);
         const pnlB = Number(b.pnl ?? ((Number(b.currentPrice ?? b.buyPrice) - Number(b.buyPrice)) * Number(b.quantity)) ?? 0);
@@ -181,7 +181,7 @@ function renderBuyTable() {
     const rows = sortDataList(rawRows, sortConfig.buy);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="8" class="empty-state">No BUY signals generated today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="4" class="empty-state">No BUY signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "BUY")).join("");
@@ -194,7 +194,7 @@ function renderSellTable() {
     const rows = sortDataList(rawRows, sortConfig.sell);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="8" class="empty-state">No SELL signals generated today</td></tr>`;
+        container.innerHTML = `<tr><td colspan="4" class="empty-state">No SELL signals generated today</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
@@ -202,21 +202,14 @@ function renderSellTable() {
 
 function signalRow(item, type) {
     const symbol = item.symbol || item.ticker || "—";
-    const close = Number(item.close ?? item.price);
-    const open = Number(item.open);
-    const sma44 = Number(item.sma44 ?? item.SMA44);
-    const sma100 = Number(item.sma100 ?? item.SMA100);
-    const sma200 = Number(item.sma200 ?? item.SMA200);
+    // Check all possible keys for close price
+    const close = Number(item.close ?? item.price ?? item.ltp ?? item.currentPrice ?? 0);
     const rowData = encodeURIComponent(JSON.stringify(item));
 
     return `
         <tr>
             <td data-label="Symbol"><strong>${escapeHtml(symbol)}</strong></td>
             <td data-label="Close">${money(close)}</td>
-            <td data-label="44 SMA">${money(sma44)}</td>
-            <td data-label="100 SMA">${money(sma100)}</td>
-            <td data-label="200 SMA">${money(sma200)}</td>
-            <td data-label="Candle">${Number.isFinite(open) && Number.isFinite(close) ? (close >= open ? '🟢 Green' : '🔴 Red') : '—'}</td>
             <td data-label="Signal"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
             <td data-label="Action"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
         </tr>
@@ -272,7 +265,7 @@ async function openStockChart(symbol, itemData = null) {
 }
 
 function generateFallbackChartData(item) {
-    const baseClose = Number(item?.close || 1000);
+    const baseClose = Number(item?.close || item?.price || item?.ltp || 1000);
     const sma44Val = Number(item?.sma44 || baseClose * 0.98);
     const sma100Val = Number(item?.sma100 || baseClose * 0.94);
     const sma200Val = Number(item?.sma200 || baseClose * 0.90);
@@ -476,7 +469,7 @@ function renderPortfolioSummaryAndTable() {
     const rows = sortDataList(rawRows, sortConfig.open);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
+        container.innerHTML = `<tr><td colspan="12" class="empty-state">No active open positions</td></tr>`;
         return;
     }
 
@@ -499,7 +492,6 @@ function renderPortfolioSummaryAndTable() {
                 <td data-label="Current Value">${money(currVal)}</td>
                 <td data-label="PnL" class="${pnl >= 0 ? 'text-green' : 'text-red'}">${money(pnl)}</td>
                 <td data-label="Return" class="${pnlPct >= 0 ? 'text-green' : 'text-red'}">${percentage(pnlPct)}</td>
-                <td data-label="44 SMA">${money(pos.currentSMA44)}</td>
                 <td data-label="SL (-5%)">${money(pos.stopLossPrice)}</td>
                 <td data-label="Target (+20%)">${money(pos.targetPrice)}</td>
                 <td data-label="Status"><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
@@ -542,18 +534,15 @@ function renderHistoryTable() {
     const rows = sortDataList(rawRows, sortConfig.history);
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history logs</td></tr>`;
+        container.innerHTML = `<tr><td colspan="4" class="empty-state">No scan history logs</td></tr>`;
         return;
     }
     container.innerHTML = rows.map(item => `
         <tr>
             <td data-label="Date">${formatDate(item.date)}</td>
             <td data-label="Symbol"><strong>${escapeHtml(item.symbol || "—")}</strong></td>
+            <td data-label="Close">${money(item.close ?? item.price ?? item.ltp)}</td>
             <td data-label="Signal"><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
-            <td data-label="Close">${money(item.close)}</td>
-            <td data-label="44 SMA">${money(item.sma44)}</td>
-            <td data-label="100 SMA">${money(item.sma100)}</td>
-            <td data-label="200 SMA">${money(item.sma200)}</td>
         </tr>
     `).join("");
 }
