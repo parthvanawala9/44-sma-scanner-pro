@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-KEY CLOSE PRICE FALLBACK
+// 44 SMA SCANNER PRO - SCRIPT WITH MULTI-KEY CLOSE PRICE FALLBACK (FIXED)
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -27,13 +27,15 @@ function extractPrice(item) {
     const possibleKeys = [
         "close", "closePrice", "close_price", "price", 
         "ltp", "lastPrice", "last_price", "currentPrice", 
-        "current_price", "c", "p"
+        "current_price", "c", "p", "Close", "ClosePrice"
     ];
 
     for (const key of possibleKeys) {
-        const val = Number(item[key]);
-        if (Number.isFinite(val) && val > 0) {
-            return val;
+        if (item[key] !== undefined && item[key] !== null) {
+            const val = Number(item[key]);
+            if (Number.isFinite(val) && val > 0) {
+                return val;
+            }
         }
     }
     return 0;
@@ -42,7 +44,7 @@ function extractPrice(item) {
 function money(val) {
     const num = extractPrice(val);
     if (num <= 0) return "—";
-    return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    return "₹" + num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function percentage(val) {
@@ -52,7 +54,7 @@ function percentage(val) {
 }
 
 function escapeHtml(val) {
-    return String(val ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(val ?? "").replace(/</g, "&lt;").replace/>/g, "&gt;");
 }
 
 async function loadData() {
@@ -223,6 +225,7 @@ function renderSellTable() {
     container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
 }
 
+// FIXED: Signal Row Rendering Logic
 function signalRow(item, type) {
     const symbol = item.symbol || item.ticker || "—";
     const closeVal = extractPrice(item);
@@ -233,17 +236,18 @@ function signalRow(item, type) {
     const sma200 = Number(item.sma200 ?? item.SMA200 ?? 0);
     
     const rowData = encodeURIComponent(JSON.stringify(item));
+    const formattedPrice = money(closeVal);
 
     return `
         <tr>
-            <td data-label="Symbol"><strong>${escapeHtml(symbol)}</strong></td>
-            <td data-label="Close">${money(closeVal)}</td>
+            <td data-label="SYMBOL"><strong>${escapeHtml(symbol)}</strong></td>
+            <td data-label="CLOSE"><span class="price-val" style="font-weight:700; color:#ffffff;">${formattedPrice}</span></td>
             <td data-label="44 SMA" class="mobile-hide">${money(sma44)}</td>
             <td data-label="100 SMA" class="mobile-hide">${money(sma100)}</td>
             <td data-label="200 SMA" class="mobile-hide">${money(sma200)}</td>
             <td data-label="Candle" class="mobile-hide">${closeVal >= openVal ? '🟢 Green' : '🔴 Red'}</td>
-            <td data-label="Signal"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
-            <td data-label="Action"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
+            <td data-label="SIGNAL"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
+            <td data-label="ACTION"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
         </tr>
     `;
 }
