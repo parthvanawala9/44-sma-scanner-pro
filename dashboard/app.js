@@ -1,5 +1,5 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH COMPLETE OHLC & SMA CHART DISPLAY
+// 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY (FIXED)
 // ============================================================
 
 let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
@@ -16,7 +16,7 @@ let sortConfig = {
     history: "newest"
 };
 
-// MULTI-KEY PRICE EXTRACTOR (Handles String, Commas & Object Mapping)
+// MULTI-KEY PRICE EXTRACTOR
 function extractPrice(item) {
     if (item === null || item === undefined) return 0;
 
@@ -273,7 +273,7 @@ async function openStockChart(symbol, itemData = null) {
     const title = document.getElementById("stockChartTitle");
     const loading = document.getElementById("stockChartLoading");
 
-    if (title) title.textContent = symbol + " — Technical Analysis";
+    if (title) title.textContent = symbol + " — Technical Chart";
     if (modal) modal.style.display = "flex";
     if (loading) loading.style.display = "block";
 
@@ -302,43 +302,7 @@ async function openStockChart(symbol, itemData = null) {
         rows = generateFallbackChartData(itemData);
     }
 
-    renderChartHeaderDetails(itemData, rows);
     drawStockChart(rows, itemData);
-}
-
-// FULL PRICE & SMA INFO DISPLAY INSIDE MODAL
-function renderChartHeaderDetails(itemData, rows) {
-    const canvas = document.getElementById("stockChartCanvas");
-    if (!canvas) return;
-
-    let infoBox = document.getElementById("chartPriceInfoBox");
-    if (!infoBox) {
-        infoBox = document.createElement("div");
-        infoBox.id = "chartPriceInfoBox";
-        canvas.parentElement.insertBefore(infoBox, canvas);
-    }
-
-    const lastRow = rows.length ? rows[rows.length - 1] : {};
-    const closeP = extractPrice(itemData) || Number(lastRow.close || 0);
-    const openP = Number(itemData?.open ?? lastRow.open ?? closeP);
-    const highP = Number(itemData?.high ?? lastRow.high ?? Math.max(openP, closeP));
-    const lowP = Number(itemData?.low ?? lastRow.low ?? Math.min(openP, closeP));
-
-    const sma44Val = Number(itemData?.sma44 ?? itemData?.SMA44 ?? lastRow.sma44 ?? 0);
-    const sma100Val = Number(itemData?.sma100 ?? itemData?.SMA100 ?? lastRow.sma100 ?? 0);
-    const sma200Val = Number(itemData?.sma200 ?? itemData?.SMA200 ?? lastRow.sma200 ?? 0);
-
-    infoBox.innerHTML = `
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap:8px; padding:10px; background:#0f172a; border-radius:8px; margin-bottom:10px; border:1px solid #334155; font-size:11px; color:#e2e8f0; text-align:center;">
-            <div><span style="color:#94a3b8; display:block; font-size:10px;">CLOSE</span><strong style="color:#38bdf8; font-size:13px;">${money(closeP)}</strong></div>
-            <div><span style="color:#94a3b8; display:block; font-size:10px;">OPEN</span><strong>${money(openP)}</strong></div>
-            <div><span style="color:#94a3b8; display:block; font-size:10px;">HIGH</span><strong style="color:#10b981;">${money(highP)}</strong></div>
-            <div><span style="color:#94a3b8; display:block; font-size:10px;">LOW</span><strong style="color:#ef4444;">${money(lowP)}</strong></div>
-            <div><span style="color:#10b981; display:block; font-size:10px;">44 SMA</span><strong>${money(sma44Val)}</strong></div>
-            <div><span style="color:#ef4444; display:block; font-size:10px;">100 SMA</span><strong>${money(sma100Val)}</strong></div>
-            <div><span style="color:#38bdf8; display:block; font-size:10px;">200 SMA</span><strong>${money(sma200Val)}</strong></div>
-        </div>
-    `;
 }
 
 function generateFallbackChartData(item) {
@@ -373,6 +337,7 @@ function closeChart() {
     if (modal) modal.style.display = "none";
 }
 
+// DIRECT CANVAS PRICE & SMA OVERLAY LOGIC
 function drawStockChart(rows, itemData) {
     const canvas = document.getElementById("stockChartCanvas");
     if (!canvas || !rows || !rows.length) return;
@@ -380,13 +345,23 @@ function drawStockChart(rows, itemData) {
     const ctx = canvas.getContext("2d");
     const parentWidth = canvas.parentElement.clientWidth || 800;
     canvas.width = parentWidth;
-    canvas.height = 360;
+    canvas.height = 380;
 
     const width = canvas.width;
     const height = canvas.height;
 
     ctx.fillStyle = "#080b11";
     ctx.fillRect(0, 0, width, height);
+
+    const lastRow = rows[rows.length - 1] || {};
+    const closeP = extractPrice(itemData) || Number(lastRow.close || 0);
+    const openP = Number(itemData?.open ?? lastRow.open ?? closeP);
+    const highP = Number(itemData?.high ?? lastRow.high ?? Math.max(openP, closeP));
+    const lowP = Number(itemData?.low ?? lastRow.low ?? Math.min(openP, closeP));
+
+    const sma44Val = Number(itemData?.sma44 ?? itemData?.SMA44 ?? lastRow.sma44 ?? 0);
+    const sma100Val = Number(itemData?.sma100 ?? itemData?.SMA100 ?? lastRow.sma100 ?? 0);
+    const sma200Val = Number(itemData?.sma200 ?? itemData?.SMA200 ?? lastRow.sma200 ?? 0);
 
     const allPrices = [];
     rows.forEach(r => {
@@ -411,6 +386,7 @@ function drawStockChart(rows, itemData) {
 
     const step = width / rows.length;
 
+    // DRAW CANDLESTICKS
     rows.forEach((r, i) => {
         const open = Number(r.open || r.close);
         const close = Number(r.close);
@@ -418,10 +394,10 @@ function drawStockChart(rows, itemData) {
         const low = Number(r.low || Math.min(open, close));
 
         const x = i * step + step / 2;
-        const yHigh = height - ((high - minP) / pRange) * height;
-        const yLow = height - ((low - minP) / pRange) * height;
-        const yOpen = height - ((open - minP) / pRange) * height;
-        const yClose = height - ((close - minP) / pRange) * height;
+        const yHigh = height - ((high - minP) / pRange) * (height - 80) - 10;
+        const yLow = height - ((low - minP) / pRange) * (height - 80) - 10;
+        const yOpen = height - ((open - minP) / pRange) * (height - 80) - 10;
+        const yClose = height - ((close - minP) / pRange) * (height - 80) - 10;
 
         const isGreen = close >= open;
         ctx.strokeStyle = isGreen ? "#10b981" : "#ef4444";
@@ -437,6 +413,7 @@ function drawStockChart(rows, itemData) {
         ctx.fillRect(x - Math.max(1, step * 0.3), bodyTop, Math.max(2, step * 0.6), bodyH);
     });
 
+    // DRAW SMA LINES
     function drawSmaLine(key, color, widthPx) {
         ctx.beginPath();
         ctx.strokeStyle = color;
@@ -451,7 +428,7 @@ function drawStockChart(rows, itemData) {
 
             if (val) {
                 const x = i * step + step / 2;
-                const y = height - ((val - minP) / pRange) * height;
+                const y = height - ((val - minP) / pRange) * (height - 80) - 10;
                 if (!started) {
                     ctx.moveTo(x, y);
                     started = true;
@@ -466,6 +443,46 @@ function drawStockChart(rows, itemData) {
     drawSmaLine("sma44", "#10b981", 2);
     drawSmaLine("sma100", "#ef4444", 2);
     drawSmaLine("sma200", "#38bdf8", 2);
+
+    // DRAW TOP TEXT OVERLAY (OPEN, HIGH, LOW, CLOSE, SMAs)
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.fillRect(10, 10, width - 20, 60);
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, 10, width - 20, 60);
+
+    ctx.font = "bold 11px sans-serif";
+
+    // Row 1: OHLC
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("C:", 18, 28);
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText(money(closeP), 32, 28);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("O:", 115, 28);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(money(openP), 130, 28);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("H:", 205, 28);
+    ctx.fillStyle = "#10b981";
+    ctx.fillText(money(highP), 220, 28);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("L:", 295, 28);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillText(money(lowP), 308, 28);
+
+    // Row 2: SMAs
+    ctx.fillStyle = "#10b981";
+    ctx.fillText("44 SMA: " + money(sma44Val), 18, 52);
+
+    ctx.fillStyle = "#ef4444";
+    ctx.fillText("100 SMA: " + money(sma100Val), 130, 52);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("200 SMA: " + money(sma200Val), 245, 52);
 }
 
 function renderPortfolioSummaryAndTable() {
