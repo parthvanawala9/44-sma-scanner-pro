@@ -1,9 +1,13 @@
 {
-  "updatedAt": "2026-09-04T14:25:57.181408+00:00",
+  "updatedAt": "2026-09-07T15:56:35.928567+00:00",
   "count": 10,
   "items": [
     {
       "symbol": "GROWW",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "DUMMYHEG",
       "reason": "Insufficient/invalid data"
     },
     {
@@ -28,10 +32,6 @@
     },
     {
       "symbol": "PINELABS",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "PIRAMALFIN",
       "reason": "Insufficient/invalid data"
     },
     {
