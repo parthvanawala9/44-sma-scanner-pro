@@ -1,10 +1,23 @@
 // ============================================================
-// 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY (FIXED)
+// 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY
+// FIXED: REALIZED P&L + PORTFOLIO LAST COLUMN
 // ============================================================
 
-let signals = { buy: [], sell: [], scanned: 0, scannedAt: null };
+let signals = {
+    buy: [],
+    sell: [],
+    scanned: 0,
+    scannedAt: null
+};
+
 let history = [];
-let portfolio = { openPositions: [], closedTrades: [], realizedPnL: 0 };
+
+let portfolio = {
+    openPositions: [],
+    closedTrades: [],
+    realizedPnL: 0
+};
+
 let currentTab = "dashboard";
 let isLoadingData = false;
 
@@ -16,129 +29,507 @@ let sortConfig = {
     history: "newest"
 };
 
+// ============================================================
 // MULTI-KEY PRICE EXTRACTOR
+// ============================================================
+
 function extractPrice(item) {
     if (item === null || item === undefined) return 0;
 
-    if (typeof item === "number") return Number.isFinite(item) && item > 0 ? item : 0;
+    if (typeof item === "number") {
+        return Number.isFinite(item) && item > 0 ? item : 0;
+    }
+
     if (typeof item === "string") {
-        const cleanStr = item.replace(/,/g, "").trim();
+        const cleanStr = item
+            .replace(/,/g, "")
+            .trim();
+
         const parsed = parseFloat(cleanStr);
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+
+        return Number.isFinite(parsed) && parsed > 0
+            ? parsed
+            : 0;
     }
 
     if (typeof item !== "object") return 0;
 
     const possibleKeys = [
-        "close", "closePrice", "close_price", "price", 
-        "ltp", "lastPrice", "last_price", "currentPrice", 
-        "current_price", "c", "p", "Close", "ClosePrice", "CLOSE"
+        "close",
+        "closePrice",
+        "close_price",
+        "price",
+        "ltp",
+        "lastPrice",
+        "last_price",
+        "currentPrice",
+        "current_price",
+        "c",
+        "p",
+        "Close",
+        "ClosePrice",
+        "CLOSE"
     ];
 
     for (const key of possibleKeys) {
-        if (item[key] !== undefined && item[key] !== null) {
-            const rawVal = String(item[key]).replace(/,/g, "").trim();
+        if (
+            item[key] !== undefined &&
+            item[key] !== null
+        ) {
+            const rawVal = String(item[key])
+                .replace(/,/g, "")
+                .trim();
+
             const val = parseFloat(rawVal);
-            if (Number.isFinite(val) && val > 0) {
+
+            if (
+                Number.isFinite(val) &&
+                val > 0
+            ) {
                 return val;
             }
         }
     }
+
     return 0;
 }
 
+// ============================================================
+// MONEY
+// IMPORTANT: ZERO MUST DISPLAY AS ₹0.00, NOT —
+// ============================================================
+
 function money(val) {
-    const num = extractPrice(val);
-    if (num <= 0) return "—";
-    return "₹" + num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    let num;
+
+    if (
+        val !== null &&
+        typeof val === "object"
+    ) {
+        num = Number(
+            val.close ??
+            val.closePrice ??
+            val.price ??
+            val.ltp ??
+            val.currentPrice ??
+            val.current_price ??
+            0
+        );
+    } else {
+        num = Number(
+            String(val ?? "")
+                .replace(/,/g, "")
+                .replace(/[₹]/g, "")
+                .trim()
+        );
+    }
+
+    if (!Number.isFinite(num)) {
+        return "—";
+    }
+
+    return "₹" + num.toLocaleString(
+        "en-IN",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
 }
+
+// ============================================================
+// PERCENTAGE
+// ============================================================
 
 function percentage(val) {
     const num = Number(val);
-    if (!Number.isFinite(num)) return "—";
-    return (num >= 0 ? "+" : "") + num.toFixed(2) + "%";
+
+    if (!Number.isFinite(num)) {
+        return "—";
+    }
+
+    return (
+        num >= 0 ? "+" : ""
+    ) +
+    num.toFixed(2) +
+    "%";
 }
 
+// ============================================================
+// HTML ESCAPE
+// ============================================================
+
 function escapeHtml(val) {
-    return String(val ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
+
+// ============================================================
+// LOAD DATA
+// ============================================================
 
 async function loadData() {
     if (isLoadingData) return;
+
     isLoadingData = true;
 
     try {
         const ts = Date.now();
-        const signalRes = await fetch("./data/signals.json?" + ts, { cache: "no-store" });
-        if (signalRes.ok) signals = await signalRes.json();
+
+        // ---------------- SIGNALS ----------------
+
+        const signalRes = await fetch(
+            "./data/signals.json?" + ts,
+            {
+                cache: "no-store"
+            }
+        );
+
+        if (signalRes.ok) {
+            signals =
+                await signalRes.json();
+        }
+
+        // ---------------- HISTORY ----------------
 
         try {
-            const histRes = await fetch("./data/history.json?" + ts, { cache: "no-store" });
-            if (histRes.ok) history = await histRes.json();
-        } catch (e) { history = []; }
+            const histRes = await fetch(
+                "./data/history.json?" + ts,
+                {
+                    cache: "no-store"
+                }
+            );
+
+            if (histRes.ok) {
+                const histData =
+                    await histRes.json();
+
+                history =
+                    Array.isArray(histData)
+                        ? histData
+                        : [];
+            }
+        } catch (e) {
+            console.error(
+                "History Load Error:",
+                e
+            );
+
+            history = [];
+        }
+
+        // ---------------- PORTFOLIO ----------------
 
         try {
-            const portRes = await fetch("./data/portfolio.json?" + ts, { cache: "no-store" });
-            if (portRes.ok) portfolio = await portRes.json();
-        } catch (e) { portfolio = { openPositions: [], closedTrades: [], realizedPnL: 0 }; }
+            const portRes = await fetch(
+                "./data/portfolio.json?" + ts,
+                {
+                    cache: "no-store"
+                }
+            );
+
+            if (portRes.ok) {
+                const portData =
+                    await portRes.json();
+
+                if (
+                    portData &&
+                    typeof portData === "object"
+                ) {
+                    portfolio =
+                        portData;
+                }
+            }
+        } catch (e) {
+            console.error(
+                "Portfolio Load Error:",
+                e
+            );
+
+            portfolio = {
+                openPositions: [],
+                closedTrades: [],
+                realizedPnL: 0
+            };
+        }
+
+        // Safety normalization
+        if (
+            !portfolio ||
+            typeof portfolio !== "object"
+        ) {
+            portfolio = {
+                openPositions: [],
+                closedTrades: [],
+                realizedPnL: 0
+            };
+        }
+
+        if (
+            !Array.isArray(
+                portfolio.openPositions
+            )
+        ) {
+            portfolio.openPositions = [];
+        }
+
+        if (
+            !Array.isArray(
+                portfolio.closedTrades
+            )
+        ) {
+            portfolio.closedTrades = [];
+        }
+
+        if (
+            portfolio.realizedPnL === null ||
+            portfolio.realizedPnL === undefined ||
+            !Number.isFinite(
+                Number(
+                    portfolio.realizedPnL
+                )
+            )
+        ) {
+            portfolio.realizedPnL = 0;
+        }
 
         updateLastScan();
+
         render();
 
     } catch (err) {
-        console.error("Data Load Error:", err);
+        console.error(
+            "Data Load Error:",
+            err
+        );
+
     } finally {
         isLoadingData = false;
     }
 }
 
+// ============================================================
+// LAST SCAN
+// ============================================================
+
 function updateLastScan() {
-    const elem = document.getElementById("lastScan");
+    const elem =
+        document.getElementById(
+            "lastScan"
+        );
+
     if (!elem) return;
-    const val = signals.scannedAt || signals.scanDate || signals.date;
-    if (!val) { elem.textContent = "Last scan: —"; return; }
-    const dt = new Date(val);
-    elem.textContent = Number.isNaN(dt.getTime()) ? "Last scan: " + val : "Last scan: " + dt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+
+    const val =
+        signals.scannedAt ||
+        signals.scanDate ||
+        signals.date;
+
+    if (!val) {
+        elem.textContent =
+            "Last scan: —";
+
+        return;
+    }
+
+    const dt =
+        new Date(val);
+
+    elem.textContent =
+        Number.isNaN(
+            dt.getTime()
+        )
+            ? "Last scan: " + val
+            : "Last scan: " +
+              dt.toLocaleString(
+                  "en-IN",
+                  {
+                      dateStyle: "medium",
+                      timeStyle: "short"
+                  }
+              );
 }
 
-function changeSort(section, value) {
-    sortConfig[section] = value;
+// ============================================================
+// SORT
+// ============================================================
+
+function changeSort(
+    section,
+    value
+) {
+    sortConfig[section] =
+        value;
+
     render();
 }
 
-function sortDataList(list, type) {
-    if (!Array.isArray(list)) return [];
-    let arr = [...list];
+function sortDataList(
+    list,
+    type
+) {
+    if (!Array.isArray(list)) {
+        return [];
+    }
 
-    arr.sort((a, b) => {
-        const nameA = String(a.symbol || a.ticker || "").toUpperCase();
-        const nameB = String(b.symbol || b.ticker || "").toUpperCase();
+    let arr = [
+        ...list
+    ];
 
-        const dateA = new Date(a.buyDate || a.entryDate || a.date || a.sellDate || 0).getTime();
-        const dateB = new Date(b.buyDate || b.entryDate || b.date || b.sellDate || 0).getTime();
+    arr.sort(
+        (
+            a,
+            b
+        ) => {
 
-        const priceA = extractPrice(a);
-        const priceB = extractPrice(b);
+            const nameA =
+                String(
+                    a.symbol ||
+                    a.ticker ||
+                    ""
+                ).toUpperCase();
 
-        const pnlA = Number(a.pnl ?? ((extractPrice(a) - Number(a.buyPrice)) * Number(a.quantity)) ?? 0);
-        const pnlB = Number(b.pnl ?? ((extractPrice(b) - Number(b.buyPrice)) * Number(b.quantity)) ?? 0);
+            const nameB =
+                String(
+                    b.symbol ||
+                    b.ticker ||
+                    ""
+                ).toUpperCase();
 
-        switch (type) {
-            case "nameAsc": return nameA.localeCompare(nameB);
-            case "nameDesc": return nameB.localeCompare(nameA);
-            case "priceHigh": return priceB - priceA;
-            case "priceLow": return priceA - priceB;
-            case "pnlHigh": return pnlB - pnlA;
-            case "pnlLow": return pnlA - pnlB;
-            case "dateOldest": case "oldest": return dateA - dateB;
-            case "newest": default:
-                if (dateA !== dateB && dateA > 0 && dateB > 0) return dateB - dateA;
-                return 0;
+            const dateA =
+                new Date(
+                    a.buyDate ||
+                    a.entryDate ||
+                    a.date ||
+                    a.sellDate ||
+                    a.exitDate ||
+                    0
+                ).getTime();
+
+            const dateB =
+                new Date(
+                    b.buyDate ||
+                    b.entryDate ||
+                    b.date ||
+                    b.sellDate ||
+                    b.exitDate ||
+                    0
+                ).getTime();
+
+            const priceA =
+                extractPrice(a);
+
+            const priceB =
+                extractPrice(b);
+
+            const qtyA =
+                Number(
+                    a.quantity ||
+                    a.qty ||
+                    0
+                );
+
+            const qtyB =
+                Number(
+                    b.quantity ||
+                    b.qty ||
+                    0
+                );
+
+            const buyA =
+                Number(
+                    a.buyPrice ||
+                    0
+                );
+
+            const buyB =
+                Number(
+                    b.buyPrice ||
+                    0
+                );
+
+            const pnlA =
+                Number.isFinite(
+                    Number(a.pnl)
+                )
+                    ? Number(a.pnl)
+                    : (
+                        priceA -
+                        buyA
+                    ) *
+                      qtyA;
+
+            const pnlB =
+                Number.isFinite(
+                    Number(b.pnl)
+                )
+                    ? Number(b.pnl)
+                    : (
+                        priceB -
+                        buyB
+                    ) *
+                      qtyB;
+
+            switch (type) {
+
+                case "nameAsc":
+                    return nameA.localeCompare(
+                        nameB
+                    );
+
+                case "nameDesc":
+                    return nameB.localeCompare(
+                        nameA
+                    );
+
+                case "priceHigh":
+                    return priceB - priceA;
+
+                case "priceLow":
+                    return priceA - priceB;
+
+                case "pnlHigh":
+                    return pnlB - pnlA;
+
+                case "pnlLow":
+                    return pnlA - pnlB;
+
+                case "dateOldest":
+                case "oldest":
+                    return (
+                        dateA -
+                        dateB
+                    );
+
+                case "newest":
+                default:
+
+                    if (
+                        dateA !== dateB &&
+                        dateA > 0 &&
+                        dateB > 0
+                    ) {
+                        return (
+                            dateB -
+                            dateA
+                        );
+                    }
+
+                    return 0;
+            }
         }
-    });
+    );
 
     return arr;
 }
+
+// ============================================================
+// MAIN RENDER
+// ============================================================
 
 function render() {
     renderNavigation();
@@ -151,506 +542,2375 @@ function render() {
     renderCurrentPage();
 }
 
+// ============================================================
+// NAVIGATION
+// ============================================================
+
 function renderNavigation() {
-    document.querySelectorAll("[data-tab]").forEach(el => {
-        el.classList.toggle("active", el.dataset.tab === currentTab);
-    });
-    const titleElem = document.getElementById("pageTitle");
+
+    document
+        .querySelectorAll(
+            "[data-tab]"
+        )
+        .forEach(
+            el => {
+                el.classList.toggle(
+                    "active",
+                    el.dataset.tab ===
+                        currentTab
+                );
+            }
+        );
+
+    const titleElem =
+        document.getElementById(
+            "pageTitle"
+        );
+
     if (titleElem) {
+
         const titleMap = {
-            dashboard: "Dashboard Intelligence",
-            buy: "BUY Signals Today",
-            sell: "SELL Signals Today",
-            portfolio: "Portfolio Tracker",
-            history: "Historical Scan Logs"
+            dashboard:
+                "Dashboard Intelligence",
+
+            buy:
+                "BUY Signals Today",
+
+            sell:
+                "SELL Signals Today",
+
+            portfolio:
+                "Portfolio Tracker",
+
+            history:
+                "Historical Scan Logs"
         };
-        titleElem.textContent = titleMap[currentTab] || "Dashboard";
+
+        titleElem.textContent =
+            titleMap[currentTab] ||
+            "Dashboard";
     }
 }
 
+// ============================================================
+// CURRENT PAGE
+// ============================================================
+
 function renderCurrentPage() {
-    document.querySelectorAll("[data-page]").forEach(page => {
-        page.style.display = page.dataset.page === currentTab ? "block" : "none";
-    });
+
+    document
+        .querySelectorAll(
+            "[data-page]"
+        )
+        .forEach(
+            page => {
+
+                page.style.display =
+                    page.dataset.page ===
+                    currentTab
+                        ? "block"
+                        : "none";
+            }
+        );
 }
 
-function getBuySignals() { return Array.isArray(signals.buy) ? signals.buy : []; }
-function getSellSignals() { return Array.isArray(signals.sell) ? signals.sell : []; }
+// ============================================================
+// SIGNAL HELPERS
+// ============================================================
+
+function getBuySignals() {
+
+    if (
+        Array.isArray(
+            signals.buy
+        )
+    ) {
+        return signals.buy;
+    }
+
+    if (
+        Array.isArray(
+            signals.buys
+        )
+    ) {
+        return signals.buys;
+    }
+
+    return [];
+}
+
+function getSellSignals() {
+
+    if (
+        Array.isArray(
+            signals.sell
+        )
+    ) {
+        return signals.sell;
+    }
+
+    if (
+        Array.isArray(
+            signals.sells
+        )
+    ) {
+        return signals.sells;
+    }
+
+    return [];
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
 
 function renderDashboardView() {
-    const buys = getBuySignals();
-    const sells = getSellSignals();
-    const scanned = Number(signals.scanned || signals.universeCount || 0);
 
-    const bElem = document.getElementById("dashBuyCount");
-    const sElem = document.getElementById("dashSellCount");
-    const scElem = document.getElementById("dashScannedCount");
+    const buys =
+        getBuySignals();
 
-    if (bElem) bElem.textContent = buys.length;
-    if (sElem) sElem.textContent = sells.length;
-    if (scElem) scElem.textContent = scanned;
+    const sells =
+        getSellSignals();
 
-    const summaryWrapper = document.getElementById("signalSummary");
+    const scanned =
+        Number(
+            signals.scanned ||
+            signals.universeCount ||
+            0
+        );
+
+    const bElem =
+        document.getElementById(
+            "dashBuyCount"
+        );
+
+    const sElem =
+        document.getElementById(
+            "dashSellCount"
+        );
+
+    const scElem =
+        document.getElementById(
+            "dashScannedCount"
+        );
+
+    if (bElem) {
+        bElem.textContent =
+            buys.length;
+    }
+
+    if (sElem) {
+        sElem.textContent =
+            sells.length;
+    }
+
+    if (scElem) {
+        scElem.textContent =
+            scanned;
+    }
+
+    const summaryWrapper =
+        document.getElementById(
+            "signalSummary"
+        );
+
     if (summaryWrapper) {
+
         summaryWrapper.innerHTML = `
-            <div style="flex:1; padding:14px; background:rgba(16,185,129,0.1); border-radius:10px; border:1px solid #10b981;">
-                <span style="color:#10b981; font-weight:800; font-size:10px;">BUY BREAKOUTS</span>
-                <p style="font-size:20px; font-weight:800; margin-top:4px;">${buys.length} Stocks</p>
+            <div style="
+                flex:1;
+                padding:14px;
+                background:rgba(16,185,129,0.1);
+                border-radius:10px;
+                border:1px solid #10b981;
+            ">
+                <span style="
+                    color:#10b981;
+                    font-weight:800;
+                    font-size:10px;
+                ">
+                    BUY BREAKOUTS
+                </span>
+
+                <p style="
+                    font-size:20px;
+                    font-weight:800;
+                    margin-top:4px;
+                ">
+                    ${buys.length} Stocks
+                </p>
             </div>
-            <div style="flex:1; padding:14px; background:rgba(239,68,68,0.1); border-radius:10px; border:1px solid #ef4444;">
-                <span style="color:#ef4444; font-weight:800; font-size:10px;">SELL TRIGGERS</span>
-                <p style="font-size:20px; font-weight:800; margin-top:4px;">${sells.length} Stocks</p>
+
+            <div style="
+                flex:1;
+                padding:14px;
+                background:rgba(239,68,68,0.1);
+                border-radius:10px;
+                border:1px solid #ef4444;
+            ">
+                <span style="
+                    color:#ef4444;
+                    font-weight:800;
+                    font-size:10px;
+                ">
+                    SELL TRIGGERS
+                </span>
+
+                <p style="
+                    font-size:20px;
+                    font-weight:800;
+                    margin-top:4px;
+                ">
+                    ${sells.length} Stocks
+                </p>
             </div>
         `;
     }
 }
 
+// ============================================================
+// BUY TABLE
+// ============================================================
+
 function renderBuyTable() {
-    const container = document.getElementById("buyTableBody");
+
+    const container =
+        document.getElementById(
+            "buyTableBody"
+        );
+
     if (!container) return;
-    const rawRows = getBuySignals();
-    const rows = sortDataList(rawRows, sortConfig.buy);
+
+    const rawRows =
+        getBuySignals();
+
+    const rows =
+        sortDataList(
+            rawRows,
+            sortConfig.buy
+        );
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="8" class="empty-state">No BUY signals generated today</td></tr>`;
+
+        container.innerHTML = `
+            <tr>
+                <td
+                    colspan="8"
+                    class="empty-state"
+                >
+                    No BUY signals generated today
+                </td>
+            </tr>
+        `;
+
         return;
     }
-    container.innerHTML = rows.map(item => signalRow(item, "BUY")).join("");
+
+    container.innerHTML =
+        rows
+            .map(
+                item =>
+                    signalRow(
+                        item,
+                        "BUY"
+                    )
+            )
+            .join("");
 }
+
+// ============================================================
+// SELL TABLE
+// ============================================================
 
 function renderSellTable() {
-    const container = document.getElementById("sellTableBody");
+
+    const container =
+        document.getElementById(
+            "sellTableBody"
+        );
+
     if (!container) return;
-    const rawRows = getSellSignals();
-    const rows = sortDataList(rawRows, sortConfig.sell);
+
+    const rawRows =
+        getSellSignals();
+
+    const rows =
+        sortDataList(
+            rawRows,
+            sortConfig.sell
+        );
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="8" class="empty-state">No SELL signals generated today</td></tr>`;
+
+        container.innerHTML = `
+            <tr>
+                <td
+                    colspan="8"
+                    class="empty-state"
+                >
+                    No SELL signals generated today
+                </td>
+            </tr>
+        `;
+
         return;
     }
-    container.innerHTML = rows.map(item => signalRow(item, "SELL")).join("");
+
+    container.innerHTML =
+        rows
+            .map(
+                item =>
+                    signalRow(
+                        item,
+                        "SELL"
+                    )
+            )
+            .join("");
 }
 
-function signalRow(item, type) {
-    const symbol = item.symbol || item.ticker || "—";
-    const closeVal = extractPrice(item);
-    const openVal = Number(item.open ?? item.openPrice ?? closeVal);
-    
-    const sma44 = Number(item.sma44 ?? item.SMA44 ?? 0);
-    const sma100 = Number(item.sma100 ?? item.SMA100 ?? 0);
-    const sma200 = Number(item.sma200 ?? item.SMA200 ?? 0);
-    
-    const rowData = encodeURIComponent(JSON.stringify(item));
-    const formattedPrice = money(closeVal);
+// ============================================================
+// SIGNAL ROW
+// ============================================================
+
+function signalRow(
+    item,
+    type
+) {
+
+    const symbol =
+        item.symbol ||
+        item.ticker ||
+        "—";
+
+    const closeVal =
+        extractPrice(item);
+
+    const openVal =
+        Number(
+            item.open ??
+            item.openPrice ??
+            closeVal
+        );
+
+    const sma44 =
+        Number(
+            item.sma44 ??
+            item.SMA44 ??
+            0
+        );
+
+    const sma100 =
+        Number(
+            item.sma100 ??
+            item.SMA100 ??
+            0
+        );
+
+    const sma200 =
+        Number(
+            item.sma200 ??
+            item.SMA200 ??
+            0
+        );
+
+    const rowData =
+        encodeURIComponent(
+            JSON.stringify(item)
+        );
+
+    const formattedPrice =
+        money(closeVal);
 
     return `
         <tr>
-            <td data-label="SYMBOL"><strong>${escapeHtml(symbol)}</strong></td>
-            <td data-label="CLOSE"><span class="price-val" style="font-weight:700; color:#ffffff;">${formattedPrice}</span></td>
-            <td data-label="44 SMA" class="mobile-hide">${money(sma44)}</td>
-            <td data-label="100 SMA" class="mobile-hide">${money(sma100)}</td>
-            <td data-label="200 SMA" class="mobile-hide">${money(sma200)}</td>
-            <td data-label="Candle" class="mobile-hide">${closeVal >= openVal ? '🟢 Green' : '🔴 Red'}</td>
-            <td data-label="SIGNAL"><span class="badge ${type === "BUY" ? "badge-green" : "badge-red"}">${type}</span></td>
-            <td data-label="ACTION"><button class="btn-chart" onclick="handleChartClick('${rowData}')">Chart</button></td>
+
+            <td data-label="SYMBOL">
+                <strong>
+                    ${escapeHtml(symbol)}
+                </strong>
+            </td>
+
+            <td data-label="CLOSE">
+                <span
+                    class="price-val"
+                    style="
+                        font-weight:700;
+                        color:#ffffff;
+                    "
+                >
+                    ${formattedPrice}
+                </span>
+            </td>
+
+            <td
+                data-label="44 SMA"
+                class="mobile-hide"
+            >
+                ${money(sma44)}
+            </td>
+
+            <td
+                data-label="100 SMA"
+                class="mobile-hide"
+            >
+                ${money(sma100)}
+            </td>
+
+            <td
+                data-label="200 SMA"
+                class="mobile-hide"
+            >
+                ${money(sma200)}
+            </td>
+
+            <td
+                data-label="Candle"
+                class="mobile-hide"
+            >
+                ${
+                    closeVal >= openVal
+                        ? "🟢 Green"
+                        : "🔴 Red"
+                }
+            </td>
+
+            <td data-label="SIGNAL">
+                <span
+                    class="badge ${
+                        type === "BUY"
+                            ? "badge-green"
+                            : "badge-red"
+                    }"
+                >
+                    ${type}
+                </span>
+            </td>
+
+            <td data-label="ACTION">
+                <button
+                    class="btn-chart"
+                    onclick="handleChartClick('${rowData}')"
+                >
+                    Chart
+                </button>
+            </td>
+
         </tr>
     `;
 }
 
-function handleChartClick(encoded) {
+// ============================================================
+// CHART CLICK
+// ============================================================
+
+function handleChartClick(
+    encoded
+) {
+
     try {
-        const item = JSON.parse(decodeURIComponent(encoded));
-        const symbol = item.symbol || item.ticker;
-        openStockChart(symbol, item);
+
+        const item =
+            JSON.parse(
+                decodeURIComponent(
+                    encoded
+                )
+            );
+
+        const symbol =
+            item.symbol ||
+            item.ticker;
+
+        openStockChart(
+            symbol,
+            item
+        );
+
     } catch (e) {
-        console.error("Chart Trigger Error:", e);
+
+        console.error(
+            "Chart Trigger Error:",
+            e
+        );
     }
 }
 
-async function openStockChart(symbol, itemData = null) {
-    if (!symbol) return;
-    const modal = document.getElementById("stockChartModal");
-    const title = document.getElementById("stockChartTitle");
-    const loading = document.getElementById("stockChartLoading");
+// ============================================================
+// OPEN STOCK CHART
+// ============================================================
 
-    if (title) title.textContent = symbol + " — Technical Chart";
-    if (modal) modal.style.display = "flex";
-    if (loading) loading.style.display = "block";
+async function openStockChart(
+    symbol,
+    itemData = null
+) {
+
+    if (!symbol) return;
+
+    const modal =
+        document.getElementById(
+            "stockChartModal"
+        );
+
+    const title =
+        document.getElementById(
+            "stockChartTitle"
+        );
+
+    const loading =
+        document.getElementById(
+            "stockChartLoading"
+        );
+
+    if (title) {
+        title.textContent =
+            symbol +
+            " — Technical Chart";
+    }
+
+    if (modal) {
+        modal.style.display =
+            "flex";
+    }
+
+    if (loading) {
+        loading.style.display =
+            "block";
+    }
 
     let rows = [];
 
-    if (itemData && (itemData.chart || itemData.chartData || itemData.data)) {
-        rows = itemData.chart || itemData.chartData || itemData.data;
-    }
+    if (
+        itemData &&
+        (
+            itemData.chart ||
+            itemData.chartData ||
+            itemData.data
+        )
+    ) {
 
-    if (!rows.length) {
-        try {
-            const ts = Date.now();
-            const res = await fetch("./data/charts/" + encodeURIComponent(symbol) + ".json?" + ts, { cache: "no-store" });
-            if (res.ok) {
-                const data = await res.json();
-                rows = Array.isArray(data) ? data : (data.chart || data.data || []);
-            }
-        } catch (e) {
-            console.error("Fetch Chart Failed:", e);
+        rows =
+            itemData.chart ||
+            itemData.chartData ||
+            itemData.data;
+
+        if (
+            rows &&
+            !Array.isArray(rows) &&
+            Array.isArray(rows.data)
+        ) {
+            rows =
+                rows.data;
         }
     }
 
-    if (loading) loading.style.display = "none";
+    if (
+        !Array.isArray(rows) ||
+        !rows.length
+    ) {
 
-    if (!rows || !rows.length) {
-        rows = generateFallbackChartData(itemData);
+        rows = [];
+
+        try {
+
+            const ts =
+                Date.now();
+
+            const res =
+                await fetch(
+                    "./data/charts/" +
+                    encodeURIComponent(
+                        symbol
+                    ) +
+                    ".json?" +
+                    ts,
+                    {
+                        cache:
+                            "no-store"
+                    }
+                );
+
+            if (res.ok) {
+
+                const data =
+                    await res.json();
+
+                if (
+                    Array.isArray(
+                        data
+                    )
+                ) {
+                    rows = data;
+                } else if (
+                    data &&
+                    Array.isArray(
+                        data.chart
+                    )
+                ) {
+                    rows =
+                        data.chart;
+                } else if (
+                    data &&
+                    Array.isArray(
+                        data.data
+                    )
+                ) {
+                    rows =
+                        data.data;
+                }
+            }
+
+        } catch (e) {
+
+            console.error(
+                "Fetch Chart Failed:",
+                e
+            );
+        }
     }
 
-    drawStockChart(rows, itemData);
+    if (loading) {
+        loading.style.display =
+            "none";
+    }
+
+    if (
+        !rows ||
+        !rows.length
+    ) {
+        rows =
+            generateFallbackChartData(
+                itemData
+            );
+    }
+
+    drawStockChart(
+        rows,
+        itemData
+    );
 }
 
-function generateFallbackChartData(item) {
-    const baseClose = extractPrice(item) || 1000;
-    const sma44Val = Number(item?.sma44 || baseClose * 0.98);
-    const sma100Val = Number(item?.sma100 || baseClose * 0.94);
-    const sma200Val = Number(item?.sma200 || baseClose * 0.90);
+// ============================================================
+// FALLBACK CHART
+// ============================================================
+
+function generateFallbackChartData(
+    item
+) {
+
+    const baseClose =
+        extractPrice(item) ||
+        1000;
+
+    const sma44Val =
+        Number(
+            item?.sma44 ||
+            baseClose * 0.98
+        );
+
+    const sma100Val =
+        Number(
+            item?.sma100 ||
+            baseClose * 0.94
+        );
+
+    const sma200Val =
+        Number(
+            item?.sma200 ||
+            baseClose * 0.90
+        );
 
     const arr = [];
-    let price = baseClose * 0.93;
 
-    for (let i = 0; i < 30; i++) {
-        const open = price;
-        const close = price + (Math.random() - 0.48) * (baseClose * 0.02);
-        const high = Math.max(open, close) + Math.random() * (baseClose * 0.01);
-        const low = Math.min(open, close) - Math.random() * (baseClose * 0.01);
-        price = close;
+    let price =
+        baseClose *
+        0.93;
 
-        const factor = i / 30;
+    for (
+        let i = 0;
+        i < 30;
+        i++
+    ) {
+
+        const open =
+            price;
+
+        const close =
+            price +
+            (
+                Math.random() -
+                0.48
+            ) *
+            (
+                baseClose *
+                0.02
+            );
+
+        const high =
+            Math.max(
+                open,
+                close
+            ) +
+            Math.random() *
+            (
+                baseClose *
+                0.01
+            );
+
+        const low =
+            Math.min(
+                open,
+                close
+            ) -
+            Math.random() *
+            (
+                baseClose *
+                0.01
+            );
+
+        price =
+            close;
+
+        const factor =
+            i / 30;
+
         arr.push({
-            open, close, high, low,
-            sma44: sma44Val * (0.97 + 0.03 * factor),
-            sma100: sma100Val * (0.98 + 0.02 * factor),
-            sma200: sma200Val * (0.99 + 0.01 * factor)
+            open,
+            close,
+            high,
+            low,
+
+            sma44:
+                sma44Val *
+                (
+                    0.97 +
+                    0.03 *
+                    factor
+                ),
+
+            sma100:
+                sma100Val *
+                (
+                    0.98 +
+                    0.02 *
+                    factor
+                ),
+
+            sma200:
+                sma200Val *
+                (
+                    0.99 +
+                    0.01 *
+                    factor
+                )
         });
     }
+
     return arr;
 }
 
+// ============================================================
+// CLOSE CHART
+// ============================================================
+
 function closeChart() {
-    const modal = document.getElementById("stockChartModal");
-    if (modal) modal.style.display = "none";
+
+    const modal =
+        document.getElementById(
+            "stockChartModal"
+        );
+
+    if (modal) {
+        modal.style.display =
+            "none";
+    }
 }
 
-// DIRECT CANVAS PRICE & SMA OVERLAY LOGIC
-function drawStockChart(rows, itemData) {
-    const canvas = document.getElementById("stockChartCanvas");
-    if (!canvas || !rows || !rows.length) return;
+// ============================================================
+// DIRECT CANVAS PRICE & SMA OVERLAY
+// ============================================================
 
-    const ctx = canvas.getContext("2d");
-    const parentWidth = canvas.parentElement.clientWidth || 800;
-    canvas.width = parentWidth;
-    canvas.height = 380;
+function drawStockChart(
+    rows,
+    itemData
+) {
 
-    const width = canvas.width;
-    const height = canvas.height;
+    const canvas =
+        document.getElementById(
+            "stockChartCanvas"
+        );
 
-    ctx.fillStyle = "#080b11";
-    ctx.fillRect(0, 0, width, height);
+    if (
+        !canvas ||
+        !rows ||
+        !rows.length
+    ) {
+        return;
+    }
 
-    const lastRow = rows[rows.length - 1] || {};
-    const closeP = extractPrice(itemData) || Number(lastRow.close || 0);
-    const openP = Number(itemData?.open ?? lastRow.open ?? closeP);
-    const highP = Number(itemData?.high ?? lastRow.high ?? Math.max(openP, closeP));
-    const lowP = Number(itemData?.low ?? lastRow.low ?? Math.min(openP, closeP));
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
 
-    const sma44Val = Number(itemData?.sma44 ?? itemData?.SMA44 ?? lastRow.sma44 ?? 0);
-    const sma100Val = Number(itemData?.sma100 ?? itemData?.SMA100 ?? lastRow.sma100 ?? 0);
-    const sma200Val = Number(itemData?.sma200 ?? itemData?.SMA200 ?? lastRow.sma200 ?? 0);
+    const parentWidth =
+        canvas.parentElement.clientWidth ||
+        800;
+
+    canvas.width =
+        parentWidth;
+
+    canvas.height =
+        380;
+
+    const width =
+        canvas.width;
+
+    const height =
+        canvas.height;
+
+    ctx.fillStyle =
+        "#080b11";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    const lastRow =
+        rows[
+            rows.length - 1
+        ] || {};
+
+    const closeP =
+        extractPrice(
+            itemData
+        ) ||
+        Number(
+            lastRow.close ||
+            0
+        );
+
+    const openP =
+        Number(
+            itemData?.open ??
+            lastRow.open ??
+            closeP
+        );
+
+    const highP =
+        Number(
+            itemData?.high ??
+            lastRow.high ??
+            Math.max(
+                openP,
+                closeP
+            )
+        );
+
+    const lowP =
+        Number(
+            itemData?.low ??
+            lastRow.low ??
+            Math.min(
+                openP,
+                closeP
+            )
+        );
+
+    const sma44Val =
+        Number(
+            itemData?.sma44 ??
+            itemData?.SMA44 ??
+            lastRow.sma44 ??
+            0
+        );
+
+    const sma100Val =
+        Number(
+            itemData?.sma100 ??
+            itemData?.SMA100 ??
+            lastRow.sma100 ??
+            0
+        );
+
+    const sma200Val =
+        Number(
+            itemData?.sma200 ??
+            itemData?.SMA200 ??
+            lastRow.sma200 ??
+            0
+        );
 
     const allPrices = [];
-    rows.forEach(r => {
-        if (r.high) allPrices.push(Number(r.high));
-        if (r.low) allPrices.push(Number(r.low));
-        if (r.sma44) allPrices.push(Number(r.sma44));
-        if (r.sma100) allPrices.push(Number(r.sma100));
-        if (r.sma200) allPrices.push(Number(r.sma200));
-    });
+
+    rows.forEach(
+        r => {
+
+            if (r.high) {
+                allPrices.push(
+                    Number(r.high)
+                );
+            }
+
+            if (r.low) {
+                allPrices.push(
+                    Number(r.low)
+                );
+            }
+
+            if (r.sma44) {
+                allPrices.push(
+                    Number(r.sma44)
+                );
+            }
+
+            if (r.sma100) {
+                allPrices.push(
+                    Number(r.sma100)
+                );
+            }
+
+            if (r.sma200) {
+                allPrices.push(
+                    Number(r.sma200)
+                );
+            }
+        }
+    );
 
     if (itemData) {
-        if (itemData.sma44) allPrices.push(Number(itemData.sma44));
-        if (itemData.sma100) allPrices.push(Number(itemData.sma100));
-        if (itemData.sma200) allPrices.push(Number(itemData.sma200));
+
+        if (itemData.sma44) {
+            allPrices.push(
+                Number(
+                    itemData.sma44
+                )
+            );
+        }
+
+        if (itemData.sma100) {
+            allPrices.push(
+                Number(
+                    itemData.sma100
+                )
+            );
+        }
+
+        if (itemData.sma200) {
+            allPrices.push(
+                Number(
+                    itemData.sma200
+                )
+            );
+        }
     }
 
-    if (!allPrices.length) return;
+    if (!allPrices.length) {
+        return;
+    }
 
-    const minP = Math.min(...allPrices) * 0.98;
-    const maxP = Math.max(...allPrices) * 1.02;
-    const pRange = maxP - minP;
+    const minP =
+        Math.min(
+            ...allPrices
+        ) *
+        0.98;
 
-    const step = width / rows.length;
+    const maxP =
+        Math.max(
+            ...allPrices
+        ) *
+        1.02;
 
+    const pRange =
+        maxP -
+        minP;
+
+    const step =
+        width /
+        rows.length;
+
+    // ========================================================
     // DRAW CANDLESTICKS
-    rows.forEach((r, i) => {
-        const open = Number(r.open || r.close);
-        const close = Number(r.close);
-        const high = Number(r.high || Math.max(open, close));
-        const low = Number(r.low || Math.min(open, close));
+    // ========================================================
 
-        const x = i * step + step / 2;
-        const yHigh = height - ((high - minP) / pRange) * (height - 80) - 10;
-        const yLow = height - ((low - minP) / pRange) * (height - 80) - 10;
-        const yOpen = height - ((open - minP) / pRange) * (height - 80) - 10;
-        const yClose = height - ((close - minP) / pRange) * (height - 80) - 10;
+    rows.forEach(
+        (
+            r,
+            i
+        ) => {
 
-        const isGreen = close >= open;
-        ctx.strokeStyle = isGreen ? "#10b981" : "#ef4444";
-        ctx.fillStyle = isGreen ? "#10b981" : "#ef4444";
+            const open =
+                Number(
+                    r.open ||
+                    r.close
+                );
 
-        ctx.beginPath();
-        ctx.moveTo(x, yHigh);
-        ctx.lineTo(x, yLow);
-        ctx.stroke();
+            const close =
+                Number(
+                    r.close
+                );
 
-        const bodyTop = Math.min(yOpen, yClose);
-        const bodyH = Math.max(2, Math.abs(yClose - yOpen));
-        ctx.fillRect(x - Math.max(1, step * 0.3), bodyTop, Math.max(2, step * 0.6), bodyH);
-    });
+            const high =
+                Number(
+                    r.high ||
+                    Math.max(
+                        open,
+                        close
+                    )
+                );
 
+            const low =
+                Number(
+                    r.low ||
+                    Math.min(
+                        open,
+                        close
+                    )
+                );
+
+            const x =
+                i *
+                step +
+                step /
+                    2;
+
+            const yHigh =
+                height -
+                (
+                    (
+                        high -
+                        minP
+                    ) /
+                    pRange
+                ) *
+                (
+                    height -
+                    80
+                ) -
+                10;
+
+            const yLow =
+                height -
+                (
+                    (
+                        low -
+                        minP
+                    ) /
+                    pRange
+                ) *
+                (
+                    height -
+                    80
+                ) -
+                10;
+
+            const yOpen =
+                height -
+                (
+                    (
+                        open -
+                        minP
+                    ) /
+                    pRange
+                ) *
+                (
+                    height -
+                    80
+                ) -
+                10;
+
+            const yClose =
+                height -
+                (
+                    (
+                        close -
+                        minP
+                    ) /
+                    pRange
+                ) *
+                (
+                    height -
+                    80
+                ) -
+                10;
+
+            const isGreen =
+                close >=
+                open;
+
+            ctx.strokeStyle =
+                isGreen
+                    ? "#10b981"
+                    : "#ef4444";
+
+            ctx.fillStyle =
+                isGreen
+                    ? "#10b981"
+                    : "#ef4444";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x,
+                yHigh
+            );
+
+            ctx.lineTo(
+                x,
+                yLow
+            );
+
+            ctx.stroke();
+
+            const bodyTop =
+                Math.min(
+                    yOpen,
+                    yClose
+                );
+
+            const bodyH =
+                Math.max(
+                    2,
+                    Math.abs(
+                        yClose -
+                        yOpen
+                    )
+                );
+
+            ctx.fillRect(
+                x -
+                    Math.max(
+                        1,
+                        step *
+                            0.3
+                    ),
+                bodyTop,
+                Math.max(
+                    2,
+                    step *
+                        0.6
+                ),
+                bodyH
+            );
+        }
+    );
+
+    // ========================================================
     // DRAW SMA LINES
-    function drawSmaLine(key, color, widthPx) {
+    // ========================================================
+
+    function drawSmaLine(
+        key,
+        color,
+        widthPx
+    ) {
+
         ctx.beginPath();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = widthPx;
 
-        let started = false;
-        rows.forEach((r, i) => {
-            let val = Number(r[key]);
-            if (!val && i === rows.length - 1 && itemData) {
-                val = Number(itemData[key]);
-            }
+        ctx.strokeStyle =
+            color;
 
-            if (val) {
-                const x = i * step + step / 2;
-                const y = height - ((val - minP) / pRange) * (height - 80) - 10;
-                if (!started) {
-                    ctx.moveTo(x, y);
-                    started = true;
-                } else {
-                    ctx.lineTo(x, y);
+        ctx.lineWidth =
+            widthPx;
+
+        let started =
+            false;
+
+        rows.forEach(
+            (
+                r,
+                i
+            ) => {
+
+                let val =
+                    Number(
+                        r[key]
+                    );
+
+                if (
+                    !val &&
+                    i ===
+                        rows.length -
+                            1 &&
+                    itemData
+                ) {
+                    val =
+                        Number(
+                            itemData[
+                                key
+                            ]
+                        );
+                }
+
+                if (val) {
+
+                    const x =
+                        i *
+                            step +
+                        step /
+                            2;
+
+                    const y =
+                        height -
+                        (
+                            (
+                                val -
+                                minP
+                            ) /
+                            pRange
+                        ) *
+                        (
+                            height -
+                            80
+                        ) -
+                        10;
+
+                    if (!started) {
+
+                        ctx.moveTo(
+                            x,
+                            y
+                        );
+
+                        started =
+                            true;
+
+                    } else {
+
+                        ctx.lineTo(
+                            x,
+                            y
+                        );
+                    }
                 }
             }
-        });
+        );
+
         ctx.stroke();
     }
 
-    drawSmaLine("sma44", "#10b981", 2);
-    drawSmaLine("sma100", "#ef4444", 2);
-    drawSmaLine("sma200", "#38bdf8", 2);
+    drawSmaLine(
+        "sma44",
+        "#10b981",
+        2
+    );
 
-    // DRAW TOP TEXT OVERLAY (OPEN, HIGH, LOW, CLOSE, SMAs)
-    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-    ctx.fillRect(10, 10, width - 20, 60);
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10, 10, width - 20, 60);
+    drawSmaLine(
+        "sma100",
+        "#ef4444",
+        2
+    );
 
-    ctx.font = "bold 11px sans-serif";
+    drawSmaLine(
+        "sma200",
+        "#38bdf8",
+        2
+    );
 
-    // Row 1: OHLC
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillText("C:", 18, 28);
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillText(money(closeP), 32, 28);
+    // ========================================================
+    // TOP TEXT OVERLAY
+    // ========================================================
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillText("O:", 115, 28);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(money(openP), 130, 28);
+    ctx.fillStyle =
+        "rgba(15, 23, 42, 0.85)";
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillText("H:", 205, 28);
-    ctx.fillStyle = "#10b981";
-    ctx.fillText(money(highP), 220, 28);
+    ctx.fillRect(
+        10,
+        10,
+        width - 20,
+        60
+    );
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillText("L:", 295, 28);
-    ctx.fillStyle = "#ef4444";
-    ctx.fillText(money(lowP), 308, 28);
+    ctx.strokeStyle =
+        "#334155";
 
-    // Row 2: SMAs
-    ctx.fillStyle = "#10b981";
-    ctx.fillText("44 SMA: " + money(sma44Val), 18, 52);
+    ctx.lineWidth =
+        1;
 
-    ctx.fillStyle = "#ef4444";
-    ctx.fillText("100 SMA: " + money(sma100Val), 130, 52);
+    ctx.strokeRect(
+        10,
+        10,
+        width - 20,
+        60
+    );
 
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillText("200 SMA: " + money(sma200Val), 245, 52);
+    ctx.font =
+        "bold 11px sans-serif";
+
+    // Row 1
+
+    ctx.fillStyle =
+        "#94a3b8";
+
+    ctx.fillText(
+        "C:",
+        18,
+        28
+    );
+
+    ctx.fillStyle =
+        "#38bdf8";
+
+    ctx.fillText(
+        money(closeP),
+        32,
+        28
+    );
+
+    ctx.fillStyle =
+        "#94a3b8";
+
+    ctx.fillText(
+        "O:",
+        115,
+        28
+    );
+
+    ctx.fillStyle =
+        "#ffffff";
+
+    ctx.fillText(
+        money(openP),
+        130,
+        28
+    );
+
+    ctx.fillStyle =
+        "#94a3b8";
+
+    ctx.fillText(
+        "H:",
+        205,
+        28
+    );
+
+    ctx.fillStyle =
+        "#10b981";
+
+    ctx.fillText(
+        money(highP),
+        220,
+        28
+    );
+
+    ctx.fillStyle =
+        "#94a3b8";
+
+    ctx.fillText(
+        "L:",
+        295,
+        28
+    );
+
+    ctx.fillStyle =
+        "#ef4444";
+
+    ctx.fillText(
+        money(lowP),
+        308,
+        28
+    );
+
+    // Row 2
+
+    ctx.fillStyle =
+        "#10b981";
+
+    ctx.fillText(
+        "44 SMA: " +
+            money(
+                sma44Val
+            ),
+        18,
+        52
+    );
+
+    ctx.fillStyle =
+        "#ef4444";
+
+    ctx.fillText(
+        "100 SMA: " +
+            money(
+                sma100Val
+            ),
+        130,
+        52
+    );
+
+    ctx.fillStyle =
+        "#38bdf8";
+
+    ctx.fillText(
+        "200 SMA: " +
+            money(
+                sma200Val
+            ),
+        245,
+        52
+    );
 }
 
+// ============================================================
+// PORTFOLIO TABLE
+// ============================================================
+
 function renderPortfolioSummaryAndTable() {
-    const container = document.getElementById("portfolioTableBody");
-    const rawRows = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
-    const closedRows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
 
-    let totalInvested = 0;
-    let totalCurrentValue = 0;
+    const container =
+        document.getElementById(
+            "portfolioTableBody"
+        );
 
-    rawRows.forEach(pos => {
-        const qty = Number(pos.quantity) || 0;
-        const buyPrice = Number(pos.buyPrice) || 0;
-        const currentPrice = extractPrice(pos) || buyPrice;
+    const rawRows =
+        Array.isArray(
+            portfolio.openPositions
+        )
+            ? portfolio.openPositions
+            : [];
 
-        totalInvested += qty * buyPrice;
-        totalCurrentValue += qty * currentPrice;
-    });
+    const closedRows =
+        Array.isArray(
+            portfolio.closedTrades
+        )
+            ? portfolio.closedTrades
+            : [];
 
-    const unrealizedPnL = totalCurrentValue - totalInvested;
+    // ========================================================
+    // MAKE PORTFOLIO TABLE SCROLLABLE
+    // This prevents the last BUY DATE column from being clipped.
+    // ========================================================
 
-    let realizedPnL = Number(portfolio.realizedPnL) || 0;
-    if (!realizedPnL && closedRows.length) {
-        closedRows.forEach(t => {
-            const q = Number(t.quantity) || 0;
-            const b = Number(t.buyPrice) || 0;
-            const s = Number(t.sellPrice) || 0;
-            realizedPnL += t.pnl ?? ((s - b) * q);
-        });
+    if (container) {
+
+        const table =
+            container.closest(
+                "table"
+            );
+
+        if (table) {
+
+            table.style.minWidth =
+                "1250px";
+
+            table.style.width =
+                "max-content";
+
+            table.style.maxWidth =
+                "none";
+
+            const wrapper =
+                table.parentElement;
+
+            if (wrapper) {
+
+                wrapper.style.overflowX =
+                    "auto";
+
+                wrapper.style.overflowY =
+                    "visible";
+
+                wrapper.style.width =
+                    "100%";
+
+                wrapper.style.maxWidth =
+                    "100%";
+
+                wrapper.style.display =
+                    "block";
+
+                wrapper.style.webkitOverflowScrolling =
+                    "touch";
+            }
+        }
     }
 
-    const totalPnL = unrealizedPnL + realizedPnL;
-    const totalReturnPercent = totalInvested ? (totalPnL / totalInvested) * 100 : 0;
+    // ========================================================
+    // CALCULATE OPEN POSITION VALUES
+    // ========================================================
 
-    const invElem = document.getElementById("portInvested");
-    const currElem = document.getElementById("portCurrentVal");
-    const unPnlElem = document.getElementById("portUnrealizedPnl");
-    const rePnlElem = document.getElementById("portRealizedPnl");
-    const retElem = document.getElementById("portTotalReturn");
+    let totalInvested =
+        0;
 
-    if (invElem) invElem.textContent = money(totalInvested);
-    if (currElem) currElem.textContent = money(totalCurrentValue);
-    
+    let totalCurrentValue =
+        0;
+
+    rawRows.forEach(
+        pos => {
+
+            const qty =
+                Number(
+                    pos.quantity ??
+                    pos.qty ??
+                    0
+                );
+
+            const buyPrice =
+                Number(
+                    pos.buyPrice ??
+                    0
+                );
+
+            const currentPrice =
+                extractPrice(
+                    pos
+                ) ||
+                buyPrice;
+
+            totalInvested +=
+                qty *
+                buyPrice;
+
+            totalCurrentValue +=
+                qty *
+                currentPrice;
+        }
+    );
+
+    const unrealizedPnL =
+        totalCurrentValue -
+        totalInvested;
+
+    // ========================================================
+    // REALIZED P&L
+    // First use portfolio.realizedPnL.
+    // If it is zero/missing, calculate from closed trades.
+    // ========================================================
+
+    let realizedPnL =
+        Number(
+            portfolio.realizedPnL
+        );
+
+    if (
+        !Number.isFinite(
+            realizedPnL
+        )
+    ) {
+        realizedPnL = 0;
+    }
+
+    // Calculate from closed trades when stored value is zero.
+    // This also fixes old portfolio files that don't have
+    // realizedPnL populated.
+    if (
+        realizedPnL === 0 &&
+        closedRows.length > 0
+    ) {
+
+        realizedPnL =
+            closedRows.reduce(
+                (
+                    total,
+                    trade
+                ) => {
+
+                    const tradePnL =
+                        Number(
+                            trade.pnl
+                        );
+
+                    if (
+                        Number.isFinite(
+                            tradePnL
+                        )
+                    ) {
+                        return (
+                            total +
+                            tradePnL
+                        );
+                    }
+
+                    const qty =
+                        Number(
+                            trade.quantity ??
+                            trade.qty ??
+                            0
+                        );
+
+                    const buyPrice =
+                        Number(
+                            trade.buyPrice ??
+                            0
+                        );
+
+                    const sellPrice =
+                        Number(
+                            trade.sellPrice ??
+                            trade.exitPrice ??
+                            0
+                        );
+
+                    return (
+                        total +
+                        (
+                            (
+                                sellPrice -
+                                buyPrice
+                            ) *
+                            qty
+                        )
+                    );
+                },
+                0
+            );
+    }
+
+    const totalPnL =
+        unrealizedPnL +
+        realizedPnL;
+
+    const totalReturnPercent =
+        totalInvested > 0
+            ? (
+                totalPnL /
+                totalInvested
+            ) *
+              100
+            : 0;
+
+    // ========================================================
+    // SUMMARY CARDS
+    // ========================================================
+
+    const invElem =
+        document.getElementById(
+            "portInvested"
+        );
+
+    const currElem =
+        document.getElementById(
+            "portCurrentVal"
+        );
+
+    const unPnlElem =
+        document.getElementById(
+            "portUnrealizedPnl"
+        );
+
+    const rePnlElem =
+        document.getElementById(
+            "portRealizedPnl"
+        );
+
+    const retElem =
+        document.getElementById(
+            "portTotalReturn"
+        );
+
+    if (invElem) {
+
+        invElem.textContent =
+            money(
+                totalInvested
+            );
+    }
+
+    if (currElem) {
+
+        currElem.textContent =
+            money(
+                totalCurrentValue
+            );
+    }
+
     if (unPnlElem) {
-        unPnlElem.textContent = money(unrealizedPnL);
-        unPnlElem.className = unrealizedPnL >= 0 ? "text-green" : "text-red";
+
+        unPnlElem.textContent =
+            money(
+                unrealizedPnL
+            );
+
+        unPnlElem.className =
+            unrealizedPnL >= 0
+                ? "text-green"
+                : "text-red";
     }
 
     if (rePnlElem) {
-        rePnlElem.textContent = money(realizedPnL);
-        rePnlElem.className = realizedPnL >= 0 ? "text-green" : "text-red";
+
+        // IMPORTANT:
+        // Even ₹0.00 will now display.
+        rePnlElem.textContent =
+            money(
+                realizedPnL
+            );
+
+        rePnlElem.className =
+            realizedPnL >= 0
+                ? "text-green"
+                : "text-red";
     }
 
     if (retElem) {
-        retElem.textContent = percentage(totalReturnPercent);
-        retElem.className = totalReturnPercent >= 0 ? "text-green" : "text-red";
+
+        retElem.textContent =
+            percentage(
+                totalReturnPercent
+            );
+
+        retElem.className =
+            totalReturnPercent >= 0
+                ? "text-green"
+                : "text-red";
     }
 
-    if (!container) return;
+    // ========================================================
+    // OPEN POSITION TABLE
+    // ========================================================
 
-    const rows = sortDataList(rawRows, sortConfig.open);
-
-    if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="13" class="empty-state">No active open positions</td></tr>`;
+    if (!container) {
         return;
     }
 
-    container.innerHTML = rows.map(pos => {
-        const qty = Number(pos.quantity) || 0;
-        const buyP = Number(pos.buyPrice) || 0;
-        const currP = extractPrice(pos) || buyP;
-        const invested = qty * buyP;
-        const currVal = qty * currP;
-        const pnl = currVal - invested;
-        const pnlPct = buyP ? ((currP - buyP) / buyP) * 100 : 0;
+    const rows =
+        sortDataList(
+            rawRows,
+            sortConfig.open
+        );
 
-        return `
+    if (!rows.length) {
+
+        container.innerHTML = `
             <tr>
-                <td data-label="Symbol"><strong>${escapeHtml(pos.symbol || "—")}</strong></td>
-                <td data-label="Qty">${qty}</td>
-                <td data-label="Buy Price">${money(buyP)}</td>
-                <td data-label="LTP">${money(currP)}</td>
-                <td data-label="Invested">${money(invested)}</td>
-                <td data-label="Current Value">${money(currVal)}</td>
-                <td data-label="PnL" class="${pnl >= 0 ? 'text-green' : 'text-red'}">${money(pnl)}</td>
-                <td data-label="Return" class="${pnlPct >= 0 ? 'text-green' : 'text-red'}">${percentage(pnlPct)}</td>
-                <td data-label="44 SMA" class="mobile-hide">${money(pos.currentSMA44)}</td>
-                <td data-label="SL (-5%)">${money(pos.stopLossPrice)}</td>
-                <td data-label="Target (+20%)">${money(pos.targetPrice)}</td>
-                <td data-label="Status"><span class="badge">${escapeHtml(pos.exitStatus || "HOLD")}</span></td>
-                <td data-label="Buy Date">${formatDate(pos.buyDate)}</td>
+                <td
+                    colspan="13"
+                    class="empty-state"
+                >
+                    No active open positions
+                </td>
             </tr>
         `;
-    }).join("");
+
+        return;
+    }
+
+    container.innerHTML =
+        rows
+            .map(
+                pos => {
+
+                    const qty =
+                        Number(
+                            pos.quantity ??
+                            pos.qty ??
+                            0
+                        );
+
+                    const buyP =
+                        Number(
+                            pos.buyPrice ??
+                            0
+                        );
+
+                    const currP =
+                        extractPrice(
+                            pos
+                        ) ||
+                        buyP;
+
+                    const invested =
+                        qty *
+                        buyP;
+
+                    const currVal =
+                        qty *
+                        currP;
+
+                    const pnl =
+                        currVal -
+                        invested;
+
+                    const pnlPct =
+                        buyP > 0
+                            ? (
+                                (
+                                    currP -
+                                    buyP
+                                ) /
+                                buyP
+                            ) *
+                              100
+                            : 0;
+
+                    const symbol =
+                        pos.symbol ||
+                        pos.ticker ||
+                        "—";
+
+                    const sma44 =
+                        Number(
+                            pos.currentSMA44 ??
+                            pos.sma44 ??
+                            0
+                        );
+
+                    const stopLoss =
+                        Number(
+                            pos.stopLossPrice ??
+                            0
+                        );
+
+                    const target =
+                        Number(
+                            pos.targetPrice ??
+                            0
+                        );
+
+                    const status =
+                        pos.exitStatus ||
+                        "HOLD";
+
+                    const statusClass =
+                        /STOP LOSS/i.test(
+                            status
+                        )
+                            ? "badge-red"
+                            : /TARGET/i.test(
+                                  status
+                              )
+                                ? "badge-green"
+                                : "";
+
+                    return `
+                        <tr>
+
+                            <td
+                                data-label="Symbol"
+                                style="white-space:nowrap;"
+                            >
+                                <strong>
+                                    ${escapeHtml(symbol)}
+                                </strong>
+                            </td>
+
+                            <td
+                                data-label="Qty"
+                                style="white-space:nowrap;"
+                            >
+                                ${qty}
+                            </td>
+
+                            <td
+                                data-label="Buy Price"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(buyP)}
+                            </td>
+
+                            <td
+                                data-label="LTP"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(currP)}
+                            </td>
+
+                            <td
+                                data-label="Invested"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(invested)}
+                            </td>
+
+                            <td
+                                data-label="Current Value"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(currVal)}
+                            </td>
+
+                            <td
+                                data-label="PnL"
+                                style="white-space:nowrap;"
+                                class="${
+                                    pnl >= 0
+                                        ? "text-green"
+                                        : "text-red"
+                                }"
+                            >
+                                ${money(pnl)}
+                            </td>
+
+                            <td
+                                data-label="Return"
+                                style="white-space:nowrap;"
+                                class="${
+                                    pnlPct >= 0
+                                        ? "text-green"
+                                        : "text-red"
+                                }"
+                            >
+                                ${percentage(pnlPct)}
+                            </td>
+
+                            <td
+                                data-label="44 SMA"
+                                class="mobile-hide"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(sma44)}
+                            </td>
+
+                            <td
+                                data-label="SL (-5%)"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(stopLoss)}
+                            </td>
+
+                            <td
+                                data-label="Target (+20%)"
+                                style="white-space:nowrap;"
+                            >
+                                ${money(target)}
+                            </td>
+
+                            <td
+                                data-label="Status"
+                                style="white-space:nowrap;"
+                            >
+                                <span
+                                    class="badge ${statusClass}"
+                                >
+                                    ${escapeHtml(status)}
+                                </span>
+                            </td>
+
+                            <td
+                                data-label="Buy Date"
+                                style="
+                                    white-space:nowrap;
+                                    min-width:100px;
+                                "
+                            >
+                                ${formatDate(
+                                    pos.buyDate ||
+                                    pos.entryDate
+                                )}
+                            </td>
+
+                        </tr>
+                    `;
+                }
+            )
+            .join("");
 }
+
+// ============================================================
+// CLOSED TRADES
+// ============================================================
 
 function renderClosedTable() {
-    const container = document.getElementById("closedTradesBody");
+
+    const container =
+        document.getElementById(
+            "closedTradesBody"
+        );
+
     if (!container) return;
-    const rawRows = Array.isArray(portfolio.closedTrades) ? portfolio.closedTrades : [];
-    const rows = sortDataList(rawRows, sortConfig.closed);
+
+    const rawRows =
+        Array.isArray(
+            portfolio.closedTrades
+        )
+            ? portfolio.closedTrades
+            : [];
+
+    const rows =
+        sortDataList(
+            rawRows,
+            sortConfig.closed
+        );
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="10" class="empty-state">No closed trades recorded</td></tr>`;
+
+        container.innerHTML = `
+            <tr>
+                <td
+                    colspan="10"
+                    class="empty-state"
+                >
+                    No closed trades recorded
+                </td>
+            </tr>
+        `;
+
         return;
     }
-    container.innerHTML = rows.map(t => `
-        <tr>
-            <td data-label="Symbol"><strong>${escapeHtml(t.symbol || "—")}</strong></td>
-            <td data-label="Qty">${t.quantity || 0}</td>
-            <td data-label="Buy Price">${money(t.buyPrice)}</td>
-            <td data-label="Sell Price">${money(t.sellPrice)}</td>
-            <td data-label="Invested">${money(t.quantity * t.buyPrice)}</td>
-            <td data-label="Proceeds">${money(t.quantity * t.sellPrice)}</td>
-            <td data-label="PnL" class="${t.pnl >= 0 ? 'text-green' : 'text-red'}">${money(t.pnl)}</td>
-            <td data-label="Return">${percentage((t.pnl / (t.quantity * t.buyPrice)) * 100)}</td>
-            <td data-label="Buy Date">${formatDate(t.buyDate)}</td>
-            <td data-label="Result"><span class="badge ${t.pnl >= 0 ? 'badge-green' : 'badge-red'}">${escapeHtml(t.result || "CLOSED")}</span></td>
-        </tr>
-    `).join("");
+
+    container.innerHTML =
+        rows
+            .map(
+                t => {
+
+                    const qty =
+                        Number(
+                            t.quantity ??
+                            t.qty ??
+                            0
+                        );
+
+                    const buyPrice =
+                        Number(
+                            t.buyPrice ??
+                            0
+                        );
+
+                    const sellPrice =
+                        Number(
+                            t.sellPrice ??
+                            t.exitPrice ??
+                            0
+                        );
+
+                    const invested =
+                        qty *
+                        buyPrice;
+
+                    const proceeds =
+                        qty *
+                        sellPrice;
+
+                    const pnl =
+                        Number.isFinite(
+                            Number(
+                                t.pnl
+                            )
+                        )
+                            ? Number(
+                                t.pnl
+                            )
+                            : (
+                                proceeds -
+                                invested
+                            );
+
+                    const returnPct =
+                        invested > 0
+                            ? (
+                                pnl /
+                                invested
+                            ) *
+                              100
+                            : 0;
+
+                    const result =
+                        t.exitReason ||
+                        t.result ||
+                        (
+                            pnl >= 0
+                                ? "WIN"
+                                : "LOSS"
+                        );
+
+                    return `
+                        <tr>
+
+                            <td data-label="Symbol">
+                                <strong>
+                                    ${escapeHtml(
+                                        t.symbol ||
+                                        t.ticker ||
+                                        "—"
+                                    )}
+                                </strong>
+                            </td>
+
+                            <td data-label="Qty">
+                                ${qty}
+                            </td>
+
+                            <td data-label="Buy Price">
+                                ${money(
+                                    buyPrice
+                                )}
+                            </td>
+
+                            <td data-label="Sell Price">
+                                ${money(
+                                    sellPrice
+                                )}
+                            </td>
+
+                            <td data-label="Invested">
+                                ${money(
+                                    invested
+                                )}
+                            </td>
+
+                            <td data-label="Proceeds">
+                                ${money(
+                                    proceeds
+                                )}
+                            </td>
+
+                            <td
+                                data-label="PnL"
+                                class="${
+                                    pnl >= 0
+                                        ? "text-green"
+                                        : "text-red"
+                                }"
+                            >
+                                ${money(
+                                    pnl
+                                )}
+                            </td>
+
+                            <td data-label="Return">
+                                ${percentage(
+                                    returnPct
+                                )}
+                            </td>
+
+                            <td data-label="Buy Date">
+                                ${formatDate(
+                                    t.buyDate ||
+                                    t.entryDate
+                                )}
+                            </td>
+
+                            <td data-label="Result">
+                                <span
+                                    class="badge ${
+                                        pnl >= 0
+                                            ? "badge-green"
+                                            : "badge-red"
+                                    }"
+                                >
+                                    ${escapeHtml(
+                                        result
+                                    )}
+                                </span>
+                            </td>
+
+                        </tr>
+                    `;
+                }
+            )
+            .join("");
 }
+
+// ============================================================
+// HISTORY
+// ============================================================
 
 function renderHistoryTable() {
-    const container = document.getElementById("historyTableBody");
+
+    const container =
+        document.getElementById(
+            "historyTableBody"
+        );
+
     if (!container) return;
-    const rawRows = Array.isArray(history) ? history : [];
-    const rows = sortDataList(rawRows, sortConfig.history);
+
+    const rawRows =
+        Array.isArray(
+            history
+        )
+            ? history
+            : [];
+
+    const rows =
+        sortDataList(
+            rawRows,
+            sortConfig.history
+        );
 
     if (!rows.length) {
-        container.innerHTML = `<tr><td colspan="7" class="empty-state">No scan history logs</td></tr>`;
+
+        container.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="empty-state"
+                >
+                    No scan history logs
+                </td>
+            </tr>
+        `;
+
         return;
     }
-    container.innerHTML = rows.map(item => `
-        <tr>
-            <td data-label="Date">${formatDate(item.date)}</td>
-            <td data-label="Symbol"><strong>${escapeHtml(item.symbol || "—")}</strong></td>
-            <td data-label="Close">${money(item)}</td>
-            <td data-label="44 SMA" class="mobile-hide">${money(item.sma44)}</td>
-            <td data-label="100 SMA" class="mobile-hide">${money(item.sma100)}</td>
-            <td data-label="200 SMA" class="mobile-hide">${money(item.sma200)}</td>
-            <td data-label="Signal"><span class="badge ${item.signal === "BUY" ? "badge-green" : "badge-red"}">${escapeHtml(item.signal || "—")}</span></td>
-        </tr>
-    `).join("");
+
+    container.innerHTML =
+        rows
+            .map(
+                item => {
+
+                    const signal =
+                        String(
+                            item.signal ||
+                            item.action ||
+                            ""
+                        ).toUpperCase();
+
+                    return `
+                        <tr>
+
+                            <td data-label="Date">
+                                ${formatDate(
+                                    item.date ||
+                                    item.scannedAt
+                                )}
+                            </td>
+
+                            <td data-label="Symbol">
+                                <strong>
+                                    ${escapeHtml(
+                                        item.symbol ||
+                                        item.ticker ||
+                                        "—"
+                                    )}
+                                </strong>
+                            </td>
+
+                            <td data-label="Close">
+                                ${money(item)}
+                            </td>
+
+                            <td
+                                data-label="44 SMA"
+                                class="mobile-hide"
+                            >
+                                ${money(
+                                    item.sma44 ??
+                                    item.SMA44
+                                )}
+                            </td>
+
+                            <td
+                                data-label="100 SMA"
+                                class="mobile-hide"
+                            >
+                                ${money(
+                                    item.sma100 ??
+                                    item.SMA100
+                                )}
+                            </td>
+
+                            <td
+                                data-label="200 SMA"
+                                class="mobile-hide"
+                            >
+                                ${money(
+                                    item.sma200 ??
+                                    item.SMA200
+                                )}
+                            </td>
+
+                            <td data-label="Signal">
+
+                                <span
+                                    class="badge ${
+                                        signal ===
+                                        "BUY"
+                                            ? "badge-green"
+                                            : "badge-red"
+                                    }"
+                                >
+                                    ${escapeHtml(
+                                        signal ||
+                                        "—"
+                                    )}
+                                </span>
+
+                            </td>
+
+                        </tr>
+                    `;
+                }
+            )
+            .join("");
 }
 
-function formatDate(val) {
-    if (!val) return "—";
-    const dt = new Date(val);
-    return Number.isNaN(dt.getTime()) ? String(val) : dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+// ============================================================
+// DATE FORMAT
+// ============================================================
+
+function formatDate(
+    val
+) {
+
+    if (!val) {
+        return "—";
+    }
+
+    const dt =
+        new Date(val);
+
+    if (
+        Number.isNaN(
+            dt.getTime()
+        )
+    ) {
+        return String(val);
+    }
+
+    return dt.toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
 }
 
-document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeChart();
-});
+// ============================================================
+// ESC KEY
+// ============================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-    document.addEventListener("click", e => {
-        const nav = e.target.closest("[data-tab]");
-        if (nav) {
-            currentTab = nav.dataset.tab;
-            renderNavigation();
-            renderCurrentPage();
+document.addEventListener(
+    "keydown",
+    e => {
+
+        if (
+            e.key ===
+            "Escape"
+        ) {
+            closeChart();
         }
+    }
+);
 
-        if (e.target.closest('[data-action="refresh"]')) {
-            loadData();
-        }
-    });
+// ============================================================
+// DOM READY
+// ============================================================
 
-    loadData();
-});
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        document.addEventListener(
+            "click",
+            e => {
+
+                const nav =
+                    e.target.closest(
+                        "[data-tab]"
+                    );
+
+                if (nav) {
+
+                    currentTab =
+                        nav.dataset.tab;
+
+                    renderNavigation();
+
+                    renderCurrentPage();
+                }
+
+                if (
+                    e.target.closest(
+                        '[data-action="refresh"]'
+                    )
+                ) {
+                    loadData();
+                }
+            }
+        );
+
+        loadData();
+    }
+);
