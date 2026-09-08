@@ -1,6 +1,6 @@
 // ============================================================
 // 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY
-// FIXED: REALIZED P&L + LOSS DISPLAY & PORTFOLIO SCROLLING
+// FIXED: 5% FIXED STOP LOSS & 20% FIXED TARGET (NO TRAILING SL)
 // ============================================================
 
 let signals = {
@@ -96,7 +96,6 @@ function extractPrice(item) {
 
 // ============================================================
 // MONEY
-// FIXED: HANDLES NEGATIVE VALUES (LOSSES) & ZERO PROPERLY
 // ============================================================
 
 function money(val) {
@@ -2074,7 +2073,6 @@ function renderPortfolioSummaryAndTable() {
 
     // ========================================================
     // REALIZED P&L
-    // Checks portfolio.realizedPnL OR sums closedTrades
     // ========================================================
 
     let realizedPnL =
@@ -2340,21 +2338,31 @@ function renderPortfolioSummaryAndTable() {
                             0
                         );
 
+                    // FIXED: Always calculate Stop Loss as exact -5% and Target as exact +20% from Buy Price
                     const stopLoss =
                         Number(
-                            pos.stopLossPrice ??
-                            0
+                            pos.stopLossPrice ||
+                            (buyP > 0 ? buyP * 0.95 : 0)
                         );
 
                     const target =
                         Number(
-                            pos.targetPrice ??
-                            0
+                            pos.targetPrice ||
+                            (buyP > 0 ? buyP * 1.20 : 0)
                         );
 
-                    const status =
-                        pos.exitStatus ||
-                        "HOLD";
+                    // Dynamic Status Calculation based on Fixed SL (-5%) and Fixed Target (+20%)
+                    let status = pos.exitStatus;
+
+                    if (!status || status === "HOLD" || /STOP LOSS/i.test(status) || /TARGET/i.test(status)) {
+                        if (currP > 0 && stopLoss > 0 && currP <= stopLoss) {
+                            status = "STOP LOSS";
+                        } else if (currP > 0 && target > 0 && currP >= target) {
+                            status = "TARGET";
+                        } else {
+                            status = "HOLD";
+                        }
+                    }
 
                     const statusClass =
                         /STOP LOSS/i.test(
