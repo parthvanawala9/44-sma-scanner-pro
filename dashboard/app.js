@@ -1,7 +1,7 @@
 // ============================================================
 // 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY
 // STRATEGY: BUY ON 44 SMA BREAKOUT | EXIT ONLY ON 5% FIXED SL / 20% TARGET
-// FIXED: NO HORIZONTAL SCROLLING & GLOBAL ROW CLICK FOR CHARTS
+// FIXED: RED CANDLE DISPLAY + NO HORIZONTAL SCROLL + ROW CLICK FOR CHART
 // ============================================================
 
 let signals = {
@@ -883,6 +883,7 @@ function renderSellTable() {
 
 // ============================================================
 // SIGNAL ROW
+// FIXED: RED CANDLE DISPLAY BASED ON OPEN VS CLOSE PRICE
 // ============================================================
 
 function signalRow(
@@ -934,6 +935,9 @@ function signalRow(
     const formattedPrice =
         money(closeVal);
 
+    // FIXED: Correct Red vs Green Candle Logic
+    const isGreenCandle = closeVal >= openVal;
+
     return `
         <tr class="clickable-row" data-stock='${rowData}' style="cursor:pointer;">
 
@@ -980,11 +984,9 @@ function signalRow(
                 data-label="Candle"
                 class="mobile-hide"
             >
-                ${
-                    closeVal >= openVal
-                        ? "🟢 Green"
-                        : "🔴 Red"
-                }
+                <span style="color: ${isGreenCandle ? '#10b981' : '#ef4444'}; font-weight: 700;">
+                    ${isGreenCandle ? "🟢 Green" : "🔴 Red"}
+                </span>
             </td>
 
             <td data-label="SIGNAL">
