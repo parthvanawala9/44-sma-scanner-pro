@@ -1,6 +1,6 @@
 // ============================================================
 // 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY
-// FIXED: 5% FIXED STOP LOSS & 20% FIXED TARGET (NO TRAILING SL)
+// STRATEGY: BUY ON 44 SMA BREAKOUT | EXIT ONLY ON 5% FIXED SL / 20% TARGET
 // ============================================================
 
 let signals = {
@@ -642,21 +642,33 @@ function getBuySignals() {
 
 function getSellSignals() {
 
-    if (
-        Array.isArray(
-            signals.sell
-        )
-    ) {
-        return signals.sell;
+    // Filtering open positions that triggered Fixed SL (-5%) or Fixed Target (+20%)
+    const openPositions = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
+    
+    const triggeredExits = openPositions.filter(pos => {
+        const buyP = Number(pos.buyPrice || 0);
+        const currP = extractPrice(pos) || buyP;
+        const sl = Number(pos.stopLossPrice || (buyP * 0.95));
+        const target = Number(pos.targetPrice || (buyP * 1.20));
+
+        return (currP > 0 && buyP > 0) && (currP <= sl || currP >= target);
+    });
+
+    if (triggeredExits.length > 0) {
+        return triggeredExits.map(pos => {
+            const buyP = Number(pos.buyPrice || 0);
+            const currP = extractPrice(pos) || buyP;
+            const sl = Number(pos.stopLossPrice || (buyP * 0.95));
+            const isSL = currP <= sl;
+            return {
+                ...pos,
+                exitType: isSL ? "SL TRIGGER (-5%)" : "TARGET TRIGGER (+20%)"
+            };
+        });
     }
 
-    if (
-        Array.isArray(
-            signals.sells
-        )
-    ) {
-        return signals.sells;
-    }
+    if (Array.isArray(signals.sell)) return signals.sell;
+    if (Array.isArray(signals.sells)) return signals.sells;
 
     return [];
 }
@@ -730,7 +742,7 @@ function renderDashboardView() {
                     font-weight:800;
                     font-size:10px;
                 ">
-                    BUY BREAKOUTS
+                    BUY BREAKOUTS (44 SMA)
                 </span>
 
                 <p style="
@@ -754,7 +766,7 @@ function renderDashboardView() {
                     font-weight:800;
                     font-size:10px;
                 ">
-                    SELL TRIGGERS
+                    EXIT TRIGGERS (5% SL / 20% TARGET)
                 </span>
 
                 <p style="
@@ -849,7 +861,7 @@ function renderSellTable() {
                     colspan="8"
                     class="empty-state"
                 >
-                    No SELL signals generated today
+                    No SELL / EXIT triggers today
                 </td>
             </tr>
         `;
@@ -863,7 +875,7 @@ function renderSellTable() {
                 item =>
                     signalRow(
                         item,
-                        "SELL"
+                        item.exitType || "SELL"
                     )
             )
             .join("");
@@ -978,7 +990,7 @@ function signalRow(
             <td data-label="SIGNAL">
                 <span
                     class="badge ${
-                        type === "BUY"
+                        type === "BUY" || /TARGET/i.test(type)
                             ? "badge-green"
                             : "badge-red"
                     }"
@@ -2351,17 +2363,13 @@ function renderPortfolioSummaryAndTable() {
                             (buyP > 0 ? buyP * 1.20 : 0)
                         );
 
-                    // Dynamic Status Calculation based on Fixed SL (-5%) and Fixed Target (+20%)
-                    let status = pos.exitStatus;
+                    // Dynamic Status Calculation based strictly on Fixed SL (-5%) and Fixed Target (+20%)
+                    let status = "HOLD";
 
-                    if (!status || status === "HOLD" || /STOP LOSS/i.test(status) || /TARGET/i.test(status)) {
-                        if (currP > 0 && stopLoss > 0 && currP <= stopLoss) {
-                            status = "STOP LOSS";
-                        } else if (currP > 0 && target > 0 && currP >= target) {
-                            status = "TARGET";
-                        } else {
-                            status = "HOLD";
-                        }
+                    if (currP > 0 && stopLoss > 0 && currP <= stopLoss) {
+                        status = "STOP LOSS";
+                    } else if (currP > 0 && target > 0 && currP >= target) {
+                        status = "TARGET";
                     }
 
                     const statusClass =
