@@ -1,6 +1,7 @@
 // ============================================================
 // 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY
 // STRATEGY: BUY ON 44 SMA BREAKOUT | EXIT ONLY ON 5% FIXED SL / 20% TARGET
+// FIXED: NO HORIZONTAL SCROLLING & GLOBAL ROW CLICK FOR CHARTS
 // ============================================================
 
 let signals = {
@@ -642,7 +643,6 @@ function getBuySignals() {
 
 function getSellSignals() {
 
-    // Filtering open positions that triggered Fixed SL (-5%) or Fixed Target (+20%)
     const openPositions = Array.isArray(portfolio.openPositions) ? portfolio.openPositions : [];
     
     const triggeredExits = openPositions.filter(pos => {
@@ -935,7 +935,7 @@ function signalRow(
         money(closeVal);
 
     return `
-        <tr>
+        <tr class="clickable-row" data-stock='${rowData}' style="cursor:pointer;">
 
             <td data-label="SYMBOL">
                 <strong>
@@ -1002,7 +1002,6 @@ function signalRow(
             <td data-label="ACTION">
                 <button
                     class="btn-chart"
-                    onclick="handleChartClick('${rowData}')"
                 >
                     Chart
                 </button>
@@ -1990,7 +1989,7 @@ function renderPortfolioSummaryAndTable() {
             : [];
 
     // ========================================================
-    // MAKE PORTFOLIO TABLE SCROLLABLE
+    // MAKE PORTFOLIO TABLE FIT SCREEN PERFECTLY (NO HORIZONTAL SCROLL)
     // ========================================================
 
     if (container) {
@@ -2003,13 +2002,16 @@ function renderPortfolioSummaryAndTable() {
         if (table) {
 
             table.style.minWidth =
-                "1250px";
+                "0px";
 
             table.style.width =
-                "max-content";
+                "100%";
 
             table.style.maxWidth =
-                "none";
+                "100%";
+
+            table.style.fontSize =
+                "12px";
 
             const wrapper =
                 table.parentElement;
@@ -2017,7 +2019,7 @@ function renderPortfolioSummaryAndTable() {
             if (wrapper) {
 
                 wrapper.style.overflowX =
-                    "auto";
+                    "hidden";
 
                 wrapper.style.overflowY =
                     "visible";
@@ -2030,9 +2032,6 @@ function renderPortfolioSummaryAndTable() {
 
                 wrapper.style.display =
                     "block";
-
-                wrapper.style.webkitOverflowScrolling =
-                    "touch";
             }
         }
     }
@@ -2350,7 +2349,6 @@ function renderPortfolioSummaryAndTable() {
                             0
                         );
 
-                    // FIXED: Always calculate Stop Loss as exact -5% and Target as exact +20% from Buy Price
                     const stopLoss =
                         Number(
                             pos.stopLossPrice ||
@@ -2363,7 +2361,6 @@ function renderPortfolioSummaryAndTable() {
                             (buyP > 0 ? buyP * 1.20 : 0)
                         );
 
-                    // Dynamic Status Calculation based strictly on Fixed SL (-5%) and Fixed Target (+20%)
                     let status = "HOLD";
 
                     if (currP > 0 && stopLoss > 0 && currP <= stopLoss) {
@@ -2383,12 +2380,14 @@ function renderPortfolioSummaryAndTable() {
                                 ? "badge-green"
                                 : "";
 
+                    const rowData = encodeURIComponent(JSON.stringify(pos));
+
                     return `
-                        <tr>
+                        <tr class="clickable-row" data-stock='${rowData}' style="cursor:pointer;">
 
                             <td
                                 data-label="Symbol"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 <strong>
                                     ${escapeHtml(symbol)}
@@ -2397,42 +2396,42 @@ function renderPortfolioSummaryAndTable() {
 
                             <td
                                 data-label="Qty"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${qty}
                             </td>
 
                             <td
                                 data-label="Buy Price"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(buyP)}
                             </td>
 
                             <td
                                 data-label="LTP"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(currP)}
                             </td>
 
                             <td
                                 data-label="Invested"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(invested)}
                             </td>
 
                             <td
                                 data-label="Current Value"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(currVal)}
                             </td>
 
                             <td
                                 data-label="PnL"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                                 class="${
                                     pnl >= 0
                                         ? "text-green"
@@ -2444,7 +2443,7 @@ function renderPortfolioSummaryAndTable() {
 
                             <td
                                 data-label="Return"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                                 class="${
                                     pnlPct >= 0
                                         ? "text-green"
@@ -2457,28 +2456,28 @@ function renderPortfolioSummaryAndTable() {
                             <td
                                 data-label="44 SMA"
                                 class="mobile-hide"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(sma44)}
                             </td>
 
                             <td
                                 data-label="SL (-5%)"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(stopLoss)}
                             </td>
 
                             <td
                                 data-label="Target (+20%)"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 ${money(target)}
                             </td>
 
                             <td
                                 data-label="Status"
-                                style="white-space:nowrap;"
+                                style="white-space:nowrap; padding: 6px 4px;"
                             >
                                 <span
                                     class="badge ${statusClass}"
@@ -2491,7 +2490,7 @@ function renderPortfolioSummaryAndTable() {
                                 data-label="Buy Date"
                                 style="
                                     white-space:nowrap;
-                                    min-width:100px;
+                                    padding: 6px 4px;
                                 "
                             >
                                 ${formatDate(
@@ -2614,8 +2613,10 @@ function renderClosedTable() {
                                 : "LOSS"
                         );
 
+                    const rowData = encodeURIComponent(JSON.stringify(t));
+
                     return `
-                        <tr>
+                        <tr class="clickable-row" data-stock='${rowData}' style="cursor:pointer;">
 
                             <td data-label="Symbol">
                                 <strong>
@@ -2756,8 +2757,10 @@ function renderHistoryTable() {
                             ""
                         ).toUpperCase();
 
+                    const rowData = encodeURIComponent(JSON.stringify(item));
+
                     return `
-                        <tr>
+                        <tr class="clickable-row" data-stock='${rowData}' style="cursor:pointer;">
 
                             <td data-label="Date">
                                 ${formatDate(
@@ -2886,7 +2889,7 @@ document.addEventListener(
 );
 
 // ============================================================
-// DOM READY
+// DOM READY & GLOBAL CLICK HANDLERS
 // ============================================================
 
 document.addEventListener(
@@ -2910,6 +2913,7 @@ document.addEventListener(
                     renderNavigation();
 
                     renderCurrentPage();
+                    return;
                 }
 
                 if (
@@ -2918,6 +2922,13 @@ document.addEventListener(
                     )
                 ) {
                     loadData();
+                    return;
+                }
+
+                // GLOBAL CLICK FOR CHART MODAL ON ANY ROW
+                const clickedRow = e.target.closest(".clickable-row");
+                if (clickedRow && clickedRow.dataset.stock) {
+                    handleChartClick(clickedRow.dataset.stock);
                 }
             }
         );
