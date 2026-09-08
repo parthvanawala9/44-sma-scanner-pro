@@ -1,6 +1,6 @@
 // ============================================================
 // 44 SMA SCANNER PRO - SCRIPT WITH CANVAS PRICE & SMA OVERLAY
-// FIXED: REALIZED P&L + PORTFOLIO LAST COLUMN
+// FIXED: REALIZED P&L + LOSS DISPLAY & PORTFOLIO SCROLLING
 // ============================================================
 
 let signals = {
@@ -96,7 +96,7 @@ function extractPrice(item) {
 
 // ============================================================
 // MONEY
-// IMPORTANT: ZERO MUST DISPLAY AS ₹0.00, NOT —
+// FIXED: HANDLES NEGATIVE VALUES (LOSSES) & ZERO PROPERLY
 // ============================================================
 
 function money(val) {
@@ -128,13 +128,15 @@ function money(val) {
         return "—";
     }
 
-    return "₹" + num.toLocaleString(
+    const absFormatted = Math.abs(num).toLocaleString(
         "en-IN",
         {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }
     );
+
+    return (num < 0 ? "-₹" : "₹") + absFormatted;
 }
 
 // ============================================================
@@ -1978,7 +1980,6 @@ function renderPortfolioSummaryAndTable() {
 
     // ========================================================
     // MAKE PORTFOLIO TABLE SCROLLABLE
-    // This prevents the last BUY DATE column from being clipped.
     // ========================================================
 
     if (container) {
@@ -2073,8 +2074,7 @@ function renderPortfolioSummaryAndTable() {
 
     // ========================================================
     // REALIZED P&L
-    // First use portfolio.realizedPnL.
-    // If it is zero/missing, calculate from closed trades.
+    // Checks portfolio.realizedPnL OR sums closedTrades
     // ========================================================
 
     let realizedPnL =
@@ -2090,9 +2090,6 @@ function renderPortfolioSummaryAndTable() {
         realizedPnL = 0;
     }
 
-    // Calculate from closed trades when stored value is zero.
-    // This also fixes old portfolio files that don't have
-    // realizedPnL populated.
     if (
         realizedPnL === 0 &&
         closedRows.length > 0
@@ -2229,8 +2226,6 @@ function renderPortfolioSummaryAndTable() {
 
     if (rePnlElem) {
 
-        // IMPORTANT:
-        // Even ₹0.00 will now display.
         rePnlElem.textContent =
             money(
                 realizedPnL
