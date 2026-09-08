@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-09-07T15:56:35.928567+00:00",
-  "count": 10,
+  "updatedAt": "2026-09-08T14:39:39.787540+00:00",
+  "count": 9,
   "items": [
     {
       "symbol": "GROWW",
@@ -16,10 +16,6 @@
     },
     {
       "symbol": "ICICIAMC",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "LENSKART",
       "reason": "Insufficient/invalid data"
     },
     {
