@@ -1,11 +1,7 @@
 {
-  "updatedAt": "2026-09-09T14:41:12.365990+00:00",
-  "count": 9,
+  "updatedAt": "2026-09-10T14:32:04.966726+00:00",
+  "count": 7,
   "items": [
-    {
-      "symbol": "GROWW",
-      "reason": "Insufficient/invalid data"
-    },
     {
       "symbol": "DUMMYHEG",
       "reason": "Insufficient/invalid data"
@@ -28,10 +24,6 @@
     },
     {
       "symbol": "PINELABS",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "TMCV",
       "reason": "Insufficient/invalid data"
     },
     {
