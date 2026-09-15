@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-09-14T16:24:46.059619+00:00",
-  "count": 7,
+  "updatedAt": "2026-09-15T15:06:46.830318+00:00",
+  "count": 6,
   "items": [
     {
       "symbol": "DUMMYHEG",
@@ -20,10 +20,6 @@
     },
     {
       "symbol": "PWL",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "PINELABS",
       "reason": "Insufficient/invalid data"
     },
     {
