@@ -1,13 +1,9 @@
 {
-  "updatedAt": "2026-09-15T15:06:46.830318+00:00",
-  "count": 6,
+  "updatedAt": "2026-09-16T15:03:56.629269+00:00",
+  "count": 4,
   "items": [
     {
       "symbol": "DUMMYHEG",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "EMMVEE",
       "reason": "Insufficient/invalid data"
     },
     {
@@ -16,10 +12,6 @@
     },
     {
       "symbol": "MEESHO",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "PWL",
       "reason": "Insufficient/invalid data"
     },
     {
