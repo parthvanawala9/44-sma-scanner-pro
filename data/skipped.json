@@ -1,13 +1,9 @@
 {
-  "updatedAt": "2026-09-22T15:03:22.850755+00:00",
-  "count": 4,
+  "updatedAt": "2026-09-23T15:06:48.088747+00:00",
+  "count": 3,
   "items": [
     {
       "symbol": "DUMMYHEG",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "HEGAM",
       "reason": "Insufficient/invalid data"
     },
     {
