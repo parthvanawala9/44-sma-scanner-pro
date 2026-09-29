@@ -12,9 +12,25 @@ import yfinance as yf
 # ============================================================
 # 44 SMA SCANNER PRO
 # CLOSING PRICE PORTFOLIO SYSTEM
+#
+# PORTFOLIO EXIT:
+#   - FIXED 5% STOP LOSS
+#   - FIXED 20% TARGET
+#   - NO TRAILING STOP LOSS
 # ============================================================
 
 PORTFOLIO_ALLOCATION = 5000
+
+# ------------------------------------------------------------
+# IMPORTANT:
+# Fresh portfolio starts from this trading date.
+#
+# On the first scan on/after this date, old portfolio data
+# will be reset ONCE before today's new BUY signals are added.
+#
+# Scanner signal/history data is NOT reset.
+# ------------------------------------------------------------
+PORTFOLIO_RESET_DATE = "2026-09-30"
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -268,8 +284,6 @@ def save_chart_data(
             CHARTS / f"{symbol}.json"
         )
 
-        # IMPORTANT:
-        # Dashboard app.js expects chart.data
         chart_payload = {
             "symbol": symbol,
             "data": output,
@@ -302,7 +316,7 @@ def save_chart_data(
 def empty_portfolio():
 
     return {
-        "version": 3,
+        "version": 4,
 
         "allocationPerStock":
             PORTFOLIO_ALLOCATION,
@@ -331,6 +345,9 @@ def empty_portfolio():
         "totalTrades": 0,
         "winningTrades": 0,
         "losingTrades": 0,
+
+        # Used to make the one-time portfolio reset safe.
+        "portfolioResetDate": None,
     }
 
 
@@ -380,13 +397,8 @@ def load_portfolio():
             portfolio["closedTrades"] = []
 
         # ----------------------------------------------------
-        # IMPORTANT
         # Old NEXT_TRADING_DAY_OPEN system used pendingOrders.
-        #
-        # We are now permanently using same-day CLOSE execution.
-        #
-        # DO NOT execute old pending orders.
-        # Simply remove them.
+        # We permanently use SAME_DAY_CLOSE.
         # ----------------------------------------------------
 
         portfolio.pop(
@@ -394,7 +406,7 @@ def load_portfolio():
             None,
         )
 
-        portfolio["version"] = 3
+        portfolio["version"] = 4
 
         return portfolio
 
@@ -425,6 +437,81 @@ def save_portfolio(
             indent=2,
             ensure_ascii=False,
         )
+
+
+# ============================================================
+# ONE-TIME PORTFOLIO RESET
+# ============================================================
+
+def reset_portfolio_for_new_strategy(
+    portfolio,
+    signal_date,
+):
+
+    """
+    Reset old PORTFOLIO data once from PORTFOLIO_RESET_DATE.
+
+    This does NOT delete scanner signal history.
+
+    After reset:
+        openPositions       = []
+        closedTrades        = []
+        realizedPnL         = 0
+        unrealizedPnL       = 0
+        totalInvested       = 0
+        totalCurrentValue   = 0
+        totalPnL             = 0
+        trade counters       = 0
+
+    The reset is applied only once for the configured date.
+    """
+
+    if not signal_date:
+        return portfolio
+
+    if signal_date < PORTFOLIO_RESET_DATE:
+        return portfolio
+
+    if (
+        portfolio.get("portfolioResetDate")
+        == PORTFOLIO_RESET_DATE
+    ):
+        return portfolio
+
+    print("")
+    print("=" * 70)
+    print("PORTFOLIO RESET")
+    print("=" * 70)
+    print(
+        f"Reset date      : {PORTFOLIO_RESET_DATE}"
+    )
+    print(
+        "Old portfolio   : CLEARED"
+    )
+    print(
+        "Old closed trades: CLEARED"
+    )
+    print(
+        "Old P&L         : RESET TO ZERO"
+    )
+    print(
+        "New strategy    : -5% SL / +20% TARGET"
+    )
+    print("=" * 70)
+
+    new_portfolio = empty_portfolio()
+
+    new_portfolio["createdAt"] = (
+        datetime.now(
+            timezone.utc
+        ).isoformat()
+    )
+
+    new_portfolio["portfolioResetDate"] = (
+        PORTFOLIO_RESET_DATE
+    )
+
+    return new_portfolio
 
 
 # ============================================================
@@ -491,14 +578,18 @@ def update_portfolio(
         -> BUY at today's CLOSE
 
     SELL:
-        An existing position is sold at today's CLOSE when
-        ANY of these is true:
+        Existing position is sold ONLY when:
           1. Close <= 5% below Buy Price
           2. Close >= 20% above Buy Price
-          3. Close < 44 SMA (trailing stop)
 
-    No pending orders.
-    No next-day OPEN execution.
+    IMPORTANT:
+        44 SMA is NOT a portfolio exit condition.
+
+    No:
+        - trailing stop
+        - SMA trailing exit
+        - next-day open execution
+        - pending orders
     """
 
     result_map = {
@@ -519,15 +610,12 @@ def update_portfolio(
     # ========================================================
     # 1. SELL FIRST
     #
-    # Portfolio exits are evaluated independently from the
-    # scanner-wide SELL list.
+    # FIXED EXIT RULES ONLY:
     #
-    # Existing position exits:
-    #   - Close <= 95% of Buy Price  -> 5% Stop Loss
-    #   - Close >= 120% of Buy Price -> 20% Target
-    #   - Close < 44 SMA             -> 44 SMA Trailing Stop
+    #   Close <= 95% of Buy Price  -> 5% STOP LOSS
+    #   Close >= 120% of Buy Price -> 20% TARGET
     #
-    # Any one condition is enough to exit.
+    # 44 SMA IS NOT USED HERE.
     # ========================================================
 
     for position in list(
@@ -550,10 +638,6 @@ def update_portfolio(
                 item.get("Close")
             )
 
-            sma44 = float(
-                item.get("sma44")
-            )
-
             buy_price = float(
                 position.get(
                     "buyPrice",
@@ -574,12 +658,16 @@ def update_portfolio(
         if (
             not math.isfinite(sell_price)
             or sell_price <= 0
-            or not math.isfinite(sma44)
+            or not math.isfinite(buy_price)
             or buy_price <= 0
             or quantity <= 0
         ):
 
             continue
+
+        # ----------------------------------------------------
+        # FIXED PRICES
+        # ----------------------------------------------------
 
         stop_loss_price = (
             buy_price * 0.95
@@ -597,32 +685,25 @@ def update_portfolio(
             sell_price >= target_price
         )
 
-        trailing_stop_hit = (
-            sell_price < sma44
-        )
+        # ----------------------------------------------------
+        # EXIT REASON
+        # ----------------------------------------------------
 
-        exit_reasons = []
+        exit_reason = None
 
         if stop_loss_hit:
 
-            exit_reasons.append(
+            exit_reason = (
                 "5% STOP LOSS"
             )
 
-        if target_hit:
+        elif target_hit:
 
-            exit_reasons.append(
+            exit_reason = (
                 "20% TARGET"
             )
 
-        if trailing_stop_hit:
-
-            exit_reasons.append(
-                "44 SMA TRAILING STOP"
-            )
-
-        if not exit_reasons:
-
+        if exit_reason is None:
             continue
 
         invested = (
@@ -687,6 +768,12 @@ def update_portfolio(
             "buyPrice":
                 buy_price,
 
+            "stopLossPrice":
+                stop_loss_price,
+
+            "targetPrice":
+                target_price,
+
             "sellSignalDate":
                 normalize_date(
                     item.get("date")
@@ -725,9 +812,7 @@ def update_portfolio(
                 pnl_percent,
 
             "exitReason":
-                " + ".join(
-                    exit_reasons
-                ),
+                exit_reason,
 
             "execution":
                 "SAME_DAY_CLOSE",
@@ -757,7 +842,7 @@ def update_portfolio(
             f"Close {sell_price:.2f} | "
             f"Qty {quantity} | "
             f"PnL {pnl:.2f} | "
-            f"Exit: {' + '.join(exit_reasons)}"
+            f"Exit: {exit_reason}"
         )
 
     # ========================================================
@@ -811,6 +896,20 @@ def update_portfolio(
 
         current_value = invested
 
+        # ----------------------------------------------------
+        # FIXED SL AND TARGET ARE CREATED AT ENTRY.
+        #
+        # They never trail.
+        # ----------------------------------------------------
+
+        fixed_stop_loss = (
+            buy_price * 0.95
+        )
+
+        fixed_target = (
+            buy_price * 1.20
+        )
+
         position = {
 
             "symbol":
@@ -822,7 +921,6 @@ def update_portfolio(
                     f"{symbol}.NS",
                 ),
 
-            # Signal and execution happen same day
             "signalDate":
                 normalize_date(
                     item.get("date")
@@ -863,6 +961,8 @@ def update_portfolio(
             "unrealizedPnLPercent":
                 0,
 
+            # Keep this for dashboard display/reference,
+            # but it is NOT an exit condition.
             "currentSMA44":
                 float(
                     item.get(
@@ -871,11 +971,13 @@ def update_portfolio(
                     )
                 ),
 
+            # FIXED
             "stopLossPrice":
-                buy_price * 0.95,
+                fixed_stop_loss,
 
+            # FIXED
             "targetPrice":
-                buy_price * 1.20,
+                fixed_target,
 
             "exitStatus":
                 "HOLD",
@@ -895,7 +997,9 @@ def update_portfolio(
             f"PORTFOLIO BUY: "
             f"{symbol} | "
             f"Close {buy_price:.2f} | "
-            f"Qty {quantity}"
+            f"Qty {quantity} | "
+            f"SL {fixed_stop_loss:.2f} | "
+            f"Target {fixed_target:.2f}"
         )
 
     # ========================================================
@@ -978,11 +1082,15 @@ def update_portfolio(
             else 0
         )
 
-        try:
+        # ----------------------------------------------------
+        # FIXED SL / TARGET
+        #
+        # IMPORTANT:
+        # Never move these based on current price.
+        # Never use SMA as trailing stop.
+        # ----------------------------------------------------
 
-            current_sma44 = float(
-                item.get("sma44")
-            )
+        try:
 
             buy_price = float(
                 position.get(
@@ -991,10 +1099,18 @@ def update_portfolio(
                 )
             )
 
+            current_sma44 = float(
+                item.get(
+                    "sma44",
+                    0,
+                )
+            )
+
             position["currentSMA44"] = (
                 current_sma44
             )
 
+            # Always calculated from ORIGINAL buy price.
             position["stopLossPrice"] = (
                 buy_price * 0.95
             )
@@ -1021,17 +1137,9 @@ def update_portfolio(
                     "20% TARGET"
                 )
 
-            elif (
-                close_price
-                < current_sma44
-            ):
-
-                position["exitStatus"] = (
-                    "44 SMA TRAILING STOP"
-                )
-
             else:
 
+                # 44 SMA crossing DOES NOT EXIT.
                 position["exitStatus"] = (
                     "HOLD"
                 )
@@ -1090,8 +1198,7 @@ def update_portfolio(
                 0,
             )
         )
-        for trade
-        in closed_trades
+        for trade in closed_trades
     )
 
     total_pnl = (
@@ -1155,7 +1262,7 @@ def update_portfolio(
         scanned_at
     )
 
-    portfolio["version"] = 3
+    portfolio["version"] = 4
 
     return portfolio
 
@@ -1185,14 +1292,19 @@ def process_stock(
 
     1. Close below 44 SMA
 
-    PORTFOLIO EXIT (already-held stocks only):
+    IMPORTANT:
+    Scanner-wide SELL signal is kept for dashboard/scanner
+    purposes.
 
-    1. Basic Stop Loss = -5% from Buy Price
-    2. Target = +20% from Buy Price
-    3. Trailing Stop Loss = Close below 44 SMA
+    Portfolio EXIT:
 
-    Any one of these three conditions can close an existing
-    position. Execution remains SAME_DAY_CLOSE.
+    1. Fixed Stop Loss = -5% from Buy Price
+    2. Fixed Target = +20% from Buy Price
+
+    The scanner-wide SELL signal does NOT automatically close
+    a portfolio position.
+
+    Execution remains SAME_DAY_CLOSE.
     """
 
     if df is None or df.empty:
@@ -1362,9 +1474,11 @@ def process_stock(
         # SELL
         # ====================================================
 
-        # Scanner-wide SELL signal is the 44 SMA trailing-stop
-        # condition. The -5% stop loss and +20% target are
-        # portfolio-only exits for stocks already held.
+        # Scanner-wide SELL signal remains unchanged.
+        #
+        # IMPORTANT:
+        # This SELL signal is NOT used by update_portfolio()
+        # for portfolio exits.
         sell_checks = {
 
             "Close below 44 SMA":
@@ -1406,7 +1520,6 @@ def process_stock(
             "Close":
                 close_price,
 
-            # lowercase fields required by dashboard
             "sma44":
                 sma44,
 
@@ -1473,7 +1586,8 @@ def main():
 
     print("=" * 70)
     print("44 SMA SCANNER PRO")
-    print("SAME-DAY CLOSE | -5% SL | +20% TARGET | 44 SMA TRAILING EXIT")
+    print("SAME-DAY CLOSE | -5% FIXED SL | +20% FIXED TARGET")
+    print("NO TRAILING STOP")
     print("=" * 70)
 
     print(
@@ -1737,14 +1851,12 @@ def main():
         "sellCount":
             len(sells),
 
-        # Dashboard uses these
         "buy":
             buys,
 
         "sell":
             sells,
 
-        # Keep compatibility with old scanner naming
         "buys":
             buys,
 
@@ -1755,10 +1867,18 @@ def main():
             "SAME_DAY_CLOSE",
 
         "portfolioExitStrategy": {
-            "stopLossPercent": -5,
-            "targetPercent": 20,
+
+            "stopLossPercent":
+                -5,
+
+            "targetPercent":
+                20,
+
             "trailingStop":
-                "CLOSE_BELOW_44_SMA",
+                False,
+
+            "trailingStopType":
+                None,
         },
     }
 
@@ -1895,6 +2015,23 @@ def main():
         )
 
     # ========================================================
+    # PORTFOLIO RESET
+    #
+    # This happens BEFORE today's BUY signals are processed.
+    #
+    # Therefore:
+    #   Old portfolio -> cleared
+    #   Today's BUYs  -> fresh positions
+    # ========================================================
+
+    portfolio = (
+        reset_portfolio_for_new_strategy(
+            portfolio,
+            signal_date,
+        )
+    )
+
+    # ========================================================
     # PORTFOLIO
     # ========================================================
 
@@ -2003,6 +2140,18 @@ def main():
 
     print(
         "Execution      : SAME_DAY_CLOSE"
+    )
+
+    print(
+        "Portfolio SL   : FIXED -5%"
+    )
+
+    print(
+        "Portfolio Target: FIXED +20%"
+    )
+
+    print(
+        "Trailing SL    : DISABLED"
     )
 
     print(
