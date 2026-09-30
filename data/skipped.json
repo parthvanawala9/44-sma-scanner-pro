@@ -1,9 +1,29 @@
 {
-  "updatedAt": "2026-09-29T16:34:04.845709+00:00",
-  "count": 3,
+  "updatedAt": "2026-09-30T16:26:53.313034+00:00",
+  "count": 12,
   "items": [
     {
+      "symbol": "BAGMANE",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "BHARATCOAL",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "CMPDI",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "CLEANMAX",
+      "reason": "Insufficient/invalid data"
+    },
+    {
       "symbol": "DUMMYHEG",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "FRACTAL",
       "reason": "Insufficient/invalid data"
     },
     {
@@ -12,6 +32,22 @@
     },
     {
       "symbol": "MEESHO",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "VAML",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "VISL",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "VOGL",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "VEDPOWER",
       "reason": "Insufficient/invalid data"
     }
   ]
