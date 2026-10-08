@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-10-07T17:28:25.932608+00:00",
-  "count": 12,
+  "updatedAt": "2026-10-08T17:27:22.803485+00:00",
+  "count": 11,
   "items": [
     {
       "symbol": "BAGMANE",
@@ -28,10 +28,6 @@
     },
     {
       "symbol": "ICICIAMC",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "MEESHO",
       "reason": "Insufficient/invalid data"
     },
     {
