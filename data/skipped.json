@@ -1,7 +1,11 @@
 {
-  "updatedAt": "2026-10-21T15:25:16.096045+00:00",
-  "count": 11,
+  "updatedAt": "2026-10-22T15:24:32.679238+00:00",
+  "count": 12,
   "items": [
+    {
+      "symbol": "ACMESOLAR",
+      "reason": "Insufficient/invalid data"
+    },
     {
       "symbol": "BAGMANE",
       "reason": "Insufficient/invalid data"
