@@ -1,11 +1,7 @@
 {
-  "updatedAt": "2026-10-22T15:24:32.679238+00:00",
+  "updatedAt": "2026-10-23T15:14:27.504100+00:00",
   "count": 12,
   "items": [
-    {
-      "symbol": "ACMESOLAR",
-      "reason": "Insufficient/invalid data"
-    },
     {
       "symbol": "BAGMANE",
       "reason": "Insufficient/invalid data"
@@ -28,6 +24,10 @@
     },
     {
       "symbol": "FRACTAL",
+      "reason": "Insufficient/invalid data"
+    },
+    {
+      "symbol": "ICICILIFE",
       "reason": "Insufficient/invalid data"
     },
     {
