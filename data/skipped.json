@@ -1,7 +1,11 @@
 {
-  "updatedAt": "2026-10-29T16:59:46.271281+00:00",
+  "updatedAt": "2026-10-30T16:44:45.593559+00:00",
   "count": 11,
   "items": [
+    {
+      "symbol": "APOLLOHOSP",
+      "reason": "Insufficient/invalid data"
+    },
     {
       "symbol": "BAGMANE",
       "reason": "Insufficient/invalid data"
@@ -24,10 +28,6 @@
     },
     {
       "symbol": "FRACTAL",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "ICICILIFE",
       "reason": "Insufficient/invalid data"
     },
     {
