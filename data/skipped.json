@@ -1,7 +1,11 @@
 {
-  "updatedAt": "2026-11-20T18:40:16.312822+00:00",
-  "count": 10,
+  "updatedAt": "2026-11-23T22:06:51.471535+00:00",
+  "count": 11,
   "items": [
+    {
+      "symbol": "AETHER",
+      "reason": "Insufficient/invalid data"
+    },
     {
       "symbol": "BAGMANE",
       "reason": "Insufficient/invalid data"
