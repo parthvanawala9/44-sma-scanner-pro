@@ -1,17 +1,13 @@
 {
-  "updatedAt": "2026-11-26T19:43:06.959484+00:00",
-  "count": 11,
+  "updatedAt": "2026-11-27T19:32:13.202694+00:00",
+  "count": 10,
   "items": [
     {
-      "symbol": "APTUS",
+      "symbol": "ACUTAAS",
       "reason": "Insufficient/invalid data"
     },
     {
       "symbol": "BAGMANE",
-      "reason": "Insufficient/invalid data"
-    },
-    {
-      "symbol": "BHARATCOAL",
       "reason": "Insufficient/invalid data"
     },
     {
@@ -23,11 +19,11 @@
       "reason": "Insufficient/invalid data"
     },
     {
-      "symbol": "DUMMYHEG",
+      "symbol": "FRACTAL",
       "reason": "Insufficient/invalid data"
     },
     {
-      "symbol": "FRACTAL",
+      "symbol": "HEGRAPHITE",
       "reason": "Insufficient/invalid data"
     },
     {
